@@ -1,0 +1,243 @@
+# 
+# ====================================== #
+# BOAS test for SAO PGEs: A basic O3 fit #
+# ====================================== #
+
+# Currently supported: OMI, will be changed to "GEMS"
+Satellite instrument name
+OMI
+
+# Ignored for all instruments but GOME
+# Note the bands are in increasing order and no repetition, no internal sort/check
+# Within in the same band (e.g., 1a & 1b, no overlapping between them)
+GEMS radiance bands to be used ; (band 1: UV-1; band 2: UV-2; band 3: VIS)
+T                  # rm_mgline, Filter spectral pixels around Mg and Mg-II (280 and 285 nm), not need for GEMS
+2  F   F           # numwin, do_bandavg, wcal_bef-coadd # of bands, spectral coadd? wavelength calibration before coadd? 
+1  269  309. 5 2   ; band_selctectors(i), winlim(i,1), winlim(i,2), n_band_avg(i), n_band_samp(i)
+2  312. 330. 2 2
+
+GEMS spatial coadding
+F  1         # do_xbin, nxbin, coadd across track, # of observations to be coadded
+F  2         # do_ybin, nybin, coadd along  track, # of observations to be coaddedke
+31  32       # pixlim [1, 60] 첫번째 픽셀은 반드시 홀수, 총 갯수는 반드시 짝수
+-1  -1       # linlim [1, 1644]
+T            # read l1l2 inputfile from next file
+/home/o3p_hs/GEMS/o3p/v0.4.3/run/conf/INP/L1L2_fnames.inp
+
+
+# If Ozone profile retrieval, line "Molecule(s) to fit" will not be read
+Ozone profile retrieval
+.TRUE.
+../run/conf/INP/ozprof.inp
+
+Reference spectra directory
+../../dat/tbl/
+
+# T, P, Aerosol, Climatology, Cloud, Terrain Height, Albedo
+Atmospheric database directory
+../../dat/ATMOS/
+
+Output directory
+./
+
+
+General fitting parameters
+ T F T F      # use_backup, use_solcomp, avg_solcomp, avgsol_allorb, use backup, use solar composite, median/pc0, all orbits / first 7 orbits
+ 0            # which_slit, 0: Symmetric Gauss 1: Asymmetric Gauss  2. Voigt  3: Tirangle (symmetric) 4: OMI-preflight slit
+ 0.01         # slit_trunc_limit, Slit truncation limit
+ F F F F  F   # yn_varyslit, wavcal, wavcal_sol, smooth_slit, slit_rad, variable slit, wavelength calibration, second iter for sol wavcal, smooth cali, slit_rad
+ 31 10 T      # slit_fit_pts, n_slit_step, slit_redo, slit fit pts, slit step points, on-line slit fit (21, 5)
+ 21 6  T      # wavcal_fit_pts, n_wavcal_step, wavcal_redo, wavcal fit pts, wavcal step points, on-line wavcal cal (15, 3)
+ F            # yn_smooth, SMOOTH spectra?
+ F            # yn_doas,DOAS fitting? We use BOAS, DOAS for trace gas
+ T            # use_meas_sig, Use measurement error
+ 1.0E-06      # pseudo rank tolerance constant  (TOL = SQRT(mach. prec.))
+ 1.0E-02      # relative convergence constant (EPSREL = SQRT(mach. prec.))
+ 1.0E-02      # absolute convergence constant (EPSABS = mach. prec.)
+ 1.0E-02      # parameterconvergence constant (EPSX   = SQRT(mach. prec.))
+
+OMSAO_KPNO_SolarSpec_GOME-range.dat   
+OMSAO_NKPNO_SolarSpec_ReCal.dat 
+OMSAO_NKPNO_Kelly_SolarSpec.dat  
+
+Solar calibration parameters 
+OMSAO_NKPNO_SolarSpec_ReCal.dat  
+ F           # weight_sun, do solar weighting? 
+ 10          # max_itnum_sol, maximum number of iterations for (solar) wvl.cal. (<0: default)
+bl0  0 0 0 1.0E-5 -1.0E+99   1.0E+99
+bl1  0 0 0 -1.0E-6  -1.0E+99   1.0E+99
+bl2  0 0 0 1.0E-7   -1.0E+99  1.0E+99
+bl3  0 0 0 -1.0E-08  -1.0E+99  1.0E+99
+sc0  1 1 1  -1.0E+99  1.0E+99    
+sc1  1.0E-4  -1.0E+99   1.0E+99
+sc2  -5.43E-05 -1.0E+99   1.0E+99
+sc3  3.5E-6  -1.0E+99   1.0E+99
+sin  1.00E+00  -1.0E+99   1.0E+99
+hwe  0.3 -10.0E+00  10.0E+00                    # Gaussian HW@1/e ** Half width at 1/e, hwl3x1.66 ~FWHM
+asy  0 0 0 -0.04 -1.0E+99 1.0E+99               # Gaussian asymmetry
+shi  -1.00E-03 -1.0E+99 1.0E+99                 # shift parameter  W + ^
+squ  0 0 0 1.0E-5 -0.01  0.01                   # squeed parameter W * ^
+vgl  0 0 0 0.03 0.03 0.03 0.067 -1.0E+99 1.0E+99 # for voigt slit function     
+vgr  0 0 0 0.03  0.03 0.03 -1.0E+99 1.0E+99      # for voigt slit function 
+hwl  0 0 0 0.159  -1.0E+99 1.0E+99             
+hwr  0 0 0 0.204  -1.0E+99 1.0E+99
+eoi 0 0 0  # end of input
+
+Radiance calibration parameters
+ F            # renorm, renormalize radiance spectrum?
+ F            # weight_rad, weight radiance spectrum?
+ 10            # max_itnum_rad, maximum number of iterations for fitting (<0: default)
+ 100          # radwavcal_freq, frequency of radiance wavelength calibration
+ 88.0         # szamax, maximum solar zenith angle to process
+ 0.0          # zatmos, "Top of Atmosphere" height [km]
+ +0.1         # phase, "phase" of undersampling spectrum
+bl0   0 0 0 -1.56  -1.0E+99   1.0E+99     
+bl1   0 0 0 -1.56  -1.0E+99   1.0E+99   
+bl2   0 0 0 1.590E-8   -1.0E+99   1.0E+99
+bl3   0 0 0 -5.56E-6   -1.0E+99   1.0E+99
+sc0   1.0 1.0 1.0 -1.0E+99 1.0E+99    
+sc1   0 0 0 -.01E   -1.0E+99   1.0E+99
+sc2   0 0 0 +0.0025  -1.0E99 1.0E99  -1.0000004E-04   -1.0E+99   1.0E+99
+sc3   0 0 0 -0.01  -1.0E99 1.0E99 5.0000000E-05   -1.0E+99   1.0E+99
+sin   1.0 1.0 1.0 -1.0E99 1.0E99 0.0 1.0 0.7 0.7
+hwe   0.0 0.0 0.0   # Gaussian HW@1/e
+asy   0.0 0.0 0.0   # Gaussian asymmetry
+shi   0 0 0 1.83E-3 -1.0E+99  1.0E+99
+squ   0.00 0.00  00.0         
+vgl   0.00 0.00 0.00
+vgr   0.00 0.00 0.00
+hwl   0.00 0.00 0.00
+hwr   0.00 0.00 0.00
+eoi   0 0 0           #  end of input
+
+********** Some Ring Spectra **********
+GTRING_gomesolar_sza40.dat 
+OMSAO_Ring0_Spectrum_noslit.dat 
+CHRIS_RING_Spectrum_SZA43.dat
+OMSAO_Zero_Spec.dat    lidort_rrs_sza40.dat
+OMSAO_SO2_295K_SAO-IASB.dat
+OMSAO_SO2_scia_fm_293.dat
+
+Radiance fitting parameters
+no2_t1
+OMSAO_NO2_220K_noslit.dat
+ad1    0 0 0                           # additive1  
+lbe    0 0 0 2.62E-04 -1.0E+99 1.0E+99 # bear lambert's law
+ad2    0 0 0                           # additive2
+no2s   0 0 0   -1.0E+99 1.0E+99        # shift
+so2   
+OMSAO_SO2_295K_SAO-IASB.dat
+ad1    0 0 0 
+lbe    0 0 0 8.43E-05 -1.0E+99 1.0E+99  OMSAO_SO2_295K_SAO-IASB.dat
+ad2    0 0 0 
+so2s   0 0 0 -1.0E+99 1.0E+99  OMSAO_SO2_scia_fm_293.dat
+so2v   
+OMSAO_SO2_scia_fm_273.dat
+ad1    0 0 0 
+lbe    0 0 0 8.43E-05 -1.0E+99 1.0E+99  OMSAO_SO2_295K_SAO-IASB.dat
+ad2    0 0 0 
+so2vs  0 0 0  -1.0E+99 1.0E+99  OMSAO_SO2_scia_fm_293.dat
+bro
+OMSAO_BrO_228K_o3prof_noslit.dat
+ad1    0 0 0 
+lbe   5.67D-5 -1.0E+99 1.0E+99
+ad2    0 0 0 
+bros   0 0 0  -1.0E+99 1.0E+99
+hcho
+OMSAO_HCHO_300K_Cantrell.dat
+ad1    0 0 0 
+lbe    0 0 0 1.00D-5 -1.0E+99 1.0E+99
+ad2    0 0 0 
+hchos  0 0 0  -1.0E+99 1.0E+99
+commod
+OMSAO_Zero_Spec.dat
+ad1    0 0 0 -1.0E+99  1.0E+99         ; UV1
+lbe    0 0 0 -1.0E+99 1.0E+99
+ad2    0 0 0 1.0  -1.0E+99 1.0E+99 
+coms   0 0 0 0.001 -1.0E+99 1.0E+99
+comod1
+OMSAO_Zero_Spec.dat
+ad1    0 0 0 -1.0E+99  1.0E+99        ; UV2
+lbe    0 0 0 1.0 -1.0E+99 1.0E+99
+ad2    0 0 0 1.0  -1.0E+99 1.0E+99 
+com1s   0 0 0 0.001 -1.0E+99 1.0E+99
+end_of_input
+
+o2o2
+OMSAO_O4_294K_BISA.dat
+ad1    0.0E+00  0.0E+00  0.0E+00
+lbe    0 0 0 0 4.62053E-02   -1.0E+99    1.0E+99
+ad2    0.0000000E+00    0.0E+00        0.0E+00
+o4s    0 0 0 0.0001 -1.0E+99 1.0E+99
+ring
+OMSAO_Zero_Spec.dat
+ad1    0 0 0 0.03755 -1.0E+99 1.0E+99  ; Read first 3 numbers after ad1 (initial, lower and upper bounds)
+lbe    0 0 0 -0.9 -1.0E+99 1.0E+99   
+ad2    0 0 0
+rings  0 0 0 0.001  -1.0E+99 1.0E+99
+ring1
+OMSAO_Zero_Spec.dat
+ad1    0 0 0 0.03755 -1.0E+99 1.0E+99   
+lbe    0 0 0 -1.70 -1.0E+99 1.0E+99   
+ad2    0 0 0
+rings  0 0 0 0.001  -1.0E+99 1.0E+99
+usamp1
+OMSAO_Zero_Spec.dat
+ad1    0 0 0 1.0  -1.0E+99   1.0E+99 
+lbe    0 0 0 
+ad2    0 0 0
+uss1   0 0 0 1.00D-3 -1.0E+99 1.0E+99
+usamp2
+OMSAO_Zero_Spec.dat
+ad1    0 0 0 1.0 -1.0E+99        1.0E+99 
+lbe    0 0 0 
+ad2    0 0 0 
+uss2   0 0 0 1.00D-3 -1.0E+99 1.0E+99
+o2o2
+OMSAO_O4_000K.dat
+ad1    0.0E+00  0.0E+00  0.0E+00
+lbe    0 0 0 4.62053E-02   -1.0E+99    1.0E+99
+ad2    0.0000000E+00    0.0E+00        0.0E+00
+o4s    0 0 0 0.0001 -1.0E+99 1.0E+99
+o2gam
+OMSAO_o2gamma_240k_500mb.dat
+ad1    0.0E+00  0.0E+00  0.0E+00
+lbe    2.67053E-03   -1.0E+99    1.0E+99
+ad2    0.0000000E+00    0.0E+00        0.0E+00
+o2s    0.0001 -1.0E+99 1.0E+99
+h2o
+OMSAO_H2O_280k_900mb.dat
+ad1    0.0E+00  0.0E+00  0.0E+00
+lbe    8.173E-04   -1.0E+99    1.0E+99
+ad2    0.0000000E+00    0.0E+00        0.0E+00
+h2os   0.0001 -1.0E+99 1.0E+99
+commod
+OMSAO_Zero_Spec.dat
+ad1    0 0 0 -1.0E+99  1.0E+99
+lbe    0 0 0
+ad2    0 0 0 0.99  -1.0E+99 1.0E+99 
+coms   0 0 0 0.001 -1.0E+99 1.0E+99
+commod
+ch2b_gdp_oe_res_pc1.dat
+ad1    0 0 0 -1.0E+99  1.0E+99
+lbe    0 0 0
+ad2    0 0 0 0.99  -1.0E+99 1.0E+99 
+coms   0 0 0 0.001 -1.0E+99 1.0E+99 
+comod1
+ch2b_gdp_oe_res_pc2.dat
+ad1    0 0 0 -1.0E+99  1.0E+99
+lbe    0 0 0
+ad2    0 0 0 0.99  -1.0E+99 1.0E+99 
+com1s  0 0 0 0.001 -1.0E+99 1.0E+99 
+commod
+
+
+# not used for GEMS
+Reduce spectral resolution
+F      ; reduce_resolution T: Reduce spectral resolution; F: Original
+1      ; reduce_slit 1: Symmetric Gaussian 2. Triangular
+0.98681265 1.0655328  ; omi_redslw(1:mswath) additional slit width (FWHM) for each channel
+T      ; use_redfixwav T: read wavelength grid from file (nex line), F: generated based sample rate, FWHM, : redfixwav_fname
+../run/conf/INP/SBUV2_wavelengths.dat  
+3      ; redsampr  sample rate (per FWHM)
+0.05   ; redlam fine grid interval (before convolution), if negative or greater than original, then use original
