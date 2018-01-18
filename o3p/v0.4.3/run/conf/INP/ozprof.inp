@@ -169,7 +169,7 @@ ins0   0 0 0 1 1 1.0E-3 -1.0 1.0 1 1      ; straylight/dark current in irradianc
 ins1   0 0 0 1 1 1.0E-6 -1.0 1.0  1 2                                                                
 ins2   0 0 0 1 1 1.0E-7 -1.0 1.0  1 2                                                                    
 ins3   0 0 0 1 1 1.0E-8 -1.0 1.0  1 2                                                                
-inr0   1.0E-7 -1.0 1.0  1 1              ; straylight/dark current in radiance 
+inr0   1.0E-7 -1.0 1.0  1 2              ; straylight/dark current in radiance 
 inr1   0 0 0 1 1 1.0E-6 -1.0 1.0  1 1     
 inr2   0 0 0 1 1 1.0E-6 -1.0 1.0  1 2      
 inr3   0 0 0 1 1 1.0E-7 -1.0 1.0  1 2         

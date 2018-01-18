@@ -464,7 +464,7 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
   radwvl_sav(1:n_rad_wvl) = curr_rad_spec(wvl_idx, 1:n_rad_wvl)  
 
   ! redo_database = .FALSE.
-  redo_database = .TRUE.
+  redo_database = .TRUE.  !wasp
 
   IF (theline >= 1) THEN
 
