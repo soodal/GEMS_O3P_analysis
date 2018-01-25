@@ -3,7 +3,7 @@
 # origin : D. Shin.
 # updated : hs
 
-type=practice_list
+type=work
 
 make_on=1       # 0: run without make   1: make and run 
 use_qsub=0      # whether to use qsub or not (1: use qsub,  0: command line, else: just test run without retrievals)
@@ -23,6 +23,7 @@ PGEHOME=/home/o3p_hs/GEMS/o3p/v0.4.3
 pwd=`pwd`  
 
 FILE=runlist.list
+#FILE=runlist2.list
 
 while read line
 do

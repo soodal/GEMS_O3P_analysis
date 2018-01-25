@@ -1401,7 +1401,7 @@ SUBROUTINE hres_radwf_inter_convol(nw, nz, nctp, ncbp, nsprs, faerlvl,  &
      IF (do_faerwf) faerwf(1:now, faerlvl:nz) = haerwf(1:now, faerlvl:nz)
      IF (do_faerwf) faerswf(1:now, faerlvl:nz) = haerswf(1:now, faerlvl:nz)
      IF (do_codwf) fcodwf(1:now, nctp:ncbp) = hcodwf(1:now, nctp:ncbp)
-     IF (do_sprswf) fsprswf(1:now, nsprs:nz) = fsprswwf(1:now, nsprs:nz) !wasp
+     IF (do_sprswf) fsprswf(1:now, nsprs:nz) = fsprswf(1:now, nsprs:nz) !wasp
      IF (do_o3shi) dads(1:now, 1:nz) = dads1(1:now, 1:nz)
      IF (do_tmpwf) dadt(1:now, 1:nz) = dadt1(1:now, 1:nz)
      IF (do_tracewf) THEN
