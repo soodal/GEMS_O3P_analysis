@@ -77,6 +77,8 @@ include ../make/make.sources
 include ../make/make.o3prof_sources
 include ../make/make.gems_sources
 
+GEMS_LIB += -I/usr/local/mpi/include -L/usr/local/mpi/lib -lmpi -lmpi_mpifh
+GEMS_LIB += -L$(LAPACK_PATH_LIB) -llapack -lblas
 # =================================================
 #  Everything we want to make in this distribution
 # =================================================
@@ -138,7 +140,6 @@ include ../make/make.mod_patterns
 include ../make/make.patterns
 include ../make/make.o3prof_patterns
 include ../make/make.gems_patterns
-
 # =================
 #  End of Makefile
 # =================

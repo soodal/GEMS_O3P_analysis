@@ -144,7 +144,8 @@ ny     = ntimes
     gems_uv1%prec(1:nw, 1:nx, 1:ny)=  gvf_euv1_prec(1:nw, 1:nx, 1:ny)
     gems_uv1%qflg(1:nw, 1:nx, 1:ny) = gds_brug%euv1%brug_dfld%PQFlag(1:nw, 1:nx, 1:ny)
 
- nw = nw_uv2 ; nx = nx_uv2
+    nw = nw_uv2 ; nx = nx_uv2
+
     gems_uv2%nxtrack = nx 
     gems_uv2%nwavel  = nw    
     gems_uv2%height(1:nx, 1:ny)     = gds_brug%euv2%brug_gfld%TerrHgt(1:nx, 1:ny)
@@ -164,7 +165,6 @@ ny     = ntimes
     gems_uv2%qflg(1:nw, 1:nx, 1:ny) = gds_brug%euv2%brug_dfld%PQFlag(1:nw, 1:nx, 1:ny)
   
  CALL GEMS_Share_DeallocMem2
-
 RETURN
 
 END SUBROUTINE gems_o3p_share_l1b
@@ -191,7 +191,7 @@ SUBROUTINE Gems_o3p_share_l2_cld (nx, ny, gems_cfr, gems_ctp, gems_qflag)
   ! ================
   ! Local variables
   ! ================
-   CHARACTER(LEN=128)    :: ctl_fpath
+   CHARACTER(LEN=LPATH_SZ)    :: ctl_fpath
    TYPE(CLD_ds)          :: CLDds
 !  TYPE(L2_cld)          :: L2CLD      ! For GEMS L2 CLD
    TYPE(OMI_L2CLD)       :: L2CLD       ! For OMI L2 CLD

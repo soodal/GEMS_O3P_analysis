@@ -192,7 +192,7 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
   ENDIF
  
   ! ============= Overridden some control and atmospheric variables ============== 
-   IF (num_iter == 0 ) THEN
+  IF (num_iter == 0 ) THEN
      n_szangles = 1; szangles(1) = sza 
      IF (sza >= 90.0 .OR. sza < 0) THEN
         WRITE(*, *) modulename, ' : SZA is >= 90 or < 0 !!!'
@@ -222,7 +222,6 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
 
      IF (nz > maxlayers) THEN
         WRITE(*, *) modulename, ' : # of layers exceeded allowed !!!',nz, maxlayers
-
         errstat = pge_errstat_error; RETURN
      ENDIF
      IF (nl > nlayers) THEN
@@ -273,13 +272,13 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
         ENDIF
         ts(1:nz) = (ts(1:nz) + ts(0:nz-1)) / 2.0
      ENDIF
- ELSE
-    ozs(1:nz) = ozprof(1:nl);    varyprof(1:nz) = ozvary(1:nl)
- ENDIF
+  ELSE
+     ozs(1:nz) = ozprof(1:nl);    varyprof(1:nz) = ozvary(1:nl)
+  ENDIF
  
- nz1 = nfsfc - 1 
- ! Update aerosol fields: first AOD
- IF (do_taodwf .AND. num_iter > 0) THEN
+  nz1 = nfsfc - 1 
+  ! Update aerosol fields: first AOD
+  IF (do_taodwf .AND. num_iter > 0) THEN
     aodscl = fitvar_rad(taodind) / tropaod(actawin)
     tropaod(1:actawin) = tropaod(1:actawin) * aodscl
     gaext(1:actawin, nup2p(ntp)+1:nz1) = gaext(1:actawin, nup2p(ntp)+1:nz1) * aodscl
@@ -843,7 +842,7 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
      
      IF (.NOT. do_radcals(iw) ) CYCLE   ! Radiances and weighting functions will be interpolated 
      lamda = waves(iw) 
-     
+
      IF (nwfc > 0) the_cfrac = wfcs(iw)
       
      ! NSTOKES = 4 when
@@ -980,6 +979,7 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
         
         radclrcld = 0.0
         DO ic = 1, 2               ! for clear and cloud
+           !print*,ic,nlayers,nctp,nz1  !  wasp!
 
            IF (ic == 1) THEN
               do_clouds = .FALSE.; frac = 1.0 - the_cfrac
@@ -1020,6 +1020,8 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
            ELSE                 ! lambertian clouds
               nlayers = nctp-1  ! from cloud top to TOA
               nz1 = nlayers;    do_clouds = .FALSE.
+              !print*,ic,nlayers,nctp,nz1  !  wasp!
+              !stop
               
               IF (the_cfrac == 1.0 .AND. nw /= 1) THEN
                  lambertian_albedo = albs(iw); lambcld_refl = lambertian_albedo
@@ -1074,14 +1076,13 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
            ! Pixel-independent approximation
            radclrcld(ic, 1:nostk) = stokes(1, 1, 1:nostk, 1) * polerr(iw, ic, 1:nostk)
            rad(iw, 1:nostk)       = rad(iw, 1:nostk) + radclrcld(ic, 1:nostk) * frac
-           
            IF (do_linearization ) THEN
               
               ! weighting function per Dobson Unit
               IF ( do_ozwf ) THEN
                  DO istk = 1, nostk
                     fozwf(iw, 1:nfsfc-1, istk) = fozwf(iw, 1:nfsfc-1, istk) + profilewf(ozwfidx, 1:nfsfc-1, 1, 1, istk, 1) &
-                         / ozs(1:nfsfc-1)  * polerr(iw, ic, istk) * frac 
+                         / ozs(1:nfsfc-1) * polerr(iw, ic, istk) * frac 
                  ENDDO
               ENDIF
               
@@ -1339,9 +1340,8 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
              allcrs(i, 1, 1:nz1), allcrs(i, 3, nz1)*refspec_norm(9)
      ENDDO
      
-     STOP
+     !STOP
   ENDIF
- 
   RETURN
 END SUBROUTINE LIDORT_PROF_ENV
 

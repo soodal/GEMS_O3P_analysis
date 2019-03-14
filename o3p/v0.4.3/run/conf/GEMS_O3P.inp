@@ -1,4 +1,4 @@
-# 
+# q 
 # ====================================== #
 # BOAS test for SAO PGEs: A basic O3 fit #
 # ====================================== #
@@ -12,17 +12,17 @@ OMI
 # Within in the same band (e.g., 1a & 1b, no overlapping between them)
 GEMS radiance bands to be used ; (band 1: UV-1; band 2: UV-2; band 3: VIS)
 T                  # rm_mgline, Filter spectral pixels around Mg and Mg-II (280 and 285 nm), not need for GEMS
-2  F   F           # numwin, do_bandavg, wcal_bef-coadd # of bands, spectral coadd? wavelength calibration before coadd? 
+2  F   F            # numwin, do_bandavg, wcal_bef-coadd # of bands, spectral coadd? wavelength calibration before coadd? 
 1  269  309. 5 2   ; band_selctectors(i), winlim(i,1), winlim(i,2), n_band_avg(i), n_band_samp(i)
 2  312. 330. 2 2
 
 GEMS spatial coadding
 F  1         # do_xbin, nxbin, coadd across track, # of observations to be coadded
 F  2         # do_ybin, nybin, coadd along  track, # of observations to be coaddedke
-31  32       # pixlim [1, 60] 첫번째 픽셀은 반드시 홀수, 총 갯수는 반드시 짝수
--1  -1       # linlim [1, 1644]
+31  32         # pixlim [1, 60] 첫번째 픽셀은 반드시 홀수, 총 갯수는 반드시 짝수
+100  120   # linlim [1, 1644]
 T            # read l1l2 inputfile from next file
-/home/o3p_hs/GEMS/o3p/v0.4.3/run/conf/INP/L1L2_fnames.inp
+../run/conf/INP/L1L2_fnames.inp
 
 
 # If Ozone profile retrieval, line "Molecule(s) to fit" will not be read

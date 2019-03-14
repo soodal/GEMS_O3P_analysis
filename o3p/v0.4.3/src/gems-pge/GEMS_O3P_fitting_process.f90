@@ -23,16 +23,17 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
   USE OMSAO_precision_module
   USE OMSAO_variables_module,  ONLY: currpix,currloop,currtrack, currline,currtime, &
                                      the_lons, the_lats,ozabs_convl, so2crs_convl, wavcal, scnwrt, &
-                                     npix_fitting, npix_fitted,n_fitvar_rad, fitvar_rad_saved,mask_fitvar_rad 
+                                     npix_fitting, npix_fitted,n_fitvar_rad, fitvar_rad_saved, mask_fitvar_rad 
   USE ozprof_data_module, ONLY:num_iter
  !USE OMSAO_slitfunction_module
   USE GEMS_o3P_geo_module
   USE OMSAO_errstat_module
   USE GEMS_O3P_gemsdata_module, ONLY: ncoadd, nxbin, nybin, lineloc, pixloc, &
-                                      first_pix, last_pix, first_line,last_line, offline, &
+                                      first_pix, last_pix, first_line, last_line, offline, &
                                       gems_rad, gems_irrad, gems_exitval, gems_fitvar, gems_initval
   USE Share_l2_o3p_mod_write_read
   USE O3P_MOD_Output, ONLY:GEMS_O3P_Write
+
   IMPLICIT NONE
 
   ! -----------------------
@@ -44,7 +45,7 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
   ! Local variables 
   ! -------------------------
   INTEGER :: initval, errstat, exval
-  INTEGER :: curr_fitted_line, nxcoadd, iy, ix
+  INTEGER :: curr_fitted_line, nxcoadd, iy, ix, iw  ! wasp
   REAL (KIND=dp), DIMENSION(3)    :: fitcol
   REAL (KIND=dp), DIMENSION(3, 2) :: dfitcol
   REAL (KIND=dp)     :: fitcol_avg, rms_avg, dfitcol_avg, drel_fitcol_avg, rms
@@ -72,9 +73,8 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
   ! Read Cloud Pressure
   !------------------------------
   WRITE(*, '(A)') ' => Preparing Cloud data'
-  CALL gems_o3p_prep_cld (last_line, offline, pge_error_status)
+  Call gems_o3p_prep_cld (last_line, offline, pge_error_status)
   IF ( pge_error_status >= pge_errstat_error ) RETURN
-
 
   !---------------------------
   ! Read radiance
@@ -82,8 +82,6 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
   WRITE(*,'(A, i4,"-",3i4)') ' => Preparing Radiance data'
   CALL GEMS_O3P_read_l1b_rad ( nxcoadd, first_pix, last_pix,  last_line, offline, pge_error_status)
   If (pge_error_status >= pge_errstat_error) RETURN
-  
-
   
   IF (wavcal) THEN
      !CALL gems_o3p_rad_cross_calibrate (first_pix, last_pix, last_line, offline, pge_error_status)
@@ -101,7 +99,6 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
   gems_initval(:,:)  = 0
 
   WRITE(*, '(6A5,2A8,A6, a5,A8)') 'LINE','XPix','CLine','Cpix','Lloc','Ploc', 'Lon','Lat','Exval','RMS','NUM'
-
   GEMS_PIX: DO currpix = first_pix, last_pix   
      
      ! Load/adjust irradiances and slit calibration parameters
@@ -128,7 +125,6 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
          IF ( pge_error_status >= pge_errstat_error ) gems_exitval(currpix, currloop) = -9
       ENDIF
 
-
      CALL timestamp(currtime)
       IF (gems_exitval(currpix, currloop) == -10) THEN
               
@@ -139,7 +135,6 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
      ELSE
          exval = -9
      ENDIF
-     
      WRITE(*, '(6I5,2f8.2,I6, f8.3,i5, A27)') currline, currtrack,currloop, currpix,lineloc(currloop), pixloc(currpix), &
                                               the_lons(5), the_lats(5) ,exval, rms, num_iter, currtime
 

@@ -11,13 +11,13 @@ INTEGER (KIND=i4)         :: orbnum, orbnumsol !, gemssol_version
 
 
 ! Define Data Maximum Dimension
-INTEGER (KIND=i4), PARAMETER :: ntimes_max= 2000, nxtrack_max  = 60, nwavel_max  = 720 !wasp
+INTEGER (KIND=i4), PARAMETER :: ntimes_max= 2000, nxtrack_max  = 60, nwavel_max  = 720   ! ntimes_max 1645 -> 2000 geun mod
 INTEGER (KIND=i4), PARAMETER :: mchannel=2 ! # of maximum channel , mswath
 INTEGER :: nchannel, nxtrack, nfxtrack, ntimes  !nfxtrack = nxtrakc for UV1 if selected
 INTEGER, DIMENSION (mchannel):: chs
 INTEGER :: nxbin, nybin, ncoadd,first_pix, last_pix, first_line, last_line, offline, gems_nx, gems_ny
-INTEGER, DIMENSION (ntimes_max) ::  lineloc
-INTEGER, DIMENSION (nxtrack_max) ::  pixloc !wasp
+INTEGER, DIMENSION (ntimes_max) ::  lineloc  ! geun
+INTEGER, DIMENSION (nxtrack_max) ::  pixloc  ! geun
 LOGICAL :: do_xbin, do_ybin
 
 

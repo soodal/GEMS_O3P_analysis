@@ -3,18 +3,19 @@
 # origin : D. Shin.
 # updated : hs
 
-type=work
+type=final
 
 make_on=1       # 0: run without make   1: make and run 
 use_qsub=0      # whether to use qsub or not (1: use qsub,  0: command line, else: just test run without retrievals)
 ver=3           # sol, cld version
-nmpi=4          # number of core for computing with mpi
+nmpi=12          # number of core for computing with mpi
 
 # set environment vairables
 source ../run/gems_env.sh   
 
 # make source code
 if [ $make_on -eq 1 ] ; then
+  make clean
   make
 fi
 
@@ -22,8 +23,9 @@ DATDIR=/home/Data/OMI
 PGEHOME=/home/o3p_hs/GEMS/o3p/v0.4.3
 pwd=`pwd`  
 
-FILE=runlist.list
-#FILE=runlist2.list
+#FILE=runlist_errorcheck.list
+FILE=runlist_final.list
+#FILE=runlist_month3_pak.list
 
 while read line
 do
@@ -37,8 +39,6 @@ do
   spix=$((${spix} * 2 - 1))
   epix=$((${epix} * 2))
   pixsel="${sline} ${eline} ${spix} ${epix}"
-  ##pixsel='198 198 29 30'      
-  #timesel='2008m0602t03'
   echo $timesel   $pixsel
 
   IFS=' ' read -r -a pixline <<< "$pixsel"
@@ -57,7 +57,7 @@ do
   radprefix=OMI-Aura_L1-OML1BRUG_
   cldprefix=OMI-Aura_L2-OMCLDO2_
   nmldir=/home/o3p_hs/GEMS/share/conf
-  lv1_nmlorg=${nmldir}/l1breadmdl_v01.nml
+  lv1_nmlorg=${nmldir}/l1breadmdl_v02.nml
   lv1_nmlfile=${nmldir}/l1breadmdl.nml
   lv2_nmlorg=${nmldir}/lv2readmdl_org.nml
   lv2_nmlfile=${nmldir}/lv2readmdl.nml
@@ -66,9 +66,9 @@ do
 
   # initialized the orbits to be arrays
   # note the index starts from zero
-  #orbs[0]=''
-  #norb=0
-  #rm -f orbs.list
+  orbs[0]=''
+  norb=0
+  rm -f orbs.list
 
   for radfname in `ls $raddb$radprefix$timesel*he4`
   do
@@ -89,7 +89,7 @@ do
 
      #solfname=`ls $soldir$solprefix$monday*he4`
       cldfname=`ls $clddir$cldprefix*o$orb*he5`
-      lv2logname=$lv2dir$lv2logprefix'o'$orb
+      lv2logname=$lv2dir$lv2logprefix'o'$orb'.dat'
       lv2fname=GEM_TEST_L2_O3P_${monday}_o${orb}_P${pixline[2]}-${pixline[3]}_L${pixline[0]}-${pixline[1]}_mpi${nmpi}.h5
       #lv2fname=GEM_TEST_L2_O3P_${monday}_o${orb}_mpi${nmpi}.h5
 
@@ -158,8 +158,8 @@ do
 
       if [ $use_qsub -eq 0 ] 
           then            
-          #$PGEHOME/bin/${SAOPGE}_exec  > $lv2dir$type$orb'.dat' 
-          mpirun -np $nmpi $PGEHOME/bin/${SAOPGE}_exec  > $lv2dir$type$orb'_mpi'$nmpi'.dat' </dev/null
+          #$PGEHOME/bin/${SAOPGE}_exec  > $lv2logname
+          mpirun -np $nmpi $PGEHOME/bin/${SAOPGE}_exec  > $lv2logname </dev/null
           #$PGEHOME/bin/${SAOPGE}_exec 
           cd $pwd
           #cat $type$orb'.dat'

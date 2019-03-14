@@ -89,7 +89,7 @@ SUBROUTINE GEMS_O3P_L2wr(L2O3P_WR, retCode)
       )
   
     CALL GEMS_Share_GetLv2FileName("TEST", "O3P", Lv2FileName)
-    Lv2FileName = trim(gds_O3pL2Env%out_lv2_fname)    ! wasp
+    !Lv2FileName = trim(gds_O3pL2Env%out_lv2_fname)    ! geun
     wr_file_path  = trim(gds_O3pL2Env%out_lv2_fpath) // trim(Lv2FileName)
     !wr_file_path  = trim(gds_O3pL2Env%out_lv2_fpath) //'MPINO_YBIN01'//trim(Lv2FileName)
     !wr_file_path=trim(adjustl(l2_filename))

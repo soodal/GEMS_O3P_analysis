@@ -54,6 +54,8 @@ SUBROUTINE GEMS_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
     print*, " "
 
     WRITE(*,'(A)') ' => Reading control option'
+    !WRITE(*,*) fit_ctrl_file   ! wasp : GEMS_O3P.inp
+    
     CALL gems_o3p_read_ctr_file (fcunit,fit_ctrl_file, pge_error_status )
     IF ( pge_error_status >= pge_errstat_error ) THEN
          WRITE(*,'(A)') ' => Error in Reading fitting control file'
@@ -78,7 +80,7 @@ SUBROUTINE GEMS_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
          WRITE(*,'(A)') ' => Error in gems_o3p_share_l1b'
          RETURN
     END IF
-    
+
     !------------------------------------------------------------------------
     ! check pixnum_lim & linenum_lim
     !--------------------------------------------------------------------------
@@ -137,7 +139,7 @@ SUBROUTINE GEMS_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
     nxcoadd    = ncoadd*nxbin            ! Need just for OMI
     gems_nx    = nxtrack/nxcoadd         ! N of total x-pixels after coadding
     gems_ny    = INT ( ntimes*1.0/nybin) ! N of total y-pixels after coadding
-    !gems_ny = 10 !wasp
+    !gems_ny = 10    !geun
     
     call allocate_o3p_var(ntimes,  pge_error_status)
  
@@ -145,16 +147,15 @@ SUBROUTINE GEMS_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
     ! Read Irradiance
     !------------------------------
     WRITE(*,'(A,i2,"-",i2)') ' => Reading GEMS irradiance for ', 1, gems_nx
+    
     CALL gems_o3p_read_l1b_irrad ( nxcoadd, 1, gems_nx, pge_error_status)
     If (pge_error_status >= pge_errstat_error) THEN
          RETURN
     END IF
-
    
     RETURN
 
 END SUBROUTINE GEMS_O3P_SUB2_Proc_Input
-
 
 
 END MODULE O3P_MOD_Input

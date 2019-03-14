@@ -258,6 +258,9 @@ SUBROUTINE GEMS_O3P_SUB3_Irrad_cross_calibrate (first_pix, last_pix,  pge_error_
      gems_ring%solwavl(gems_ring%sol_lin(ix):gems_ring%sol_uin(ix), ix)  = sol_spec_ring(1, 1:nsol_ring)
   ENDDO
 
+    !write(*,*) nxbin, gems_irrad,gems_ring
+    !WRITE(*,'(A)') 'HELLO END!!!'
+!stop
   RETURN
 END SUBROUTINE GEMS_O3P_SUB3_Irrad_cross_calibrate
 

@@ -62,7 +62,6 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
 
   ! Obtain the uncondensed array of variables
   fitvar_rad(mask_fitvar_rad(1:nf)) = fitvar(1:nf)
-
   sunpos_ss(1:n_refwvl) =  refwvl(1:n_refwvl)
   IF (nsh > 0) THEN
      nextra = 2 * refnhextra
@@ -190,6 +189,7 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
      sunspec_ss = sunspec_ss * EXP (corr)
   ENDIF
   !WRITE(91, '(F10.4, D14.6)') ((fitwavs(i), sunspec_ss(i)), i = 1, ns)
+  !WRITE(*, '(F10.4, D14.6)') ((fitwavs(i), sunspec_ss(i)), i = 1, ns) ! wasp : 0.1~0.9D+01
 
   ! Internal Scattering in Irradiance
   IF ( nis > 0 ) THEN
@@ -230,7 +230,7 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
      ENDIF
   ENDIF
   corrected_irrad = sunspec_ss 
-
+  !WRITE(*, '(F10.4, D14.6)') ((fitwavs(i), corrected_irrad(i)), i = 1, ns) !wasp : didn't changed
 !  ! Internal Scattering in Irradiance (use stray-light spectra)
 !  IF ( nis > 0 ) THEN
 !     IF (do_subfit) THEN
@@ -293,24 +293,25 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
      corrected_irrad(1:ns) = corrected_irrad(1:ns) + fitvar_rad(i) * locdbs(1:ns)
   END DO
   !DO i = 1, ns
-  !   WRITE(*, '(F10.4,D14.7)') fitwavs(i), corrected_irrad(i) * div_sun
+    !!WRITE(*, '(F10.4,D14.7)') fitwavs(i), corrected_irrad(i) * div_sun
+    !WRITE(*, '(F10.4,D14.7)') fitwavs(i), corrected_irrad(i)
   !ENDDO
   !STOP
 
   ! Internal Scattering in Radiance
   corrected_rad = currspec(1:ns)
-  IF ( nir > 0 ) THEN
-     IF (do_subfit) THEN
+  IF ( nir > 0 ) THEN !wasp : nir = 1
+     IF (do_subfit) THEN !wasp : do_subfit=T
         fidx = 1
-        DO i = 1, numwin
-           lidx =  fidx + nradpix(i) - 1
+        DO i = 1, numwin !numwin=2
+           lidx =  fidx + nradpix(i) - 1 !nradpix(1)=102
 
-           wavg = (fitwavs(fidx) + fitwavs(lidx)) * 0.5
+           wavg = (fitwavs(fidx) + fitwavs(lidx)) * 0.5 
            del(fidx:lidx) = fitwavs(fidx:lidx) - wavg
            tempsum(fidx:lidx) = SUM(corrected_rad(fidx:lidx)) / wavg * fitwavs(fidx:lidx)
            !tempsum(fidx:lidx) = 1.0
 
-           IF (irfind(i, 1) > 0) corrected_rad(fidx:lidx) = corrected_rad(fidx:lidx) &
+           IF (irfind(i, 1) > 0) corrected_rad(fidx:lidx) = corrected_rad(fidx:lidx) & !irfind(1,1)=36
                    + fitvar_rad(irind(i, 1)) * tempsum(fidx:lidx)
            DO j = 2, nir
               IF (irfind(i, j) > 0) corrected_rad(fidx:lidx) = corrected_rad(fidx:lidx) &
@@ -332,13 +333,30 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
         IF (irfind(1, 1) > 0) corrected_rad(fidx:lidx) = corrected_rad(fidx:lidx) &
                    + fitvar_rad(irind(1, 1)) * tempsum(fidx:lidx) 
         
-        DO j = 2, nir
+        DO j = 2, nir !wasp : don't loop
            IF (irfind(1, j) > 0) corrected_rad(fidx:lidx) = corrected_rad(fidx:lidx) &
                 + fitvar_rad(irind(1, j)) * tempsum(fidx:lidx) * del(fidx:lidx) ** (j-1)
         ENDDO
      ENDIF
   ENDIF
+
+!write(*,*)'hello wasp! fitvar_rad!', fitvar_rad(1),fitvar_rad(2) !wasp : it's 0!
+!write(*,*)'hello wasp! spectra_reflectance!', corrected_rad(1:10)
+!write(*,*)'hello wasp! spectra_reflectance!', corrected_irrad(1:10)
+!write(*,*)'hello wasp! spectra_reflectance!', div_rad
+!write(*,*)'hello wasp! spectra_reflectance!', div_sun
+!write(*,*)'hello wasp! fitwavs!',fitwavs
+
   fitspec = corrected_rad / corrected_irrad * div_rad / div_sun 
+
+  OPEN(UNIT=2992,FILE='/home/o3p_hs/data/gems_spectra5.dat',STATUS='unknown')
+  DO i=1,ns
+    WRITE(2992,'(2X,F8.4,2X,D16.10,2X,D16.10)')fitwavs(i),corrected_irrad(i),corrected_rad(i)
+  ENDDO
+  CLOSE(2992)
+
+!write(*,*)'hello wasp! spectra_reflectance!', fitspec(1:10)
+!stop
 
 ! ! Internal Scattering in Radiance  (fit straylight spectrum)
 !  corrected_rad = currspec(1:ns)
@@ -410,52 +428,69 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
   !   ENDIF
   !END DO
 
+
   ! Ring effect (using Beer-law contribution)
-  IF (.NOT. fit_atanring) THEN
-     IF ( nrn > 0 ) THEN
-        corr = 0.0
+  IF (.NOT. fit_atanring) THEN ! wasp: if(T)
+    IF ( nrn > 0 ) THEN  ! wasp: nrn=1
+      corr = 0.0
         
-        IF (do_subfit) THEN
-           fidx = 1
-           DO i = 1, numwin
-              lidx =  fidx + nradpix(i) - 1
+      IF (do_subfit) THEN
+        fidx = 1
+        DO i = 1, numwin
+          lidx =  fidx + nradpix(i) - 1
               
-              del(fidx:lidx) = fitwavs(fidx:lidx) - ( (fitwavs(fidx) + fitwavs(lidx)) * 0.5)
+          del(fidx:lidx) = fitwavs(fidx:lidx) - ( (fitwavs(fidx) + fitwavs(lidx)) * 0.5)
               
-              IF (rnfind(i, 1) > 0) corr(fidx:lidx) = corr(fidx:lidx) + fitvar_rad(rnind(i, 1))
+          IF (rnfind(i, 1) > 0) corr(fidx:lidx) = corr(fidx:lidx) + fitvar_rad(rnind(i, 1))
               
-              DO j = 2, nrn
-                 IF (rnfind(i, j) > 0) corr(fidx:lidx) = corr(fidx:lidx) + &
-                      fitvar_rad(rnind(i, j)) * del(fidx:lidx) ** (j-1)
-              ENDDO
+          DO j = 2, nrn
+            IF (rnfind(i, j) > 0) corr(fidx:lidx) = corr(fidx:lidx) + &
+                                  fitvar_rad(rnind(i, j)) * del(fidx:lidx) ** (j-1)
+          ENDDO
               
-              fidx = lidx + 1
-           ENDDO
+          fidx = lidx + 1
+
+        ENDDO
+           
+      ELSE
+        IF (rnwins(1, 1) == 1) THEN
+
+          fidx = 1
+
         ELSE
-           IF (rnwins(1, 1) == 1) THEN
-              fidx = 1
-           ELSE
-              fidx = SUM(nradpix(1: rnwins(1, 1)-1)) + 1 
-           ENDIF
-           lidx = SUM(nradpix(1: rnwins(1, 2))) 
-           
-           del(fidx:lidx)   = fitwavs(fidx:lidx) - (fitwavs(fidx) + fitwavs(lidx)) * 0.5
-           
-           IF (rnfind(1, 1) > 0) corr(fidx:lidx) = corr(fidx:lidx) + fitvar_rad(rnind(1, 1))
-           
-           DO j = 2, nrn
-              IF (rnfind(1, j) > 0) corr(fidx:lidx) = corr(fidx:lidx) + &
-                   fitvar_rad(rnind(1, j)) * del(fidx:lidx) ** (j-1)
-           ENDDO
+
+          fidx = SUM(nradpix(1: rnwins(1, 1)-1)) + 1 
+
         ENDIF
-        
-        fitspec = fitspec * EXP(database(ring_idx, refidx(1:ns)) * corr)
-     ENDIF
+
+        lidx = SUM(nradpix(1: rnwins(1, 2))) 
+           
+        del(fidx:lidx)   = fitwavs(fidx:lidx) - (fitwavs(fidx) + fitwavs(lidx)) * 0.5
+           
+        IF (rnfind(1, 1) > 0) corr(fidx:lidx) = corr(fidx:lidx) + fitvar_rad(rnind(1, 1))
+           
+        DO j = 2, nrn
+
+          IF (rnfind(1, j) > 0) corr(fidx:lidx) = corr(fidx:lidx) + &
+                                fitvar_rad(rnind(1, j)) * del(fidx:lidx) ** (j-1)
+        ENDDO
+
+      ENDIF        
+
+      fitspec = fitspec * EXP(database(ring_idx, refidx(1:ns)) * corr)
+
+    ENDIF
+
   ELSE
+
      ! Fitting Ring effect using y = -[a0 * [atan((x-a1)/a2) + 1.54223] + 1]
+
      corr = atan( (fitwavs - fitvar_rad(rnind(1, 2))) / fitvar_rad(rnind(1, 3)) )
+
      corr = -(fitvar_rad(rnind(1, 1)) * (corr - corr(1)) + 1.0)
+
      fitspec = fitspec * EXP(database(ring_idx, refidx(1:ns)) * corr)
+
   ENDIF
 
   ! Second add-on contributions: add to the Sun-normalized radiance 
@@ -487,9 +522,7 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
         fitspec(1:ns) = fitspec(1:ns)  + fitvar_rad(i) * locdbs(1:ns)
      END IF
   ENDDO
-
-  ! Use logarithmic of the reflectance 
-  IF (use_lograd)  fitspec(1:ns) = LOG(fitspec(1:ns))
-
+  ! Use logarithmic of the reflectance wasp : True 
+ IF (use_lograd)  fitspec(1:ns) = LOG(fitspec(1:ns))
   RETURN
 END SUBROUTINE spectra_reflectance

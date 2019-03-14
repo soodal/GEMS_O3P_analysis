@@ -7,7 +7,7 @@ F  F                             ; do_simulation, do_simu_rmring
 F  F   T                         ; 1 T/F: 2 steps (2nd step for trace gas)? 2. T/F: both steps for trace gas? 3 T/F: large SO2 aperr
 T                               ; T: fitting the weighting function of minor trace gases
 ;ATMOS, screen, intermed, gases, var., correl, covar., avgk, favgk, contri., residual, wfns, s/n,  ring,  ozcrs 
-  F       F       F         F     F      F      F       F     F        F       F       F     F     F      F 
+  F       F       F         F     F      F      F       F     F        F       F       F     F     F      F
 ; File name for writing atmospheric inputs
 ../run/conf/INP/o3_wf_atm.dat       
 ; do radiance calibration, type (1: climatology  2: true ozone profile from other souces)
@@ -19,30 +19,35 @@ T                               ; use floor noise
 T  F   F                        ; on-line ring effect, slit convolution, fitting atan-1
 T                               ; T: update ozone below clouds through smoothing F: Don't update ozone below clouds
 T  F                            ; bias correction, time-dependent degradation correction
-7  ; which biascorr (1: direct corr. 2: para. corr 3: dirrect corr (offset & slope) 4: para. (offset & slope) 5. same as 3 but LOG(I) 6. xtrack correction (theta) 7 xtrack and wave (don't need to match positions like 1) 8. xw, relative difference I/F diff. vs. rad347  9.  xw, relative I/F difference vs. rad347 nm, but with option 7 correction as offset
+7  ; which biascorr (1: direct corr. 2: para. corr 3: dirrect corr (offset & slope) 4: para. (offset & slope) 5. same as 3 but LOG(I) ;6. xtrack correction (theta) 7 xtrack and wave (don't need to match positions like 1) 8. xw, relative difference I/F diff. vs. rad347  9.  xw, relative I/F difference vs. rad347 nm, but with option 7 correction as offset
 ../../dat/tbl/OMI/xw_bias_2006m07_hres_8s48lnr_nspk.dat
 ../run/conf/INP/GOME_degcorr_glb_lut_s_s6.dat  
 T                                ; do_subfit (T: some paraeters will be used for each window)
-1                 	         ; 1: lcurve, 2: gcv, 3: gcv with lcurve
+1                     	         ; 1: lcurve, 2: gcv, 3: gcv with lcurve
 F                                ; lcurve_write
 0  0.05 1.0 0.000                ; PTR order, w0, w1, w2
-1                                ; which clima         1~13  ***** (see end for more option) *****
-1                                ; which apriori error 1~13  ***** (see end for more option) *****
+1                                ; which clima         1~13  ***** (see end for more option) *****   # 1 -> 12   geun
+1                                ; which apriori error 1~13  ***** (see end for more option) *****   # 1 -> 12   geun
 0                                ; Total ozone. 0: None 1: gridded TOMS/OMI) 2. Zonal mean 3. Individual (not implemented)
 F                                ; update_o3
 F                                ; update_sao3
 F  0.20  0.2                    ; Loose a priori constraint, relative error in the stratosphere and troposphere
 F                               ; T: normalize tropospheric column ozone F. normalize whole profile
 4                               ; which albedo database (1: GOME from Kolemeijer; 2: TOMS from J.R. Herman 3: OMI from Omar) 4. Kleipool OMI
-3                               ; which cloud (0/1: OMICLDRR/OMICLDO2; 2 V8 Clima (from OMCLDRR); 3/4 OMCLDRR/OMCLDO2 + V8 CLIMA)
+0                               ; which cloud (0/1: OMICLDRR/OMICLDO2; 2 V8 Clima (from OMCLDRR); 3/4 OMCLDRR/OMCLDO2 + V8 CLIMA)
+0                               ; which tpres (0: Ncep; 1: AIRS; 2: fnl montly 3: um daily) adding this option by Jbak(09/15/11), modified by geun (03/13/18)
+0                               ; which spres (0: fnl daily; 1: fnl monthly 2: um daily) adding this option by geun (03/13/18)
+0                               ; which sfct (0: fnl daily; 1: fnl monthly 2: um daily) adding this option by geun (03/13/18)
+0                               ; which tprof (0: fnl daily+combined clima; 1: fnl monthly+combined clima; 2: um_daily+combined clima) adding this option by geun (03/13/18)
+
 F  F                            ; aerosol in LIDORT, stratospheric aerosols
 ;trop. aerosol (0: all 1: dust 2: sulfate, 3: BC 4: OC 5: fine SS 6:coarse SS), scale AOD,  and aerosol optical thickness
 0 F  0.01000
-T T 0.80 20.0                   ; Consider clouds, Lambertian Clouds, Lambertian cloud albedo, Default COD
+T T 0.80 20.0                   ; Consider clouds, Lambertian Clouds, Lambertian cloud albedo, Default COD ;wasp 0.80->0.90
 F                               ; Cloud/aerosols T: asymmetric factor F: phase
 63                              ; nmom: # of phase moments (start from zero, 0:nmom), overwrite vlidort_control.inp
 F                               ; T: use effectove cross section F: do radiance calculation at high resolution
-0.05                           ; sampling rate for find grid (must be multiples of 0.01 nm, 0.05 nm is good)
+0.05                            ; sampling rate for find grid (must be multiples of 0.01 nm, 0.05 nm is good)
 3                               ; # of spectral regions for specifying sampling rates
 260. 295. 310.                  ; boundary of spectra regions (using different sampling rate in different region)
 1.0  0.4  0.6                   ; spectral sampling rate (unit: nm) to do radiance calculation
@@ -111,7 +116,7 @@ ozcrs_sol_for_alb.dat
 3     ; number of albedo termns
 1ba0     0.11 -1 1   260.0 310.0  -1 1        ; 0th albdeo for ch 1
 2ba0     0.11 -1 1   310.0 355.0  -1 1        ; 0th albdeo for ch 2
-2ba1     0.0  -1.0 1.0  310.0   355.0    ; 1st albdeo for ch 2
+2ba1     0.0  -1.0 1.0  310.0   355.0    ; 1st albdeo for ch 2 #wasp -1 -> 1
 2ba2     0.0  1.0 1.0  310.0   355.0    ; 2nd albdeo for ch 2
 2ba3     0.0  1.0 1.0  310.0   355.0    ; 3rd albdeo for ch 2
 
@@ -169,7 +174,7 @@ ins0   0 0 0 1 1 1.0E-3 -1.0 1.0 1 1      ; straylight/dark current in irradianc
 ins1   0 0 0 1 1 1.0E-6 -1.0 1.0  1 2                                                                
 ins2   0 0 0 1 1 1.0E-7 -1.0 1.0  1 2                                                                    
 ins3   0 0 0 1 1 1.0E-8 -1.0 1.0  1 2                                                                
-inr0   1.0E-7 -1.0 1.0  1 2              ; straylight/dark current in radiance 
+inr0   1.0E-7 -1.0 1.0  1 2              ; straylight/dark current in radiance   !geun changed from 1.0E-7 -1.0 1.0  1 1
 inr1   0 0 0 1 1 1.0E-6 -1.0 1.0  1 1     
 inr2   0 0 0 1 1 1.0E-6 -1.0 1.0  1 2      
 inr3   0 0 0 1 1 1.0E-7 -1.0 1.0  1 2         

@@ -182,7 +182,7 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
         exval = -4; RETURN
      ENDIF
   ENDIF
-  
+    
   IF (ozwrtint) WRITE(ozwrtint_unit, '(A,I5,A10,I5, A10, I5)')  'Line = ', &
        currline, ' XPix = ', currpix, ' Loop = ', currloop
 
@@ -197,10 +197,16 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
      ENDIF
      IF (num_iter == cmerr_niter .AND. correct_merr) fitweights(1:ns) = &
           fitweights(1:ns) / SQRT(1.0d0 * the_nspc) * readout_noise
-      
+!write(*,*) 'hello wasp! is it zero?' ,fitspec ! wasp : yes
+!write(*,*) 'hello wasp! ozprof_inverse gspec here!' ,gspec
     CALL pseudo_model(num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gspec, &
           fitres, fitspec, nchisq, nradrms, errstat)
-    
+!stop
+!write(*,*) 'hello wasp! is it zero?' ,fitspec ! wasp : no
+!write(*,*) 'hello wasp! pseudo model done!'
+!stop
+!write(*,*) 'hello wasp! fitvar here ozprof_inverse! ',fitvar
+
      IF (errstat == pge_errstat_error) THEN
         proceed = .FALSE.; exval = -5; CYCLE
      ENDIF
@@ -235,11 +241,13 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
 
      DO 
         last_iter = .TRUE.
-        IF (.NOT. do_twostep) THEN 
+        IF (.NOT. do_twostep) THEN  ! wasp : if(T)
            CALL oe_inversion (do_sa_diagonal, ozwrtint, ozwrtint_unit, epsrel,        &
                 last_iter, num_iter, ns, nf, gspec, sig, dyda, xap, xold, sa, &
                 varname, ffidx, flidx, delta_x, covar(1:nf, 1:nf), ncovar(1:nf, 1:nf),&
                 conv, avg_kernel(1:nf, 1:nf), contri(1:nf, 1:ns), ozdfs, ozinfo, lchisq, gspec_new)
+        !write(*,*) 'hello wasp! oe_inversion done!'
+        !stop
         ELSE
            CALL twostep_inversion (do_sa_diagonal, ozwrtint, ozwrtint_unit, epsrel,        &
                 last_iter, num_iter, ns, nf, gspec, sig, dyda, xap, xold, lowbnd, upbnd, sa, &
@@ -265,7 +273,12 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
            exval = 0; RETURN
         ENDIF
         
+        !write(*,*) 'hello wasp! ozprof_inverse fitvar here! ', fitvar(ffidx:flidx)
+        !write(*,*) 'hello wasp! ozprof_inverse xold here! ', xold
+        !write(*,*) 'hello wasp! ozprof_inverse delta_x here! ', delta_x
         fitvar = delta_x + xold
+        !write(*,*) 'hello wasp! ozprof_inverse fitvar here! ', fitvar(ffidx:flidx)
+!stop
         IF (IEOR(IBCLR(TRANSFER(lchisq, NAN), DPSB), NAN) == 0) THEN  ! check for NAN
            proceed = .FALSE.; exval = -6; EXIT
         ENDIF
@@ -294,7 +307,6 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
         xold(ffidx:flidx) = EXP(xold(ffidx:flidx)) 
         delta_x(ffidx:flidx) = fitvar(ffidx:flidx) - xold(ffidx:flidx)
      ENDIF
-     
      !WRITE(*, '(I3,1X,A6,3d14.6)') ((i, varname(i), xold(i), &
      !     delta_x(i), fitvar(i)), i=1, nf) 
      !WRITE(*, *) SUM(xold(ffidx:flidx)), SUM(fitvar(ffidx:flidx)), SUM(xap(ffidx:flidx))
@@ -316,6 +328,9 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
      !WRITE(*, '(I3,1X,A6,3d14.6)') ((i, varname(i), xold(i), &
      !     delta_x(i), fitvar(i)), i=1, nf) 
      !WRITE(*, *) SUM(xold(ffidx:flidx)), SUM(fitvar(ffidx:flidx)), SUM(xap(ffidx:flidx))
+     !write(*,*) 'hello wasp! ozprof_inverse fitvar here! ', fitvar(ffidx:flidx)
+     !write(*,*) 'hello wasp! ozprof_inverse fitvar here! ', lowbnd(ffidx:flidx)
+     !write(*,*) 'hello wasp! ozprof_inverse fitvar here! ', upbnd(ffidx:flidx) 
 
      IF (ANY (fitvar(ffidx:flidx) <= lowbnd(ffidx:flidx)) .OR. &
           ANY (fitvar(ffidx:flidx) >= upbnd(ffidx:flidx))) THEN                             
@@ -498,6 +513,7 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
 
      IF (ANY (fitvar(ffidx:flidx) <= lowbnd(ffidx:flidx)) .OR. &
           ANY (fitvar(ffidx:flidx) >= upbnd(ffidx:flidx))) THEN
+
         WRITE(*, *) modulename, ': Retrieved ozone values out of bounds!!!'
         exval = -3
      ELSE       
@@ -601,6 +617,7 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
      IF ( ANY(fitvar(ffidx:flidx) <= 0.0)) negval = .TRUE.
      IF (negval) exval = exval + 100 
   ENDIF
+
 
   RETURN
 

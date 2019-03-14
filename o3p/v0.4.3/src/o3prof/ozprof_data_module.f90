@@ -434,5 +434,11 @@ MODULE ozprof_data_module
   REAL(KIND=dp)  :: mzt ! mean tropopause height in Km.
 
   REAL(KIND=dp)  ::which_tpres ! option for tropopause height data (Ncep or AIRS)
+
+  ! adding variables by geun (03/17/17)
+  REAL(KIND=dp)  ::which_spres ! option for surface pressure data (fnl_daily or fnl_monthly)
+  REAL(KIND=dp)  ::which_sfct  ! option for surface temperature data (fnl_daily or fnl_monthly)
+  REAL(KIND=dp)  ::which_tprof ! option for temperature profile data (fnl_daily or fnl_monthly)
+  CHARACTER (LEN=130)  :: ncep_fname ! option for temperature profile data
  
 END MODULE ozprof_data_module

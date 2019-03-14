@@ -1,13 +1,13 @@
 #! /bin/bash
 
-type=seafog_spres2
+type=SLIM
 
 # Initialize
 orbs[0]=''
 norb=0
 rm -f orbs.list
 
-nmpi=6
+nmpi=1
 ver=3
 pixset=1    #0: no identification of pixline, 1: with identification of pixline
 use_qsub=0
@@ -24,9 +24,10 @@ pwd=`pwd`/
 
 
 # ' line1, line2, cross pixel 1, cross pixel 2 '
-pixsel='414 783 29 30' 
+pixsel='871 871 29 30'
+#'1147 1 58' 
 #pixsel='880 950 1 60' 
-timesel='2008m0502t04'
+timesel='2006m0613t03'
 IFS=' ' read -r -a pixline <<< "$pixsel"
 ((pixline[2]= ( ${pixline[2]} + 1 ) / 2))
 ((pixline[3]= ( ${pixline[3]} + 1 ) / 2))
@@ -169,15 +170,15 @@ do
   #cd $pwd
   #cd $GEMSBIN
 
-  if [ $use_qsub -eq 0 ]
-      then
-      #$PGEHOME/bin/${SAOPGE}_exec  > $lv2dir$type$orb'.dat'
-      mpirun -np $nmpi $PGEHOME'/bin/GEMS_O3P_exec' > $logfname 
-      #$PGEHOME/bin/${SAOPGE}_exec > $logfname
-      cd $pwd
-      #cat $type$orb'.dat'
-      #sleep 2
-  fi
+  #then
+  #$PGEHOME/bin/${SAOPGE}_exec  > $lv2dir$type$orb'.dat'
+  #mpirun -np $nmpi $PGEHOME'/bin/GEMS_O3P_exec' > $logfname 
+
+  $PGEHOME/bin/${SAOPGE}_exec > $logfname
+  cd $pwd
+
+  #cat $type$orb'.dat'
+  #sleep 2
 
 done
 

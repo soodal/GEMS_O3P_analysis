@@ -161,108 +161,110 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
     !       5. same as 3 but LOG(I) 6. xtrack correction (theta) 7 xtrack and wave (don't need to match positions like 1) 
     !       8. xw, relative difference I/F diff. vs. rad347  9.  xw, relative I/F difference vs. rad347 nm, but with option 7 correction as offset
     !       It is much better to use direct correction instead of parameterized correction
-   IF ( which_biascorr == 7) THEN ! need xw_bias*.dat
-        OPEN(UNIT=l1l2inp_unit, FILE=TRIM(ADJUSTL(biasfname)), STATUS='OLD', IOSTAT=errstat)
-        IF ( errstat /= pge_errstat_ok ) THEN
-           errstat = OMI_SMF_setmsg (omsao_e_open_fitctrl_file, &
-           TRIM(ADJUSTL(biasfname)), modulename, 0)
-           pge_error_status = pge_errstat_error; RETURN
+    IF ( which_biascorr == 7) THEN ! need xw_bias*.dat
+      OPEN(UNIT=l1l2inp_unit, FILE=TRIM(ADJUSTL(biasfname)), STATUS='OLD', IOSTAT=errstat)
+      IF ( errstat /= pge_errstat_ok ) THEN
+        errstat = OMI_SMF_setmsg (omsao_e_open_fitctrl_file, &
+                                  TRIM(ADJUSTL(biasfname)), modulename, 0)
+        pge_error_status = pge_errstat_error; RETURN
+      ENDIF
+
+      xwcorr = 1.0 ! Initialize to one
+
+      DO is = 1, mchannel
+        READ (l1l2inp_unit, *) nxcorr(is), nxwav(is)
+        DO iw = 1, nxwav(is)
+          READ (l1l2inp_unit, *) xwavs(is, iw), xwcorr(is, 1:nxcorr(is), iw)
+        ENDDO
+        
+        IF (nxcorr(is) > nfxtrack) THEN
+          nsub = nxcorr(is) / nfxtrack
+          DO ix = 1, nfxtrack
+            fidx = (ix - 1) * nsub + 1
+            lidx = fidx + nsub - 1
+            DO iw = 1, nxwav(is)
+              xwcorr(is, ix, iw) = SUM(xwcorr(is, fidx:lidx, iw)) / nsub
+            ENDDO
+          ENDDO
         ENDIF
-        xwcorr = 1.0 ! Initialize to one
-        DO is = 1, mchannel
-           READ (l1l2inp_unit, *) nxcorr(is), nxwav(is)
-           DO iw = 1, nxwav(is)
-              READ (l1l2inp_unit, *) xwavs(is, iw), xwcorr(is, 1:nxcorr(is), iw)
-           ENDDO
-        
-           IF (nxcorr(is) > nfxtrack) THEN
-              nsub = nxcorr(is) / nfxtrack
-              DO ix = 1, nfxtrack
-                 fidx = (ix - 1) * nsub + 1
-                 lidx = fidx + nsub - 1
-                 DO iw = 1, nxwav(is)
-                    xwcorr(is, ix, iw) = SUM(xwcorr(is, fidx:lidx, iw)) / nsub
-                 ENDDO
-              ENDDO
-           ENDIF
-        ENDDO
-        CLOSE(UNIT=l1l2inp_unit) 
+      ENDDO
+      CLOSE(UNIT=l1l2inp_unit) 
 
-        ! Correction for trace gases
-        gascorr_fname = ADJUSTL(TRIM(refdbdir)) // 'OMI/OMIO3PROF_corrgas_hres_o10582.dat'
+      ! Correction for trace gases
+      gascorr_fname = ADJUSTL(TRIM(refdbdir)) // 'OMI/OMIO3PROF_corrgas_hres_o10582.dat'
      
-        OPEN (UNIT=l1l2inp_unit, FILE=TRIM(ADJUSTL(gascorr_fname)), STATUS='UNKNOWN', IOSTAT=errstat)
-        IF ( errstat /= pge_errstat_ok ) THEN
-           WRITE(*, '(2A)') modulename, ': Cannot open trace gas correction file!!!'
-           errstat = pge_errstat_error; RETURN
-        END IF
+      OPEN (UNIT=l1l2inp_unit, FILE=TRIM(ADJUSTL(gascorr_fname)), STATUS='UNKNOWN', IOSTAT=errstat)
+      IF ( errstat /= pge_errstat_ok ) THEN
+        WRITE(*, '(2A)') modulename, ': Cannot open trace gas correction file!!!'
+        errstat = pge_errstat_error; RETURN
+      END IF
         
-        READ (l1l2inp_unit, *); READ (l1l2inp_unit, *); READ(l1l2inp_unit, *) 
-        READ (l1l2inp_unit, *) nxgascorr
-        gascorr(:, :, 2) = 1.d0
-        DO ix = 1, nxgascorr
-           READ (l1l2inp_unit, *) idum, gascorr_npts(ix, 1:3)
-           DO i = 1, gascorr_npts(ix, 1)
-              READ (l1l2inp_unit, *) gascorr(ix, i, 1:2)
-              gascorr(ix, i, 2) = EXP(gascorr(ix, i, 2))
-           ENDDO
+      READ (l1l2inp_unit, *); READ (l1l2inp_unit, *); READ(l1l2inp_unit, *) 
+      READ (l1l2inp_unit, *) nxgascorr
+      gascorr(:, :, 2) = 1.d0
+      DO ix = 1, nxgascorr
+        READ (l1l2inp_unit, *) idum, gascorr_npts(ix, 1:3)
+        DO i = 1, gascorr_npts(ix, 1)
+          READ (l1l2inp_unit, *) gascorr(ix, i, 1:2)
+          gascorr(ix, i, 2) = EXP(gascorr(ix, i, 2))
         ENDDO
-        CLOSE(UNIT=l1l2inp_unit) 
+      ENDDO
+      CLOSE(UNIT=l1l2inp_unit) 
 
-        ! Additional correction for x-track dependent biases
-        xw2corr_fname = ADJUSTL(TRIM(refdbdir)) // 'OMI/OMIO3PROF_hres_xwcorr-2006m071116.dat'
+      ! Additional correction for x-track dependent biases
+      xw2corr_fname = ADJUSTL(TRIM(refdbdir)) // 'OMI/OMIO3PROF_hres_xwcorr-2006m071116.dat'
      
-        OPEN (UNIT=l1l2inp_unit, FILE=TRIM(ADJUSTL(xw2corr_fname)), STATUS='UNKNOWN', IOSTAT=errstat)
-        IF ( errstat /= pge_errstat_ok ) THEN
-           WRITE(*, '(2A)') modulename, ': Cannot open additional x-track dependent correction file!!!'
-           errstat = pge_errstat_error; RETURN
-        END IF
+      OPEN (UNIT=l1l2inp_unit, FILE=TRIM(ADJUSTL(xw2corr_fname)), STATUS='UNKNOWN', IOSTAT=errstat)
+      IF ( errstat /= pge_errstat_ok ) THEN
+        WRITE(*, '(2A)') modulename, ': Cannot open additional x-track dependent correction file!!!'
+        errstat = pge_errstat_error; RETURN
+      END IF
         
-        READ (l1l2inp_unit, *)
-        READ (l1l2inp_unit, *) nxw2corr
-        xw2corr(:, :, 2) = 0.0d0
-        DO ix = 1, nxw2corr
-           READ (l1l2inp_unit, *) idum, xw2corr_npts(ix, 1:3)
-           DO i = 1, xw2corr_npts(ix, 1)
-              READ (l1l2inp_unit, *) xw2corr(ix, i, 1:2)
-           ENDDO
+      READ (l1l2inp_unit, *)
+      READ (l1l2inp_unit, *) nxw2corr
+      xw2corr(:, :, 2) = 0.0d0
+      DO ix = 1, nxw2corr
+        READ (l1l2inp_unit, *) idum, xw2corr_npts(ix, 1:3)
+        DO i = 1, xw2corr_npts(ix, 1)
+          READ (l1l2inp_unit, *) xw2corr(ix, i, 1:2)
         ENDDO
-        CLOSE(UNIT=l1l2inp_unit) 
-   ELSE
-     WRITE(*,'(A)') 'Which_bias should be 7 in'//modulename
-   ENDIF
-     first = .FALSE.
+      ENDDO
+      CLOSE(UNIT=l1l2inp_unit) 
+    ELSE
+      WRITE(*,'(A)') 'Which_bias should be 7 in'//modulename
+    ENDIF
+    first = .FALSE.
   ENDIF
 
   ! Radiance Spectrum
   n_rad_wvl = gems_rad%nwav(currpix, currloop) 
   div_rad   = gems_rad%norm(currpix, currloop)
 
- 
   curr_rad_spec(wvl_idx, 1:n_rad_wvl) = gems_rad%wavl(1:n_rad_wvl, currpix, currloop) 
   curr_rad_spec(spc_idx, 1:n_rad_wvl) = gems_rad%spec(1:n_rad_wvl, currpix, currloop)   
+
   IF (use_meas_sig) THEN
-     curr_rad_spec(sig_idx, 1:n_rad_wvl) = gems_rad%prec(1:n_rad_wvl, currpix, currloop)
+    curr_rad_spec(sig_idx, 1:n_rad_wvl) = gems_rad%prec(1:n_rad_wvl, currpix, currloop)
   ELSE
-     curr_rad_spec(sig_idx, 1:n_rad_wvl) = normweight
+    curr_rad_spec(sig_idx, 1:n_rad_wvl) = normweight
   ENDIF
   nradpix(1:numwin) = gems_rad%npix(1:numwin, currpix, currloop)     ! Solar Spectrum
 
 
   IF ( biascorr .AND. which_biascorr == 7 ) THEN
-     fidx = 1
-     DO i = 1, numwin
-        lidx = fidx + nradpix(i) - 1; ch = band_selectors(i) 
-        !print *, ch, currpix, fidx, lidx, nradpix(i), nxwav(ch)
-        CALL INTERPOL(xwavs(ch, 1:nxwav(ch)), xwcorr(ch, currpix, 1:nxwav(ch)), nxwav(ch), &
-             curr_rad_spec(wvl_idx, fidx:lidx),  corr(1:nradpix(i)), nradpix(i), errstat)
-        IF (errstat < 0) THEN
-           WRITE(*, *) modulename, ': INTERPOL error, errstat = ', errstat
-           errstat = pge_errstat_error; RETURN
-        ENDIF     
+    fidx = 1
+    DO i = 1, numwin
+      lidx = fidx + nradpix(i) - 1; ch = band_selectors(i) 
+      !print *, ch, currpix, fidx, lidx, nradpix(i), nxwav(ch)
+      CALL INTERPOL(xwavs(ch, 1:nxwav(ch)), xwcorr(ch, currpix, 1:nxwav(ch)), nxwav(ch), &
+                    curr_rad_spec(wvl_idx, fidx:lidx),  corr(1:nradpix(i)), nradpix(i), errstat)
+      IF (errstat < 0) THEN
+        WRITE(*, *) modulename, ': INTERPOL error, errstat = ', errstat
+        errstat = pge_errstat_error; RETURN
+      ENDIF     
         curr_rad_spec(spc_idx, fidx:lidx) = curr_rad_spec(spc_idx, fidx:lidx) / corr(1:nradpix(i))
         fidx = lidx + 1
-     ENDDO
+    ENDDO
   ENDIF
 
   ! IRRadiance Spectrum
@@ -272,11 +274,11 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
   curr_sol_spec(spc_idx, 1:n_irrad_wvl) = gems_irrad%spec(gems_rad%wind(1:n_rad_wvl, currpix, currloop), currpix) 
 
   IF (use_meas_sig .AND. orbnumsol /= 99999) THEN
-     curr_sol_spec(sig_idx, 1:n_irrad_wvl) = gems_irrad%prec(gems_rad%wind(1:n_rad_wvl, currpix, currloop), currpix)
+    curr_sol_spec(sig_idx, 1:n_irrad_wvl) = gems_irrad%prec(gems_rad%wind(1:n_rad_wvl, currpix, currloop), currpix)
   ELSE IF (orbnumsol == 99999) THEN
-     curr_sol_spec(sig_idx, 1:n_irrad_wvl) = 0.0  ! Ignore error in solar irradiance
+    curr_sol_spec(sig_idx, 1:n_irrad_wvl) = 0.0  ! Ignore error in solar irradiance
   ELSE
-     curr_sol_spec(sig_idx, 1:n_irrad_wvl) = normweight
+    curr_sol_spec(sig_idx, 1:n_irrad_wvl) = normweight
   ENDIF
   nsolpix(1:numwin) = nradpix(1:numwin)  
   
@@ -286,21 +288,21 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
   rad_specr(1:nrefl) = gems_refl%radspec(1:nrefl, currpix, currloop)
 
   IF ( biascorr ) THEN
-      IF ( which_biascorr == 7 ) THEN
-        IF ( xwavs(mchannel, nxwav(mchannel)) < rad_posr(1) ) THEN
-           rad_specr(1:nrefl) = rad_specr(1:nrefl) / xwcorr(mchannel, currpix, nxwav(mchannel))
-        ELSE
-           fidx = MINVAL( MINLOC( xwavs(mchannel, 1:nxwav(mchannel)), MASK = &
-                (xwavs(mchannel, 1:nxwav(mchannel)) > rad_posr(1) )))
-           lidx = MINVAL(MAXLOC( xwavs(mchannel, 1:nxwav(mchannel)), MASK = &
-                (xwavs(mchannel, 1:nxwav(mchannel)) < rad_posr(nrefl) )))
-           IF (fidx > lidx) THEN
-              idum = fidx; fidx = lidx; lidx = idum
-           ENDIF
-           rad_specr(1:nrefl) = rad_specr(1:nrefl) / &
-                (SUM(xwcorr(mchannel, currpix, fidx:lidx)) / (lidx - fidx + 1))
-         ENDIF
+    IF ( which_biascorr == 7 ) THEN
+      IF ( xwavs(mchannel, nxwav(mchannel)) < rad_posr(1) ) THEN
+        rad_specr(1:nrefl) = rad_specr(1:nrefl) / xwcorr(mchannel, currpix, nxwav(mchannel))
+      ELSE
+        fidx = MINVAL( MINLOC( xwavs(mchannel, 1:nxwav(mchannel)), MASK = &
+                             ( xwavs(mchannel, 1:nxwav(mchannel)) > rad_posr(1) )))
+        lidx = MINVAL(MAXLOC( xwavs(mchannel, 1:nxwav(mchannel)), MASK = &
+                            ( xwavs(mchannel, 1:nxwav(mchannel)) < rad_posr(nrefl) )))
+        IF (fidx > lidx) THEN
+          idum = fidx; fidx = lidx; lidx = idum
+        ENDIF
+          rad_specr(1:nrefl) = rad_specr(1:nrefl) / &
+                              (SUM(xwcorr(mchannel, currpix, fidx:lidx)) / (lidx - fidx + 1))
       ENDIF
+    ENDIF
   ENDIF
 
   nview       = 1
@@ -335,34 +337,35 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
   READ (the_utc, '(I4, 1x, I2, 1x, I2, 1x, I2, 1x, I2, 1x, F9.6)') the_year, the_month, &
        the_day, hour, minute, second
 
-  ! Chechk cloud fractions !now which_cld = 3 (OMCLDO2 + TOMS) ELSE 2: only TOMS
+  ! Check cloud fractions !now which_cld = 3 (OMCLDO2 + TOMS) ELSE 2: only TOMS
   IF (which_cld /= 2) THEN
-     the_cld_flg = gems_clouds%qflags(currpix, currloop)
-     IF (the_cld_flg /= 10) THEN  ! Bad clouds for 10
+    the_cld_flg = gems_clouds%qflags(currpix, currloop)
+    IF (the_cld_flg /= 10) THEN  ! Bad clouds for 10
         the_cfrac = gems_clouds%cfr(currpix, currloop)
         the_ctp   = gems_clouds%ctp(currpix, currloop)
-     ELSE
-        the_cfrac = 0.0;      the_ctp = 0.0
-     ENDIF
+    ELSE
+      the_cfrac = 0.0;      the_ctp = 0.0
+    ENDIF
   ENDIF
 
   IF (which_cld == 2 .OR. (the_cld_flg == 10 .AND. which_cld >= 3 ))  THEN
-     the_cld_flg = 2  ! Derived based on OMCLDRR
-     CALL GET_TOMSV8_CTP(the_month, the_day, the_lon, the_lat, the_ctp, pge_error_status)
-     the_cfrac = 0.5  ! will be updated anyway at longer wavelength
-     the_ai = -999.0
+    the_cld_flg = 2  ! Derived based on OMCLDRR
+    CALL GET_TOMSV8_CTP(the_month, the_day, the_lon, the_lat, the_ctp, pge_error_status)
+    the_cfrac = 0.5  ! will be updated anyway at longer wavelength
+    the_ai = -999.0
+    pge_error_status=pge_errstat_error !wasp
   ENDIF
 
   ! Special treatments for sea glint
   has_glint = .FALSE.; glintprob = 0.0
   ! Land-water flag=1: >=8 not used, else contain water
   IF  (gems_gflag%land_water(currpix, currloop) /= 1 .AND. gems_gflag%land_water(currpix, currloop) < 8) THEN 
-     IF (gems_gflag%glint(currpix, currloop) == 1) THEN
-        has_glint = .TRUE.
-        CALL SUNGLINT_PROBABILITY (the_sza_atm, the_vza_atm, the_aza_atm, glintprob)
-        !PRINT *, 'Glint Probability: ', glintprob, the_cfrac
-        !IF (the_cfrac < 0.30 * glintprob) the_cfrac = 0.0
-     ENDIF
+    IF (gems_gflag%glint(currpix, currloop) == 1) THEN
+      has_glint = .TRUE.
+      CALL SUNGLINT_PROBABILITY (the_sza_atm, the_vza_atm, the_aza_atm, glintprob)
+      !PRINT *, 'Glint Probability: ', glintprob, the_cfrac
+      !IF (the_cfrac < 0.30 * glintprob) the_cfrac = 0.0
+    ENDIF
   ENDIF
 
   ! Snow/ice flag
@@ -383,39 +386,39 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
   the_glint_flag     = gems_gflag%glint(currpix, currloop)
 
   IF ( do_lambcld ) THEN
-     the_cod = 0.0
+    the_cod = 0.0
   ELSE
      ! Pixel-independent approximation: cloudy scence with an effective COD 20.0 
      ! (cloud thickness 100 mb) and clear-sky scene. If cloud fraction is 20, 
      ! then rederive the effective COD.  Since CTP from OMI products are based on
      ! Lambertian cloud model, it is better to assume thin cloud layer (e.g., 100 mb)
      ! even for thick clouds
-     the_cod = scacld_initcod
+    the_cod = scacld_initcod
   ENDIF
 
   IF (do_simu .AND. .NOT. radcalwrt) THEN
-     OPEN(UNIT=l1l2inp_unit, FILE='INP/sim.inp', STATUS='unknown')
-     READ(l1l2inp_unit, *) the_sza_atm, the_vza_atm, the_aza_atm, the_fixalb, the_surfalt, &
-          the_cfrac, the_ctp, the_cod, the_lon, the_lat, the_month, the_day, which_aerosol, &
-          scaled_aod, do_lambcld, lambcld_refl
-     IF (which_aerosol < 0 ) THEN
-        aerosol = .FALSE.
-        scale_aod = .FALSE.
-        scaled_aod = 0.0
-     ELSE
-        aerosol = .TRUE.
-        scale_aod = .TRUE.
-     ENDIF
+    OPEN(UNIT=l1l2inp_unit, FILE='INP/sim.inp', STATUS='unknown')
+    READ(l1l2inp_unit, *) the_sza_atm, the_vza_atm, the_aza_atm, the_fixalb, the_surfalt, &
+        the_cfrac, the_ctp, the_cod, the_lon, the_lat, the_month, the_day, which_aerosol, &
+        scaled_aod, do_lambcld, lambcld_refl
+    IF (which_aerosol < 0 ) THEN
+      aerosol = .FALSE.
+      scale_aod = .FALSE.
+      scaled_aod = 0.0
+    ELSE
+      aerosol = .TRUE.
+      scale_aod = .TRUE.
+    ENDIF
 
-     IF (the_cfrac == 0.0 .OR. the_cod == 0) THEN
-        the_ctp = 0.0; the_cod = 0.0; the_cfrac = 0
-     ENDIF
+    IF (the_cfrac == 0.0 .OR. the_cod == 0) THEN
+      the_ctp = 0.0; the_cod = 0.0; the_cfrac = 0
+    ENDIF
      
-     IF (do_lambcld ) THEN
-        the_cod = 0.0
-     ENDIF
+    IF (do_lambcld ) THEN
+      the_cod = 0.0
+    ENDIF
 
-     CLOSE (l1l2inp_unit)
+    CLOSE (l1l2inp_unit)
   ENDIF
 
   ! These properties may be slightly modified later (save them)
@@ -425,23 +428,23 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
 
   ! Detect Spikes over the South Atlantic Anomaly region 
   IF (.NOT. do_simu .AND. .NOT. radcalwrt) THEN
-     IF ( ((the_lat > saa_minlat  .AND. the_lat < saa_maxlat    .AND. &
+    IF ( ((the_lat > saa_minlat  .AND. the_lat < saa_maxlat    .AND. &
           the_lon  > saa_minlon  .AND. the_lon < saa_maxlon)   .OR.  & 
           (the_lat > saa_minlat1 .AND. the_lat < saa_maxlat1   .AND. &
           the_lon  > saa_minlon1 .AND. the_lon < saa_maxlon1)) .AND. .NOT. do_simu )  THEN   
-        CALL ROUGH_SPIKE_DETECT(n_rad_wvl, curr_rad_spec(wvl_idx, 1:n_rad_wvl), &
-             curr_rad_spec(spc_idx, 1:n_rad_wvl), curr_sol_spec(spc_idx, 1:n_rad_wvl), nsaa_spike)
-        saa_flag = .FALSE. !; nsaa_spike = 0
-     ELSE
-        saa_flag = .FALSE.;     nsaa_spike = 0
-     ENDIF
+      CALL ROUGH_SPIKE_DETECT(n_rad_wvl, curr_rad_spec(wvl_idx, 1:n_rad_wvl), &
+                              curr_rad_spec(spc_idx, 1:n_rad_wvl), curr_sol_spec(spc_idx, 1:n_rad_wvl), nsaa_spike)
+      saa_flag = .FALSE. !; nsaa_spike = 0
+    ELSE
+      saa_flag = .FALSE.;     nsaa_spike = 0
+    ENDIF
   ELSE
-     saa_flag = .FALSE.;     nsaa_spike = 0
+    saa_flag = .FALSE.;     nsaa_spike = 0
   ENDIF
  
   ! Obtain measurement error in term sun-normalized radiance
   CALL gems_o3p_adj_sig (curr_rad_spec(wvl_idx:sig_idx, 1:n_rad_wvl),  &
-       curr_sol_spec(wvl_idx:sig_idx, 1:n_rad_wvl), n_rad_wvl)
+                         curr_sol_spec(wvl_idx:sig_idx, 1:n_rad_wvl), n_rad_wvl)
     
   ! Make sure that reference spectra has  more wavelengths than
   ! irradiance interpolation and shifting      
@@ -450,45 +453,45 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
 
   fidx = 1
   DO i = 1, numwin
-     lidx = fidx + nradpix(i) - ntrunc1
-     curr_rad_spec(1:sig_idx, fidx:lidx) = curr_rad_spec(1:sig_idx, fidx + nhtrunc : lidx + nhtrunc)
-     IF (lidx  < n_rad_wvl - ntrunc1 ) THEN
+    lidx = fidx + nradpix(i) - ntrunc1
+    curr_rad_spec(1:sig_idx, fidx:lidx) = curr_rad_spec(1:sig_idx, fidx + nhtrunc : lidx + nhtrunc)
+    IF (lidx  < n_rad_wvl - ntrunc1 ) THEN
         curr_rad_spec(1:sig_idx, lidx+1:n_rad_wvl - ntrunc) =  &
-             curr_rad_spec(1:sig_idx, lidx+ntrunc1:n_rad_wvl)
-     ENDIF    
-     nradpix(i) = nradpix(i) - ntrunc; fidx = lidx + 1; n_rad_wvl = n_rad_wvl - ntrunc
+        curr_rad_spec(1:sig_idx, lidx+ntrunc1:n_rad_wvl)
+    ENDIF    
+    nradpix(i) = nradpix(i) - ntrunc; fidx = lidx + 1; n_rad_wvl = n_rad_wvl - ntrunc
   ENDDO
  
   ! save the original grids for later obtain ozone cross section
   n_radwvl_sav = n_rad_wvl; nradpix_sav = nradpix
   radwvl_sav(1:n_rad_wvl) = curr_rad_spec(wvl_idx, 1:n_rad_wvl)  
 
-  ! redo_database = .FALSE.
-  redo_database = .TRUE.  !wasp
-
+  !redo_database = .FALSE.
+  redo_database = .TRUE.  !geun  on: db_fix 
+ 
   IF (theline >= 1) THEN
 
-     IF (gems_rad%nwav(currpix, currloop) /= gems_rad%nwav(currpix, currloop-1)) THEN
-        redo_database = .TRUE.
-     ELSE 
-        IF (ANY(gems_rad%wind(1:n_rad_wvl, currpix, currloop) - &
-             gems_rad%wind(1:n_rad_wvl, currpix, currloop-1) /= 0)) redo_database = .TRUE.
-     ENDIF
+    IF (gems_rad%nwav(currpix, currloop) /= gems_rad%nwav(currpix, currloop-1)) THEN
+      redo_database = .TRUE.
+    ELSE 
+    IF (ANY(gems_rad%wind(1:n_rad_wvl, currpix, currloop) - &
+            gems_rad%wind(1:n_rad_wvl, currpix, currloop-1) /= 0)) redo_database = .TRUE.
+    ENDIF
   ENDIF
 
   IF ( MOD (theline, radwavcal_freq) == 0 .OR. redo_database) THEN 
-     ! --------------------------------------------------------------
-     ! Spline data bases, compute undersampling spectrum, and prepare
-     ! reference spectra for fitting.
-     ! ---- ----------------------------------------------------------
+    ! --------------------------------------------------------------
+    ! Spline data bases, compute undersampling spectrum, and prepare
+    ! reference spectra for fitting.
+    ! ---- ----------------------------------------------------------
     
-     CALL prepare_databases ( n_rad_wvl, curr_rad_spec(wvl_idx,1:n_rad_wvl), pge_error_status )
-     IF ( pge_error_status >= pge_errstat_error ) RETURN
+    CALL prepare_databases ( n_rad_wvl, curr_rad_spec(wvl_idx,1:n_rad_wvl), pge_error_status )
+    IF ( pge_error_status >= pge_errstat_error ) RETURN
 
-     !CALL avg_band_spec(curr_rad_spec(wvl_idx, 1:n_rad_wvl), strayspec(1, 1:n_rad_wvl), &
-     !     n_rad_wvl, idum, errstat)
-     !CALL avg_band_spec(curr_rad_spec(wvl_idx, 1:n_rad_wvl), strayspec(2, 1:n_rad_wvl), &
-     !     n_rad_wvl, idum, errstat)
+    !CALL avg_band_spec(curr_rad_spec(wvl_idx, 1:n_rad_wvl), strayspec(1, 1:n_rad_wvl), &
+    !     n_rad_wvl, idum, errstat)
+    !CALL avg_band_spec(curr_rad_spec(wvl_idx, 1:n_rad_wvl), strayspec(2, 1:n_rad_wvl), &
+    !     n_rad_wvl, idum, errstat)
   ENDIF 
 
   !WRITE original wavelengths and solar irradiance spectra
@@ -498,43 +501,42 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
 
   ! average and subsampling for selected bands and update nradpix
   IF (do_bandavg) THEN 
-     CALL avg_band_radspec (curr_rad_spec(wvl_idx:sig_idx, 1:n_rad_wvl), &
-          n_rad_wvl, pge_error_status)
-     IF ( pge_error_status >= pge_errstat_error ) RETURN
+    CALL avg_band_radspec (curr_rad_spec(wvl_idx:sig_idx, 1:n_rad_wvl), &
+                           n_rad_wvl, pge_error_status)
+    IF ( pge_error_status >= pge_errstat_error ) RETURN
   ENDIF
 
   fidx = 1
   DO i = 1, numwin
-     lidx = fidx + nradpix(i) - 1
-     idxoff = refnhextra + (i - 1) * 2 * refnhextra
-     refidx(fidx:lidx) = (/(j, j = fidx + idxoff, lidx + idxoff)/)
-     fidx = lidx  + 1
+    lidx = fidx + nradpix(i) - 1
+    idxoff = refnhextra + (i - 1) * 2 * refnhextra
+    refidx(fidx:lidx) = (/(j, j = fidx + idxoff, lidx + idxoff)/)
+    fidx = lidx  + 1
   ENDDO
 
   IF (radcalwrt) THEN
-     actspec_rad(1:n_rad_wvl) = curr_rad_spec(spc_idx, 1:n_rad_wvl) / &
-          database(solar_idx, refidx(1:n_rad_wvl)) * div_rad / div_sun
+    actspec_rad(1:n_rad_wvl) = curr_rad_spec(spc_idx, 1:n_rad_wvl) / &
+                               database(solar_idx, refidx(1:n_rad_wvl)) * div_rad / div_sun
   ENDIF
 
   ! load databases for common modes
-        
   IF ( MOD (theline, radwavcal_freq) == 0 .OR. redo_database) THEN
-     CALL load_omi_comres(pge_error_status)
+    CALL load_omi_comres(pge_error_status)
       
-     IF ( pge_error_status >= pge_errstat_error ) RETURN
+    IF ( pge_error_status >= pge_errstat_error ) RETURN
   ENDIF
    
 
   
   IF (biascorr) THEN
-     IF ( which_biascorr == 7) THEN
+    IF ( which_biascorr == 7) THEN
 	    IF (curr_rad_spec(1,1) > 271) then 
-        curr_rad_spec(spc_idx, 1:n_rad_wvl)  = curr_rad_spec(spc_idx, 1:n_rad_wvl) * gascorr(currpix, 1:n_rad_wvl, 2)
-        curr_rad_spec(spc_idx, 1:n_rad_wvl)  = curr_rad_spec(spc_idx, 1:n_rad_wvl) * &
+          curr_rad_spec(spc_idx, 1:n_rad_wvl)  = curr_rad_spec(spc_idx, 1:n_rad_wvl) * gascorr(currpix, 1:n_rad_wvl, 2)
+          curr_rad_spec(spc_idx, 1:n_rad_wvl)  = curr_rad_spec(spc_idx, 1:n_rad_wvl) * &
                                                (1.0d0 + xw2corr(currpix, 1:n_rad_wvl, 2) / 100.)
          !print * , 'which_biascorr=7 is blocked for different fitting window' ! jbak 
-        ENDIF
-     ENDIF
+      ENDIF
+    ENDIF
   ENDIF
   
   ! Initialized fitted variables from valid western and southern neighbors 
@@ -544,32 +546,32 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
 
   gems_initval(currpix, currloop) = 0.0; fitvar = 0.0; finit = 0.0
   IF (west_idx > 0) THEN
-     IF (gems_exitval(west_idx, currloop) > 0) THEN  ! Western pixel (success retrieval)
+    IF (gems_exitval(west_idx, currloop) > 0) THEN  ! Western pixel (success retrieval)
         fitvar(1:n_fitvar_rad) = fitvar(1:n_fitvar_rad) + &
-             gems_fitvar(west_idx, currloop, 1:n_fitvar_rad)
+                                 gems_fitvar(west_idx, currloop, 1:n_fitvar_rad)
         finit = finit + 1.0
-     ENDIF
+    ENDIF
      
-     IF (south_idx >= 0 .AND. south_idx /= nlines_max - 1) THEN
-        IF (gems_exitval(west_idx, south_idx) > 0) THEN ! Southwestern pixel (success retrieval)
-           fitvar(1:n_fitvar_rad) = fitvar(1:n_fitvar_rad) &
-                + gems_fitvar(west_idx, south_idx, 1:n_fitvar_rad) * 0.5
-           finit = finit + 0.5
-        ENDIF
-     ENDIF
+    IF (south_idx >= 0 .AND. south_idx /= nlines_max - 1) THEN
+      IF (gems_exitval(west_idx, south_idx) > 0) THEN ! Southwestern pixel (success retrieval)
+        fitvar(1:n_fitvar_rad) = fitvar(1:n_fitvar_rad) &
+                               + gems_fitvar(west_idx, south_idx, 1:n_fitvar_rad) * 0.5
+        finit = finit + 0.5
+      ENDIF
+    ENDIF
   ENDIF
   
   IF ( south_idx >= 0 ) THEN
-     IF (gems_exitval(currpix, south_idx) > 0) THEN     ! Southern pixel (success retrieval)
-        fitvar(1:n_fitvar_rad) = fitvar(1:n_fitvar_rad) + &
-             gems_fitvar(currpix, south_idx, 1:n_fitvar_rad) 
-        finit = finit + 1.0
-     ENDIF
+    IF (gems_exitval(currpix, south_idx) > 0) THEN     ! Southern pixel (success retrieval)
+      fitvar(1:n_fitvar_rad) = fitvar(1:n_fitvar_rad) + &
+                               gems_fitvar(currpix, south_idx, 1:n_fitvar_rad) 
+      finit = finit + 1.0
+    ENDIF
   ENDIF
 
   IF (finit > 0) THEN
-     fitvar_rad_saved(mask_fitvar_rad(1:n_fitvar_rad)) = fitvar(1:n_fitvar_rad) / finit
-     gems_initval(currpix, currloop) = 1
+    fitvar_rad_saved(mask_fitvar_rad(1:n_fitvar_rad)) = fitvar(1:n_fitvar_rad) / finit
+    gems_initval(currpix, currloop) = 1
   ENDIF
 
   RETURN

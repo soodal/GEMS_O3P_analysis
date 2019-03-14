@@ -101,8 +101,8 @@ SUBROUTINE oe_inversion (do_sa_diagonal, do_oe_output, file_unit, delta_chi_min,
  DO i = 1, nx
     xastd(i) = SQRT(Sa (i, i))
  ENDDO
-
- IF (do_sa_diagonal) THEN      ! Diagonal Apriori    
+!write(*,*) 'hello wasp! ', y
+ IF (do_sa_diagonal) THEN      ! Diagonal Apriori   ! - wasp : F 
     ! Construct rK_tilde = Sy^(-1/2)*K*Sa^(1/2) (u=Ktil for dsvdcmp) 
     DO j = 1, nx           
        rK_tilde (:, j) = xastd(j) * rK (:, j) / dy 
@@ -183,6 +183,8 @@ SUBROUTINE oe_inversion (do_sa_diagonal, do_oe_output, file_unit, delta_chi_min,
     tmpw2 = w ** 2;    tmpw2p1 = tmpw2 + 1.0d0; tmpratio = tmpw2 / tmpw2p1
     
     ! Construct y_prime=UT*Sy^(-1/2)*y:                                     
+!write(*,*) 'hello wasp! oe_inversion u here!',u(:,i)
+!write(*,*) 'hello wasp! oe_inversion dy here!',dy
     DO i = 1, nx 
        y_prime (i) = SUM (u (:, i) * y / dy) 
     ENDDO
@@ -196,9 +198,15 @@ SUBROUTINE oe_inversion (do_sa_diagonal, do_oe_output, file_unit, delta_chi_min,
     ENDDO
     
     ! ACTUAL RETRIEVAL: Calculate x_prime = (WT*W+I)^(-1)(W*y_prime + xa_prime)
+!write(*,*) 'hello wasp! oe_inversion w here!',w
+!write(*,*) 'hello wasp! oe_inversion xa_prime here!',xa_prime
+!write(*,*) 'hello wasp! oe_inversion tmpw2p1 here!',tmpw2p1
     x_prime = (w * y_prime + xa_prime ) / tmpw2p1   
     
     ! Construct x=Sa^(1/2)*V*x_prime:                                                                                   
+!write(*,*) 'hello wasp! oe_inversion sasqp here!',sasqp(i,:)
+!write(*,*) 'hello wasp! oe_inversion v here!',v(:,j)
+!write(*,*) 'hello wasp! oe_inversion tmp here!',tmp(i,:)
     DO i = 1, nx 
        DO j = 1, nx 
           tmp (i, j) = SUM(sasqp(i, :) * v (:, j)) 

@@ -155,8 +155,8 @@ SUBROUTINE get_tb(ozref,std,which_tb)
 ! ** load oz profiles ** !
   IF (first) THEN
           
-        apfname = '../../ATMOS/tbclima/TB14L-5.vs' ! jbak
-
+        !apfname = '../../ATMOS/tbclima/TB14L-5.vs' ! jbak
+        apfname = TRIM(ADJUSTL(atmdbdir)) //'tbclima/TB14L-5.vs' ! geun
         OPEN (UNIT = atmos_unit, file=apfname, status = 'unknown')
         READ (atmos_unit, '(A)') ;  READ(atmos_unit, '(A)')             
         DO i = 1, nmon
@@ -167,7 +167,9 @@ SUBROUTINE get_tb(ozref,std,which_tb)
         ENDDO
         CLOSE(atmos_unit)
 
-        apfname = '../../ATMOS/tbclima/TB14H-5.vs' ! jbak
+
+        apfname = TRIM(ADJUSTL(atmdbdir)) //'tbclima/TB14H-5.vs' ! geun
+        !apfname = '../../ATMOS/tbclima/TB14H-5.vs' ! jbak
 
         OPEN (UNIT = atmos_unit, file=apfname, status = 'unknown')
         READ (atmos_unit, '(A)') ;  READ(atmos_unit, '(A)')             
@@ -873,26 +875,29 @@ END SUBROUTINE get_geoschem_o3std
 !    pressure from all years
 ! xliu: 03/08/11, switch from NCEP to 1x1 NCEP FNL (archived at NCAR)
 ! ==================================================================
-SUBROUTINE get_spres(year, month, day, lon, lat, spres)
+SUBROUTINE get_spres(year, month, day, lon, lat, spres, nlon, nlat, longrid, latgrid)
 
   USE OMSAO_precision_module 
   USE OMSAO_variables_module, ONLY: atmdbdir
-  USE ozprof_data_module,     ONLY: atmos_unit
+  USE ozprof_data_module,     ONLY: atmos_unit, which_spres
   IMPLICIT NONE
 
   ! ======================
   ! Input/Output variables
   ! ======================
   INTEGER, INTENT(IN)           :: month, year, day
+  INTEGER, INTENT(INOUT)           :: nlon, nlat ! geun
   REAL (KIND=dp), INTENT(IN)    :: lon, lat
+  REAL (KIND=dp), INTENT(INOUT)    :: longrid, latgrid !geun
   REAL (KIND=dp), INTENT(OUT)   :: spres
 
   ! ======================
   ! Local variables
   ! ======================
   !INTEGER, PARAMETER             :: nlat=72, nlon=144 !REAL (KIND=dp), PARAMETER      :: longrid = 2.5, latgrid = 2.5, lon0=-180.0, lat0=-90.0
-  INTEGER, PARAMETER             :: nlat=180, nlon=360
-  REAL (KIND=dp), PARAMETER      :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
+  !INTEGER, PARAMETER             :: nlat=180, nlon=360
+  !REAL (KIND=dp), PARAMETER      :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
+  REAL (KIND=dp), PARAMETER      :: lon0=-180.0, lat0=-90.0
   INTEGER                        :: i, j,  nblat, nblon
   LOGICAL                        :: file_exist
   CHARACTER (LEN=2)              :: monc, dayc
@@ -901,27 +906,46 @@ SUBROUTINE get_spres(year, month, day, lon, lat, spres)
   INTEGER, DIMENSION(2)          :: latin, lonin
   REAL (KIND=dp), DIMENSION(2)   :: latfrac, lonfrac
 
-  INTEGER, SAVE, DIMENSION(nlon, nlat) :: glbspres
+  INTEGER, SAVE, ALLOCATABLE, DIMENSION(:,:)  :: glbspres
   LOGICAL, SAVE                        :: first = .TRUE.
 
   IF (first) THEN
-     WRITE(monc, '(I2.2)') month          ! from 9 to '09' 
-	 WRITE(dayc, '(I2.2)') day ; WRITE(yrc,  '(I4.4)') year
-     
-     !spres_fname =TRIM(ADJUSTL(atmdbdir)) // 'nspres/spres' // yrc // monc // dayc // '.dat'
-     spres_fname =TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlsp/fnlsp_' // yrc // monc // dayc // '.dat'
-   
-     ! Determine if file exists or not
-     INQUIRE (FILE= spres_fname, EXIST= file_exist)
-     IF (.NOT. file_exist) THEN
-        WRITE(*, *) 'Warning: no surface pressure file found, use monthly mean!!!'
-        !spres_fname = TRIM(ADJUSTL(atmdbdir)) // 'nspres/spresavg' // monc // '.dat'
-        spres_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlsp/fnlspavg' // monc // '.dat'
-     ENDIF
-     
+
+    WRITE(monc, '(I2.2)') month          ! from 9 to '09' 
+    WRITE(dayc, '(I2.2)') day ; WRITE(yrc,  '(I4.4)') year
+       
+    IF ( which_spres == 0 ) THEN
+      !spres_fname =TRIM(ADJUSTL(atmdbdir)) // 'nspres/spres' // yrc // monc // dayc // '.dat'
+      spres_fname =TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlsp/fnlsp_' // yrc // monc // dayc // '.dat'
+      print *, 'SPRES is taken from FNL daily'
+    ELSE IF (which_spres == 1 ) THEN  ! added by geun
+      spres_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlsp/fnlspavg' // monc // '.dat'
+      print *, 'SPRES is taken from FNL monthly'
+    ELSE IF (which_spres == 2 ) THEN  ! added by geun
+      spres_fname = TRIM(ADJUSTL(atmdbdir)) // 'umatmos/umsp/umsp_' // yrc // monc // dayc // '.dat'
+      print *, 'SPRES is taken from UM daily'
+    ENDIF
+
+    ! Determine if file exists or not
+    INQUIRE (FILE= spres_fname, EXIST= file_exist)
+    IF (.NOT. file_exist) THEN
+      WRITE(*, *) 'Warning: no surface pressure file found, use monthly mean!!!'
+      !spres_fname = TRIM(ADJUSTL(atmdbdir)) // 'nspres/spresavg' // monc // '.dat'
+      spres_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlsp/fnlspavg' // monc // '.dat'
+      nlat = 180 ; nlon = 360
+      longrid = 1.0; latgrid = 1.0
+      which_spres = 1
+    ENDIF
+
+    IF ( ALLOCATED(glbspres) == .FALSE. ) ALLOCATE( glbspres(nlon,nlat) )
+
      OPEN (UNIT = atmos_unit, file = spres_fname, status = 'unknown')
      !READ (atmos_unit, '(144I4)') ((glbspres(i, j), i=1, nlon), j=1, nlat)
-     READ (atmos_unit, '(360I4)') ((glbspres(i, j), i=1, nlon), j=1, nlat)
+     IF ( which_spres == 0 .OR. which_spres == 1) THEN  ! geun
+       READ (atmos_unit, '(360I4)') ((glbspres(i, j), i=1, nlon), j=1, nlat)
+     ELSE IF (which_spres == 2 ) THEN
+       READ (atmos_unit, '(1024I4)') ((glbspres(i, j), i=1, nlon), j=1, nlat)
+     ENDIF  ! geun
      CLOSE (atmos_unit)
      first = .FALSE.
   ENDIF
@@ -934,29 +958,33 @@ SUBROUTINE get_spres(year, month, day, lon, lat, spres)
         spres = spres + glbspres(lonin(i), latin(j)) * lonfrac(i) * latfrac(j)
      ENDDO
   ENDDO
-      
+
+  !DEALLOCATE(glbspres)      
   RETURN
 END SUBROUTINE get_spres
 
-SUBROUTINE get_sfct(year, month, day, lon, lat, sfct)
+SUBROUTINE get_sfct(year, month, day, lon, lat, sfct, nlon, nlat, longrid, latgrid)
 
   USE OMSAO_precision_module 
   USE OMSAO_variables_module, ONLY: atmdbdir
-  USE ozprof_data_module,     ONLY: atmos_unit
+  USE ozprof_data_module,     ONLY: atmos_unit, which_sfct
   IMPLICIT NONE
 
   ! ======================
   ! Input/Output variables
   ! ======================
   INTEGER, INTENT(IN)           :: month, year, day
+  INTEGER, INTENT(INOUT)           :: nlon, nlat  ! geun
   REAL (KIND=dp), INTENT(IN)    :: lon, lat
+  REAL (KIND=dp), INTENT(INOUT)    :: longrid, latgrid  ! geun
   REAL (KIND=dp), INTENT(OUT)   :: sfct
 
   ! ======================
   ! Local variables
   ! ======================
-  INTEGER, PARAMETER             :: nlat=180, nlon=360
-  REAL (KIND=dp), PARAMETER      :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
+  !INTEGER, PARAMETER             :: nlat=180, nlon=360
+  !REAL (KIND=dp), PARAMETER      :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0   ! geun
+  REAL (KIND=dp), PARAMETER      :: lon0=-180.0, lat0=-90.0       !geun
   INTEGER                        :: i, j,  nblat, nblon
   LOGICAL                        :: file_exist
   CHARACTER (LEN=2)              :: monc, dayc
@@ -965,7 +993,7 @@ SUBROUTINE get_sfct(year, month, day, lon, lat, sfct)
   INTEGER, DIMENSION(2)          :: latin, lonin
   REAL (KIND=dp), DIMENSION(2)   :: latfrac, lonfrac
 
-  INTEGER, SAVE, DIMENSION(nlon, nlat) :: glbsfct
+  INTEGER, SAVE, ALLOCATABLE, DIMENSION(:,:) :: glbsfct  ! geun
   LOGICAL, SAVE                        :: first = .TRUE.
 
   IF (first) THEN
@@ -973,17 +1001,35 @@ SUBROUTINE get_sfct(year, month, day, lon, lat, sfct)
      WRITE(dayc, '(I2.2)') day            ! from 9 to '09'     
      WRITE(yrc,  '(I4.4)') year
      
-     sfct_fname =TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlst/fnlst_' // yrc // monc // dayc // '.dat'
+     IF ( which_sfct == 0 ) THEN ! geun
+        sfct_fname =TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlst/fnlst_' // yrc // monc // dayc // '.dat'
+        print *, 'SFCT is taken from FNL daily'
+     ELSE IF (which_sfct == 1 ) THEN      ! geun added
+        sfct_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlst/fnlstavg' // monc // '.dat'
+        print *, 'SFCT is taken from FNL monthly'
+     ELSE IF (which_sfct == 2 ) THEN      ! geun added
+        sfct_fname =TRIM(ADJUSTL(atmdbdir)) // 'umatmos/umst/umst_' // yrc // monc // dayc // '.dat'
+        print *, 'SFCT is taken from UM daily'
+     ENDIF  ! geun
     
      ! Determine if file exists or not
      INQUIRE (FILE= sfct_fname, EXIST= file_exist)
      IF (.NOT. file_exist) THEN
         WRITE(*, *) 'Warning: no surface temperature file found, use monthly mean!!!'
         sfct_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlst/fnlstavg' // monc // '.dat'
+        nlat = 180 ; nlon = 360
+        longrid = 1.0; latgrid = 1.0
+        which_sfct = 1
      ENDIF
     
+     IF ( ALLOCATED(glbsfct) == .FALSE. ) ALLOCATE( glbsfct(nlon,nlat) )  ! geun
+
      OPEN (UNIT = atmos_unit, file = sfct_fname, status = 'unknown')
-     READ (atmos_unit, '(360I3)') ((glbsfct(i, j), i=1, nlon), j=1, nlat)
+     IF ( which_sfct == 0 .OR. which_sfct == 1) THEN  ! geun
+       READ (atmos_unit, '(360I3)') ((glbsfct(i, j), i=1, nlon), j=1, nlat)
+     ELSE IF (which_sfct == 2 ) THEN     
+       READ (atmos_unit, '(1024I3)') ((glbsfct(i, j), i=1, nlon), j=1, nlat)
+     ENDIF  ! geun
      CLOSE (atmos_unit)
      first = .FALSE.
   ENDIF
@@ -1007,18 +1053,20 @@ END SUBROUTINE get_sfct
 !    pressure from all years
 ! xliu: 03/08/11, switch from NCEP to 1x1 NCEP FNL (archived at NCAR)
  ! =================================================================
-SUBROUTINE get_tpres(year, month, day, lon, lat, tpres)
+SUBROUTINE get_tpres(year, month, day, lon, lat, tpres, nlon, nlat, longrid, latgrid)
 
   USE OMSAO_precision_module 
   USE OMSAO_variables_module, ONLY: atmdbdir
-  USE ozprof_data_module,     ONLY: atmos_unit
+  USE ozprof_data_module,     ONLY: atmos_unit, which_tpres
   IMPLICIT NONE
 
   ! ======================
   ! Input/Output variables
   ! ======================
   INTEGER, INTENT(IN)           :: month, year, day
+  INTEGER, INTENT(INOUT)           :: nlon, nlat ! geun
   REAL (KIND=dp), INTENT(IN)    :: lon, lat
+  REAL (KIND=dp), INTENT(INOUT)    :: longrid, latgrid ! geun
   REAL (KIND=dp), INTENT(OUT)   :: tpres
 
   ! ======================
@@ -1026,8 +1074,9 @@ SUBROUTINE get_tpres(year, month, day, lon, lat, tpres)
   ! ======================
   !INTEGER, PARAMETER            :: nlat=72, nlon=144
   !REAL (KIND=dp), PARAMETER     :: longrid = 2.5, latgrid = 2.5, lon0=-180.0, lat0=-90.0
-  INTEGER, PARAMETER             :: nlat=180, nlon=360
-  REAL (KIND=dp), PARAMETER      :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
+  !INTEGER, PARAMETER             :: nlat=180, nlon=360
+  !REAL (KIND=dp), PARAMETER      :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
+  REAL (KIND=dp), PARAMETER      :: lon0=-180.0, lat0=-90.0
   INTEGER                        :: i, j,  nblat, nblon
   LOGICAL                        :: file_exist
   CHARACTER (LEN=2)              :: monc, dayc
@@ -1037,7 +1086,7 @@ SUBROUTINE get_tpres(year, month, day, lon, lat, tpres)
   REAL (KIND=dp), DIMENSION(2)   :: latfrac, lonfrac
 
 
-  INTEGER, SAVE, DIMENSION(nlon, nlat) :: glbtpres
+  INTEGER, SAVE, ALLOCATABLE, DIMENSION(:,:)  :: glbtpres
   LOGICAL, SAVE                        :: first = .TRUE.
 
   IF (first) THEN
@@ -1045,8 +1094,20 @@ SUBROUTINE get_tpres(year, month, day, lon, lat, tpres)
      WRITE(dayc, '(I2.2)') day            ! from 9 to '09'     
      WRITE(yrc,  '(I4.4)') year 
      
-     !tpres_fname =TRIM(ADJUSTL(atmdbdir)) // 'ntpres/tpres' // yrc // monc // dayc // '.dat'
-     tpres_fname =TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltp/fnltp_' // yrc // monc // dayc // '.dat'
+     IF ( which_tpres == 0 ) THEN  ! geun
+        !tpres_fname =TRIM(ADJUSTL(atmdbdir)) // 'ntpres/tpres' // yrc // monc // dayc // '.dat'
+        tpres_fname =TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltp/fnltp_' // yrc // monc // dayc // '.dat'
+        print *, 'TP is taken from FNL daily'
+     ELSE IF (which_tpres == 1 ) THEN
+        tpres_fname = '/data/gumbo/jbak/ATMOS/tpres/AIRS/airstp_'//yrc//monc//dayc//'.dat'
+        print *, 'TP is taken from AIRS'
+     ELSE IF (which_tpres == 2 ) THEN   ! added by geun
+        tpres_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp//fnltempavg' // monc // '.dat'
+        print *, 'TPROF is taken from FNL monthly'
+     ELSE IF (which_tpres == 3 ) THEN     ! added tpres option by geun
+        tpres_fname =TRIM(ADJUSTL(atmdbdir)) // 'umatmos/umtp/umtp_' // yrc // monc // dayc // '.dat'
+        print *, 'TP is taken from UM daily'
+     ENDIF  ! geun
 
      ! Determine if file exists or not
      INQUIRE (FILE= tpres_fname, EXIST= file_exist)
@@ -1054,11 +1115,20 @@ SUBROUTINE get_tpres(year, month, day, lon, lat, tpres)
         WRITE(*, *) 'Warning: no tropopause pressure file found, use monthly mean!!!'
         !tpres_fname = TRIM(ADJUSTL(atmdbdir)) // 'ntpres/tpresavg' // monc // '.dat'
         tpres_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltp/fnltpavg' // monc // '.dat'
+        nlat = 180 ; nlon = 360
+        longrid = 1.0; latgrid = 1.0
+        which_tpres = 2
      ENDIF
-     
+
+
+     IF ( ALLOCATED(glbtpres) == .FALSE. ) ALLOCATE( glbtpres(nlon,nlat) )
+
      OPEN (UNIT = atmos_unit, file = tpres_fname, status = 'unknown')
-     !READ (atmos_unit, '(144I3)') ((glbtpres(i, j), i=1, nlon), j=1, nlat)
-     READ (atmos_unit, '(360I3)') ((glbtpres(i, j), i=1, nlon), j=1, nlat)
+     IF ( which_tpres == 0 .OR. which_tpres == 1 .OR. which_tpres == 2) THEN  ! geun
+       READ (atmos_unit, '(360I3)') ((glbtpres(i, j), i=1, nlon), j=1, nlat)
+     ELSE IF (which_tpres == 3 ) THEN
+       READ (atmos_unit, '(1024I3)') ((glbtpres(i, j), i=1, nlon), j=1, nlat)
+     ENDIF  ! geun
      CLOSE (atmos_unit)
      first = .FALSE.
   ENDIF
@@ -1367,54 +1437,73 @@ SUBROUTINE get_ecmwfavgt(month, day, lon, lat, ecmwft)
   RETURN
 END SUBROUTINE get_ecmwfavgt
 
-SUBROUTINE get_ncepfnlt(year, month, day, lon, lat, ncept)
+SUBROUTINE get_ncepfnlt(year, month, day, lon, lat, ncept, nlon, nlat, nl, longrid, latgrid)
 
   USE OMSAO_precision_module
   USE OMSAO_variables_module, ONLY: atmdbdir
-  USE ozprof_data_module,     ONLY: atmos_unit
+  USE ozprof_data_module,     ONLY: atmos_unit, which_tprof, ncep_fname
   IMPLICIT NONE
 
   ! ======================
   ! Input/Output variables
   ! ======================
-  INTEGER, PARAMETER                            :: nl=26
+  !INTEGER, PARAMETER                            :: nl=26  ! geun closed
   INTEGER, INTENT(IN)                           :: month, year, day
+  INTEGER, INTENT(INOUT)                           :: nlon, nlat, nl        ! geun
   REAL (KIND=dp), INTENT(IN)                    :: lon, lat
+  REAL (KIND=dp), INTENT(INOUT)                    :: longrid, latgrid  ! geun
   REAL (KIND=dp), DIMENSION(nl), INTENT(OUT)    :: ncept
 
   ! ======================
   ! Local variables
   ! ======================
-  INTEGER, PARAMETER              :: nlat=180, nlon=360
-  REAL (KIND=dp), PARAMETER       :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
+  !INTEGER, PARAMETER              :: nlat=180, nlon=360
+  !REAL (KIND=dp), PARAMETER       :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
+  REAL (KIND=dp), PARAMETER       :: lon0=-180.0, lat0=-90.0  ! geun 
   CHARACTER (LEN=2)               :: monc, dayc
   CHARACTER (LEN=4)               :: yrc
-  CHARACTER (LEN=130)             :: ncep_fname
+  !CHARACTER (LEN=130)             :: ncep_fname
   INTEGER                         :: i, j, k, nblat, nblon
   INTEGER, DIMENSION(2)           :: latin, lonin
   REAL (KIND=dp), DIMENSION(2)    :: latfrac, lonfrac
-  LOGICAL                         :: file_exist
+  !LOGICAL                         :: file_exist
 
-  INTEGER, SAVE, DIMENSION(nlon, nlat, nl) :: glbncept
+  INTEGER, SAVE, ALLOCATABLE, DIMENSION(:,:,:)  :: glbncept  ! geun
   LOGICAL, SAVE                            :: first = .TRUE.
 
   IF (first) THEN
-     WRITE(monc, '(I2.2)') month          ! from 9 to '09' 
-     WRITE(dayc, '(I2.2)') day            ! from 9 to '09'     
-     WRITE(yrc,  '(I4.4)') year           
+     !WRITE(monc, '(I2.2)') month          ! from 9 to '09' 
+     !WRITE(dayc, '(I2.2)') day            ! from 9 to '09'     
+     !WRITE(yrc,  '(I4.4)') year           
  
-     ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp/fnltemp_' // yrc // monc // dayc // '.dat'      
+     !IF ( which_tprof == 0 ) THEN  ! geun
+        !ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp/fnltemp_' // yrc // monc // dayc // '.dat'
+        !print *, 'TPROF is taken from FNL daily'
+     !ELSE IF (which_tprof == 1 ) THEN   ! added by geun
+        !ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp//fnltempavg' // monc // '.dat'
+        !print *, 'TPROF is taken from FNL monthly'
+     !ELSE IF (which_tprof == 2 ) THEN   ! added by geun
+        !ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'umatmos/umtemp/umtemp_' // yrc // monc // dayc // '.dat'
+        !print *, 'TPROF is taken from UM daily'
+     !ENDIF  ! geun
       
      ! Determine if file exists or not
-     INQUIRE (FILE= ncep_fname, EXIST= file_exist)
-     IF (.NOT. file_exist) THEN
-        WRITE(*, *) 'Warning: no T profile file found, use monthly mean!!!'
-        ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp//fnltempavg' // monc // '.dat'
-     ENDIF
+     !INQUIRE (FILE= ncep_fname, EXIST= file_exist)
+     !IF (.NOT. file_exist) THEN
+        !WRITE(*, *) 'Warning: no T profile file found, use monthly mean!!!'
+        !ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp//fnltempavg' // monc // '.dat'
+     !ENDIF
+
+     IF ( ALLOCATED(glbncept) == .FALSE. ) ALLOCATE( glbncept(nlon,nlat,nl) )
 
      ! NCEP FNL: 26 layers (top down from 10 to 1000 mb), but data will be bottom up after being read     
      OPEN (UNIT = atmos_unit, file = ncep_fname, status = 'unknown')
-     READ(atmos_unit, '(360I3)') (((glbncept(i, j, k), i = 1, nlon), j = 1, nlat), k = nl, 1, -1)
+     !READ(atmos_unit, '(360I3)') (((glbncept(i, j, k), i = 1, nlon), j = 1, nlat), k = nl, 1, -1)
+     IF ( which_tprof == 0 .OR. which_tprof == 1) THEN  ! geun
+       READ (atmos_unit, '(360I3)') (((glbncept(i, j, k), i=1, nlon), j=1, nlat), k= nl, 1, -1)
+     ELSE IF (which_tprof == 2 ) THEN
+       READ (atmos_unit, '(1024I3)') (((glbncept(i, j, k), i=1, nlon), j=1, nlat), k = nl, 1, -1)
+     ENDIF  ! geun
 
      first = .FALSE.
   ENDIF

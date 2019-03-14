@@ -109,7 +109,10 @@ SUBROUTINE get_initial_albedo (noalb, albedo, pge_error_status)
  
  IF (noalb) RETURN
  
- albedo = calc_albedo(measref, ps0, the_sza_atm, the_vza_atm, the_aza_atm)
+
+ !albedo = calc_albedo(measref, ps0, the_sza_atm, the_vza_atm, the_aza_atm) !wasp
+ pge_error_status=pge_errstat_error                                         !wasp
+
 ! WRITE(*, '(A, d12.4)') ' The initial albedo is: ', albedo
 
  IF (albedo <= -0.1 .OR. albedo >= 1.2) THEN

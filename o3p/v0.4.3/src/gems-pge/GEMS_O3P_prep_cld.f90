@@ -37,8 +37,7 @@ SUBROUTINE gems_o3p_prep_cld ( ny, offline, pge_error_status)
   CALL Gems_o3p_share_l2_cld(nx, nt, cfr, ctp1, qflag)
 
   ctp = ctp1*1.0
-  
-  
+
   ! convert 2bytes to 16 its
   Do ix = 1, nx
     CALL convert_2bytes_to_16bits (nbit, nt, qflag(ix, 1:nt), flgbits(ix, 1:nt, 0:nbit-1))
@@ -60,7 +59,6 @@ SUBROUTINE gems_o3p_prep_cld ( ny, offline, pge_error_status)
   gems_clouds%cfr    (1:nbx, 1:ny) = 0.0 
   gems_clouds%ctp    (1:nbx, 1:ny) = 0.0 
   gems_clouds%qflags (1:nbx, 1:ny) = 1 
-  
   DO ix = 1, nbx 
     DO iy = 1, ny
 
@@ -74,20 +72,35 @@ SUBROUTINE gems_o3p_prep_cld ( ny, offline, pge_error_status)
                  gems_clouds%cfr(ix, iy) = gems_clouds%cfr(ix, iy) + cfr(j, k)
                  count1 = count1 + 1.0
              ENDIF
+            !+---------------------------------------------------------------------------+
+             !ORIGINAL
              IF ( ctp(j, k) > 0.0 .AND. cfr(j, k) >= 0.0  ) THEN                 
                  gems_clouds%ctp(ix, iy) = gems_clouds%ctp(ix, iy) + LOG(ctp(j, k)) * cfr(j, k)
-                 tmpsum = tmpsum + LOG(ctp(j, k)) 
+                 tmpsum = tmpsum + LOG(ctp(j, k))
                  scfr = scfr + cfr(j, k)
                  count0 = count0 + 1.0
-                 ! print * , j,k, ctp(j, k), cfr(j, k)
+                 !print * , 'O2 ctp,cfrac wasp!',j,k, log(ctp(j, k)), cfr(j,k)
              ENDIF
+            !+---------------------------------------------------------------------------+
+             !TEST by WASP!
+             !IF ( ctp(j, k) > 0.0 .AND. cfr(j, k) >= 0.0  ) THEN                 
+                 !gems_clouds%ctp(ix, iy) = gems_clouds%ctp(ix, iy) + LOG(ctp(j, k)-100) * cfr(j, k)
+                 !tmpsum = tmpsum + LOG(ctp(j, k)-100)
+                 !scfr = scfr + cfr(j, k)
+                 !count0 = count0 + 1.0
+                 !print * , 'O2 ctp,cfrac wasp!',j,k, log(ctp(j, k)-100), cfr(j,k)
+             !ENDIF
+            !+---------------------------------------------------------------------------+
            ENDDO
       ENDDO
-    
+
+  
       IF (scfr /= 0.0) THEN       ! Weighted by Cloud Fraction
         gems_clouds%ctp(ix, iy) = EXP(gems_clouds%ctp(ix, iy) / scfr)
+        !print * , 'prep cld ctp added',gems_clouds%ctp(ix,iy)
       ELSE IF (count0 > 0.0 ) THEN ! Simple average if cloud fraction is all zero
         gems_clouds%ctp(ix, iy) = EXP(tmpsum / count0)      
+        !print * , 'prep cld ctp added',gems_clouds%ctp(ix,iy)
       ELSE
         gems_clouds%ctp(ix, iy) = 0.0
         gems_clouds%qflags(ix,iy) = 10 ! bad results (should not be used)
@@ -99,11 +112,9 @@ SUBROUTINE gems_o3p_prep_cld ( ny, offline, pge_error_status)
         gems_clouds%cfr(ix, iy) = 0.0
       ENDIF
 
-       print * , scfr, count0, gems_clouds%ctp(ix, iy), ctp1(ix, iy)
+       !print * , scfr, count0, gems_clouds%ctp(ix, iy), ctp1(ix, iy)
      ENDDO ! Loop of Y-track
   ENDDO ! Loop of X-track
-
- 
   RETURN
   END SUBROUTINE gems_o3p_prep_cld
 

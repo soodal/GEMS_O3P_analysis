@@ -69,7 +69,7 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
   REAL (KIND=dp), DIMENSION(maxalb)        :: albarr 
   REAL (KIND=dp), DIMENSION(maxwfc)        :: wfcarr 
   REAL (KIND=dp), DIMENSION (ns)           :: delpos, waves, meas1, meas2, &
-       simrad, simrad1, fitspec1, diff, temporwf
+       simrad, simrad1, fitspec1, diff, temporwf, fitcheck
   REAL (KIND=dp), DIMENSION(ns,nlay,MSTKS) :: ozwf, tmpwf
   REAL (KIND=dp), DIMENSION(ns, 4)         :: albothwf, wfcothwf
   REAL (KIND=dp), DIMENSION(ns, MSTKS)     :: o3shiwf, cfracwf, albwf, fsimrad, &
@@ -102,6 +102,9 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
   LOGICAL, SAVE             :: first = .TRUE.
 
   errstat = pge_errstat_ok
+!write(*,*) 'hello wasp in pseudo_model fitspec here!',fitspec(1:ns)
+!write(*,*) 'hello wasp in pseudo_model fsimrad here!',fsimrad
+  fitcheck(:)=0.
 
   IF (first .AND. .NOT. use_effcrs) THEN
      CALL get_hres_radcal_waves(errstat)
@@ -176,20 +179,21 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
      ENDIF
   ENDDO
 
- DO k = 1, ngas
+  DO k = 1, ngas
     i = fgasidxs(k)
     IF (i > 0) THEN
        j = mask_fitvar_rad(i)
        tracegas(k, 4) = fitvar_rad(j) !/ refspec_norm(gasidxs(k)) ! trace gas column in molecules cm-2
     ENDIF
+
    
- ENDDO
- waves = fitwavs(1:ns)
+  ENDDO
+  waves = fitwavs(1:ns)
  
- vary_sfcalb = .FALSE. !.TRUE.
- n0alb = 0
- 
- DO i = 1, nalb
+  vary_sfcalb = .FALSE. !.TRUE.
+  n0alb = 0
+
+  DO i = 1, nalb
      j = albidx - 1 + i
 !xliu, 02/08/2012, add albord and **albord
      READ(fitvar_rad_str(j)(4:4), '(I1)') albord
@@ -222,8 +226,10 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
         wfcpmax(n0wfc) = wfclpix(i); wfcpmin(n0wfc) = wfcfpix(i)
      ENDIF      
   ENDDO
-  
+
+ 
   IF (do_subfit) THEN
+
      DO i = 1, maxoth
         o3shi(1:numwin, i) = fitvar_rad(osind(1:numwin, i))
      ENDDO
@@ -231,43 +237,44 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
      o3shi(1, 1:maxoth)    = fitvar_rad(osind(1, 1:maxoth))
   ENDIF
      
- !Iraddaince/radiance shift is done when interpolating solar reference to wavelength grid, not here
- !IF (nsh > 0) THEN
- !   IF (do_subfit) THEN
- !      fidx = 1
- !      DO j = 1, numwin
- !         lidx = fidx + nradpix(j) - 1
- !         delpos(fidx:lidx) =  waves(fidx:lidx) - (waves(fidx) + waves(lidx)) / 2.0
- !         IF (shfind(j, 1) > 0)  waves(fidx:lidx) = waves(fidx:lidx) + fitvar_rad(shind(j, 1)) 
- !
- !         DO i = 2, nsh            
- !            IF (shfind(j, i) > 0)  waves(fidx:lidx) = waves(fidx:lidx) + &
- !                 fitvar_rad(shind(j, i)) * (delpos(fidx:lidx) ** (i-1))
- !         ENDDO
- !         fidx = lidx + 1
- !      ENDDO
- !   ELSE
- !      IF (shwins(1, 1) == 1) THEN
- !         fidx = 1
- !      ELSE
- !         fidx = SUM(nradpix(1: shwins(1, 1)-1)) + 1
- !      ENDIF
- !      lidx = SUM(nradpix(1: shwins(1, 2)))
- !      delpos(fidx:lidx) =  waves(fidx:lidx) - (waves(fidx) + waves(lidx)) / 2.0
- !      IF (shfind(1, 1) > 0) waves(fidx:lidx)  = waves(fidx:lidx) + fitvar_rad(shind(1, 1))
- !
- !      DO i = 2, nsh  
- !         IF (shfind(1, i) > 0) THEN
- !            waves(fidx:lidx)  = waves(fidx:lidx) + fitvar_rad(shind(1, i)) * (delpos(fidx:lidx) ** (i-1))
- !         ENDIF
- !      ENDDO
- !   ENDIF
- !ENDIF
-
+  !Iraddaince/radiance shift is done when interpolating solar reference to wavelength grid, not here
+  !IF (nsh > 0) THEN
+  !   IF (do_subfit) THEN
+  !      fidx = 1
+  !      DO j = 1, numwin
+  !         lidx = fidx + nradpix(j) - 1
+  !         delpos(fidx:lidx) =  waves(fidx:lidx) - (waves(fidx) + waves(lidx)) / 2.0
+  !         IF (shfind(j, 1) > 0)  waves(fidx:lidx) = waves(fidx:lidx) + fitvar_rad(shind(j, 1)) 
+  !
+  !         DO i = 2, nsh            
+  !            IF (shfind(j, i) > 0)  waves(fidx:lidx) = waves(fidx:lidx) + &
+  !                 fitvar_rad(shind(j, i)) * (delpos(fidx:lidx) ** (i-1))
+  !         ENDDO
+  !         fidx = lidx + 1
+  !      ENDDO
+  !   ELSE
+  !      IF (shwins(1, 1) == 1) THEN
+  !         fidx = 1
+  !      ELSE
+  !         fidx = SUM(nradpix(1: shwins(1, 1)-1)) + 1
+  !      ENDIF
+  !      lidx = SUM(nradpix(1: shwins(1, 2)))
+  !      delpos(fidx:lidx) =  waves(fidx:lidx) - (waves(fidx) + waves(lidx)) / 2.0
+  !      IF (shfind(1, 1) > 0) waves(fidx:lidx)  = waves(fidx:lidx) + fitvar_rad(shind(1, 1))
+  !
+  !      DO i = 2, nsh  
+  !         IF (shfind(1, i) > 0) THEN
+  !            waves(fidx:lidx)  = waves(fidx:lidx) + fitvar_rad(shind(1, i)) * (delpos(fidx:lidx) ** (i-1))
+  !         ENDIF
+  !      ENDDO
+  !   ENDIF
+  !ENDIF
+  
   ! === Call LIDORT, polarization correction, and additional wf calc =====
   !the_cfrac = 0.
   nostk = 1
 
+!write(*,*) 'hello wasp in pseudo_model fitweights1 here!',fitweights(1:ns)
   IF (use_effcrs) THEN
      CALL LIDORT_PROF_ENV(do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary,       &
           do_taodwf, do_twaewf, do_saodwf, do_cfracwf, do_ctpwf, do_codwf, do_sprswf, do_so2zwf, &
@@ -300,16 +307,17 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
           WRITE(*, *) modulename, ': Errors in calling HRES_RADCALC_ENV!!!'
   ENDIF
   IF (errstat == pge_errstat_error) RETURN
- 
+
 
   !xliu (02/01/2007): correct radiances based on ozone weighting function to deal with negative ozone values
-  IF (negval) THEN
+  IF (negval) THEN !wasp : F
      DO i = 1, nlay 
         IF (ozadj(i) > 0) THEN
            fsimrad(1:ns, 1:nostk) = fsimrad(1:ns, 1:nostk) - ozadj(i) * ozwf(1:ns, i, 1:nostk) 
         ENDIF
      ENDDO
   ENDIF
+  !write(*,*)'hello wasp! at pseudo model fsimrad', fsimrad(1:10,1)
   simrad = fsimrad(1:ns, 1)
 
   !IF (radcalwrt .AND. do_simu) THEN
@@ -338,7 +346,7 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
 !!$  enddo
 
   ! get dlnI/dx
-  IF (use_lograd) THEN
+  IF (use_lograd) THEN ! wasp : T
      IF (do_albwf)   albwf(1:ns, 1)   = albwf(1:ns, 1)   / simrad     
      IF (do_o3shi)   o3shiwf(1:ns, 1) = o3shiwf(1:ns, 1) / simrad
      IF (do_codwf)   codwf(1:ns, 1)   = codwf(1:ns, 1)   / simrad
@@ -359,6 +367,7 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
 
      simrad = LOG(simrad)           ! get dlnI     
   END IF
+  !write(*,*)'hello wasp! at pseudo model get dlnI/dx! ',simrad(1:10)
  
   !WRITE(77, *) 'Ozone weighting function D(lnI)/D(lnx)'
   !DO i = 1, ns
@@ -378,10 +387,10 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
      !albothwf(fidx:lidx,albord) = albwf(fidx:lidx, 1)*(waves(fidx:lidx) / wavavg)**albord
      albothwf(fidx:lidx,albord) = albwf(fidx:lidx, 1)*(waves(fidx:lidx) - wavavg)**albord ! much better than above
      IF (.NOT. vary_sfcalb) simrad(fidx:lidx) = simrad(fidx:lidx) +  albothwf(fidx:lidx, albord) * fitvar_rad(j)         
-     
+  !write(*,*)'hello wasp! at pseudo model alb correction! ',simrad(1:10)
   ENDDO
          
-  IF (nwfc > 0) THEN
+  IF (nwfc > 0) THEN ! wasp : F
      wfcothwf = 0.0
      DO i = 1, nwfc
         j = wfcidx + i - 1
@@ -395,8 +404,7 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
         simrad(fidx:lidx) = simrad(fidx:lidx) +  wfcothwf(fidx:lidx, wfcord) * fitvar_rad(j)        
      ENDDO
   ENDIF
-
-  IF (radcalwrt .AND. do_simu .AND. .NOT. do_simu_rmring) THEN
+  IF (radcalwrt .AND. do_simu .AND. .NOT. do_simu_rmring) THEN ! wasp : F
      fitspec = actspec_rad(1:ns)
      IF ( use_lograd ) fitspec = LOG( fitspec )
      fitres = fitspec - simrad
@@ -411,15 +419,27 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
   ELSE
      do_shiwf = .FALSE.
   ENDIF
+!write(*,*)'hello wasp! is it zero?', fitspec ! wasp : yes in first loop, no other loops
   CALL spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
+  fitcheck=fitspec
+!write(*,*)'hello wasp! is it zero?', fitspec ! wasp : no 
+!write(*,*)'hello wasp!',num_iter 
+!stop
   IF (errstat == pge_errstat_error) THEN
      WRITE(*, *) modulename, ': Errors in spectra_reflectance!!!'; RETURN
   ENDIF
+
   IF (num_iter == 0) THEN
-     CALL UV1_SPIKE_DETECT(ns, fitspec, simrad, nsaa_spike)
+  !write(*,*) 'hello wasp in pseudo_model nsaa_spike here!',nsaa_spike
+  !write(*,*) 'hello wasp in pseudo_model fitweights2 here!',fitweights(1:ns)
+     !CALL UV1_SPIKE_DETECT(ns, fitspec, simrad, nsaa_spike) ! wasp : ignore this.
+  !write(*,*) 'hello wasp in pseudo_model fitweights3 here!',fitweights(1:ns)
   ENDIF
            
   ! get residual between measured and simulated reflectance
+  !write(*,*)'hello wasp! at pseudo model simrad',simrad(1:10)
+  !write(*,*) 'hello wasp in pseudo_model fitweights here!',fitweights(1:ns)
+  !write(*,*)'hello wasp! this is fitspec!',fitspec(1:10)
   fitres = fitspec - simrad
 
   ! compute chi-square difference
@@ -427,7 +447,6 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
   rms =    SQRT(chisq  / REAL(ns, KIND=dp))
   relrms = 100.D0 * SQRT(SUM(ABS((simrad-fitspec) / fitspec)**2.0) &
           / REAL(ns, KIND=dp))
-
   IF (scnwrt) THEN
      fidx = 1
      DO i = 1, numwin
@@ -485,9 +504,10 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
        band_selectors(1) == 1 .AND. saa_flag  ) THEN 
      CALL spike_detect_correct(nradpix(1)+10, fitspec(1:nradpix(1)+10), simrad(1:nradpix(1)+10))  
   ENDIF
+  !write(*,*)'hello wasp! at pseudo model simrad',simrad(1:ns)!10) !wasp : same with simrad
   fitres = fitspec - simrad
-    
-  IF (.NOT. refl_only) THEN 
+  !write(*,*)'hello wasp! at pseudo model fitres',fitres
+  IF (.NOT. refl_only) THEN ! IF ( True ) - wasp!
      dyda = 0.0
     
      ! albedo weighting function
@@ -511,11 +531,12 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
         
         ENDIF
      ENDDO  
+
      ! wavelength-dependent cloud fraction weighting function
      DO i = 1, nfwfc
         j = wfcfidx + i - 1
         k = mask_fitvar_rad(j) 
-        fidx = wfcfpix(k -wfcidx + 1); lidx=wfclpix(k - wfcidx + 1)
+        fidx = wfcfpix(k - wfcidx + 1); lidx=wfclpix(k - wfcidx + 1)
 
         READ(fitvar_rad_str(k)(4:4), '(I1)') wfcord
 
@@ -760,9 +781,12 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
         dyda(:, i) = dyda(:, i) / fitweights(1:ns)
      END DO
      
-     ! finnally obtain the new spectrum to be fitted in the GSVD
+     ! finally obtain the new spectrum to be fitted in the GSVD
      gspec(1:ns) = fitres(1:ns) / fitweights(1:ns)
-     
+!write(*,*) 'hello wasp! in pseudo_model gspec here!', gspec(1:ns)
+!write(*,*) 'hello wasp! in pseudo_model fitres here!', fitres(1:ns)
+!write(*,*) 'hello wasp! in pseudo_model fitweights here!', fitweights(1:ns)
+
      ! Restore the unperturbated fitting variables
      fitvar(1:nf) = fitvar_saved(1:nf)
      fitvar_rad(mask_fitvar_rad(1:nf)) = fitvar(1:nf)  

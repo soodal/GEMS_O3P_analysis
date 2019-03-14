@@ -201,6 +201,7 @@ PROGRAM GEMS_O3P_Main
         print*, "O3 Fitting Error !!! "
         GOTO 1999  
     ENDIF
+    print*,'GEMS O3 fitting process done.'
     !-------------------------------------------------------------------------
     !-------- . MPI Processing
     !-------------------------------------------------------------------------
@@ -704,6 +705,29 @@ SUBROUTINE GEMS_Share_MOD_MPI_DataSumProcess(myrank, mpi_pix, mpi_line, L2O3P_wr
         PRINT*, "[Time] MPI Processing Error !!!"
         retCode = errCode
         RETURN  
+    ENDIF
+
+    ! geun added PIX output
+    CALL GEMS_Share_MOD_MPI_Process(myrank,                        &
+                                    gds_L2O3P%o3p_gfld%Pix,       &
+                                    L2O3P_wr%o3p_gfld%Pix,        &
+                                    mpi_pix, mpi_line, errCode)
+    IF ( errCode /= 0 ) THEN
+        PRINT*, "[Pix] MPI Processing Error !!!"
+        retCode = errCode
+        RETURN
+    ENDIF
+
+
+    ! geun added Line output
+    CALL GEMS_Share_MOD_MPI_Process(myrank,                        &
+                                    gds_L2O3P%o3p_gfld%Line,       &
+                                    L2O3P_wr%o3p_gfld%Line,        &
+                                    mpi_pix, mpi_line, errCode)
+    IF ( errCode /= 0 ) THEN
+        PRINT*, "[Line] MPI Processing Error !!!"
+        retCode = errCode
+        RETURN
     ENDIF
    
     retCode = errCode
