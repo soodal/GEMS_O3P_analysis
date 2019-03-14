@@ -1,0 +1,4257 @@
+diff --git a/.gitignore b/.gitignore
+index ad597a9..dde8f69 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -3,7 +3,9 @@ o3p/log/
+ o3p/share/
+ o3p/v0.4.1/
+ o3p/v0.4.2/
++o3p/v0.4.3_*
+ o3p/v0.4.3.0/
++
+ o3p/v0.4.3/bin/
+ o3p/v0.4.3/make/
+ o3p/v0.4.3/msg/
+@@ -27,4 +29,27 @@ o3p/v0.4.3/src/run_gems_bu.sh
+ o3p/v0.4.3/src/run_list.sh
+ o3p/v0.4.3/src/runlist.list
+ o3p/v0.4.3/tmp/
++o3p/v0.4.3/src/geun/
++o3p/v0.4.3/src/hslog/
++o3p/v0.4.3/src/run_gems_geun.sh
++o3p/v0.4.3/src/run_gems_list.sh
++o3p/v0.4.3/src/run_geun.sh
++o3p/v0.4.3/src/runlist_coltest.listbu
++
+ share/
++*.list
++*.swp
++*.tmp
++*.inp
++*.cfg
++*.conf
++*burun
++*fort.91
++*fort.999
++*.bu
++*.modcld
++*.org
++*.um
++*.um2
++*src.all*
++*tmp.test*
+diff --git a/o3p/v0.4.3/run/conf/GEMS_O3P.inp b/o3p/v0.4.3/run/conf/GEMS_O3P.inp
+index 0fb157d..e3fb22d 100644
+--- a/o3p/v0.4.3/run/conf/GEMS_O3P.inp
++++ b/o3p/v0.4.3/run/conf/GEMS_O3P.inp
+@@ -1,4 +1,4 @@
+-# 
++# q 
+ # ====================================== #
+ # BOAS test for SAO PGEs: A basic O3 fit #
+ # ====================================== #
+@@ -12,17 +12,17 @@ OMI
+ # Within in the same band (e.g., 1a & 1b, no overlapping between them)
+ GEMS radiance bands to be used ; (band 1: UV-1; band 2: UV-2; band 3: VIS)
+ T                  # rm_mgline, Filter spectral pixels around Mg and Mg-II (280 and 285 nm), not need for GEMS
+-2  F   F           # numwin, do_bandavg, wcal_bef-coadd # of bands, spectral coadd? wavelength calibration before coadd? 
++2  F   F            # numwin, do_bandavg, wcal_bef-coadd # of bands, spectral coadd? wavelength calibration before coadd? 
+ 1  269  309. 5 2   ; band_selctectors(i), winlim(i,1), winlim(i,2), n_band_avg(i), n_band_samp(i)
+ 2  312. 330. 2 2
+ 
+ GEMS spatial coadding
+ F  1         # do_xbin, nxbin, coadd across track, # of observations to be coadded
+ F  2         # do_ybin, nybin, coadd along  track, # of observations to be coaddedke
+-31  32       # pixlim [1, 60] 첫번째 픽셀은 반드시 홀수, 총 갯수는 반드시 짝수
+--1  -1       # linlim [1, 1644]
++31  32         # pixlim [1, 60] 첫번째 픽셀은 반드시 홀수, 총 갯수는 반드시 짝수
++100  120   # linlim [1, 1644]
+ T            # read l1l2 inputfile from next file
+-/home/o3p_hs/GEMS/o3p/v0.4.3/run/conf/INP/L1L2_fnames.inp
++../run/conf/INP/L1L2_fnames.inp
+ 
+ 
+ # If Ozone profile retrieval, line "Molecule(s) to fit" will not be read
+diff --git a/o3p/v0.4.3/run/conf/INP/ozprof.inp b/o3p/v0.4.3/run/conf/INP/ozprof.inp
+index 55094a2..d9e59ca 100644
+--- a/o3p/v0.4.3/run/conf/INP/ozprof.inp
++++ b/o3p/v0.4.3/run/conf/INP/ozprof.inp
+@@ -7,7 +7,7 @@ F  F                             ; do_simulation, do_simu_rmring
+ F  F   T                         ; 1 T/F: 2 steps (2nd step for trace gas)? 2. T/F: both steps for trace gas? 3 T/F: large SO2 aperr
+ T                               ; T: fitting the weighting function of minor trace gases
+ ;ATMOS, screen, intermed, gases, var., correl, covar., avgk, favgk, contri., residual, wfns, s/n,  ring,  ozcrs 
+-  F       F       F         F     F      F      F       F     F        F       F       F     F     F      F 
++  F       F       F         F     F      F      F       F     F        F       F       F     F     F      F
+ ; File name for writing atmospheric inputs
+ ../run/conf/INP/o3_wf_atm.dat       
+ ; do radiance calibration, type (1: climatology  2: true ozone profile from other souces)
+@@ -19,30 +19,35 @@ T                               ; use floor noise
+ T  F   F                        ; on-line ring effect, slit convolution, fitting atan-1
+ T                               ; T: update ozone below clouds through smoothing F: Don't update ozone below clouds
+ T  F                            ; bias correction, time-dependent degradation correction
+-7  ; which biascorr (1: direct corr. 2: para. corr 3: dirrect corr (offset & slope) 4: para. (offset & slope) 5. same as 3 but LOG(I) 6. xtrack correction (theta) 7 xtrack and wave (don't need to match positions like 1) 8. xw, relative difference I/F diff. vs. rad347  9.  xw, relative I/F difference vs. rad347 nm, but with option 7 correction as offset
++7  ; which biascorr (1: direct corr. 2: para. corr 3: dirrect corr (offset & slope) 4: para. (offset & slope) 5. same as 3 but LOG(I) ;6. xtrack correction (theta) 7 xtrack and wave (don't need to match positions like 1) 8. xw, relative difference I/F diff. vs. rad347  9.  xw, relative I/F difference vs. rad347 nm, but with option 7 correction as offset
+ ../../dat/tbl/OMI/xw_bias_2006m07_hres_8s48lnr_nspk.dat
+ ../run/conf/INP/GOME_degcorr_glb_lut_s_s6.dat  
+ T                                ; do_subfit (T: some paraeters will be used for each window)
+-1                 	         ; 1: lcurve, 2: gcv, 3: gcv with lcurve
++1                     	         ; 1: lcurve, 2: gcv, 3: gcv with lcurve
+ F                                ; lcurve_write
+ 0  0.05 1.0 0.000                ; PTR order, w0, w1, w2
+-1                                ; which clima         1~13  ***** (see end for more option) *****
+-1                                ; which apriori error 1~13  ***** (see end for more option) *****
++1                                ; which clima         1~13  ***** (see end for more option) *****   # 1 -> 12   geun
++1                                ; which apriori error 1~13  ***** (see end for more option) *****   # 1 -> 12   geun
+ 0                                ; Total ozone. 0: None 1: gridded TOMS/OMI) 2. Zonal mean 3. Individual (not implemented)
+ F                                ; update_o3
+ F                                ; update_sao3
+ F  0.20  0.2                    ; Loose a priori constraint, relative error in the stratosphere and troposphere
+ F                               ; T: normalize tropospheric column ozone F. normalize whole profile
+ 4                               ; which albedo database (1: GOME from Kolemeijer; 2: TOMS from J.R. Herman 3: OMI from Omar) 4. Kleipool OMI
+-3                               ; which cloud (0/1: OMICLDRR/OMICLDO2; 2 V8 Clima (from OMCLDRR); 3/4 OMCLDRR/OMCLDO2 + V8 CLIMA)
++0                               ; which cloud (0/1: OMICLDRR/OMICLDO2; 2 V8 Clima (from OMCLDRR); 3/4 OMCLDRR/OMCLDO2 + V8 CLIMA)
++0                               ; which tpres (0: Ncep; 1: AIRS; 2: fnl montly 3: um daily) adding this option by Jbak(09/15/11), modified by geun (03/13/18)
++0                               ; which spres (0: fnl daily; 1: fnl monthly 2: um daily) adding this option by geun (03/13/18)
++0                               ; which sfct (0: fnl daily; 1: fnl monthly 2: um daily) adding this option by geun (03/13/18)
++0                               ; which tprof (0: fnl daily+combined clima; 1: fnl monthly+combined clima; 2: um_daily+combined clima) adding this option by geun (03/13/18)
++
+ F  F                            ; aerosol in LIDORT, stratospheric aerosols
+ ;trop. aerosol (0: all 1: dust 2: sulfate, 3: BC 4: OC 5: fine SS 6:coarse SS), scale AOD,  and aerosol optical thickness
+ 0 F  0.01000
+-T T 0.80 20.0                   ; Consider clouds, Lambertian Clouds, Lambertian cloud albedo, Default COD
++T T 0.80 20.0                   ; Consider clouds, Lambertian Clouds, Lambertian cloud albedo, Default COD ;wasp 0.80->0.90
+ F                               ; Cloud/aerosols T: asymmetric factor F: phase
+ 63                              ; nmom: # of phase moments (start from zero, 0:nmom), overwrite vlidort_control.inp
+ F                               ; T: use effectove cross section F: do radiance calculation at high resolution
+-0.05                           ; sampling rate for find grid (must be multiples of 0.01 nm, 0.05 nm is good)
++0.05                            ; sampling rate for find grid (must be multiples of 0.01 nm, 0.05 nm is good)
+ 3                               ; # of spectral regions for specifying sampling rates
+ 260. 295. 310.                  ; boundary of spectra regions (using different sampling rate in different region)
+ 1.0  0.4  0.6                   ; spectral sampling rate (unit: nm) to do radiance calculation
+@@ -111,7 +116,7 @@ ozcrs_sol_for_alb.dat
+ 3     ; number of albedo termns
+ 1ba0     0.11 -1 1   260.0 310.0  -1 1        ; 0th albdeo for ch 1
+ 2ba0     0.11 -1 1   310.0 355.0  -1 1        ; 0th albdeo for ch 2
+-2ba1     0.0  -1.0 1.0  310.0   355.0    ; 1st albdeo for ch 2
++2ba1     0.0  -1.0 1.0  310.0   355.0    ; 1st albdeo for ch 2 #wasp -1 -> 1
+ 2ba2     0.0  1.0 1.0  310.0   355.0    ; 2nd albdeo for ch 2
+ 2ba3     0.0  1.0 1.0  310.0   355.0    ; 3rd albdeo for ch 2
+ 
+@@ -169,7 +174,7 @@ ins0   0 0 0 1 1 1.0E-3 -1.0 1.0 1 1      ; straylight/dark current in irradianc
+ ins1   0 0 0 1 1 1.0E-6 -1.0 1.0  1 2                                                                
+ ins2   0 0 0 1 1 1.0E-7 -1.0 1.0  1 2                                                                    
+ ins3   0 0 0 1 1 1.0E-8 -1.0 1.0  1 2                                                                
+-inr0   1.0E-7 -1.0 1.0  1 2              ; straylight/dark current in radiance 
++inr0   1.0E-7 -1.0 1.0  1 2              ; straylight/dark current in radiance   !geun changed from 1.0E-7 -1.0 1.0  1 1
+ inr1   0 0 0 1 1 1.0E-6 -1.0 1.0  1 1     
+ inr2   0 0 0 1 1 1.0E-6 -1.0 1.0  1 2      
+ inr3   0 0 0 1 1 1.0E-7 -1.0 1.0  1 2         
+diff --git a/o3p/v0.4.3/src/Makefile b/o3p/v0.4.3/src/Makefile
+index 37e5bd7..5c65030 100644
+--- a/o3p/v0.4.3/src/Makefile
++++ b/o3p/v0.4.3/src/Makefile
+@@ -77,6 +77,8 @@ include ../make/make.sources
+ include ../make/make.o3prof_sources
+ include ../make/make.gems_sources
+ 
++GEMS_LIB += -I/usr/local/mpi/include -L/usr/local/mpi/lib -lmpi -lmpi_mpifh
++GEMS_LIB += -L$(LAPACK_PATH_LIB) -llapack -lblas
+ # =================================================
+ #  Everything we want to make in this distribution
+ # =================================================
+@@ -138,7 +140,6 @@ include ../make/make.mod_patterns
+ include ../make/make.patterns
+ include ../make/make.o3prof_patterns
+ include ../make/make.gems_patterns
+-
+ # =================
+ #  End of Makefile
+ # =================
+diff --git a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_MOD_l1b.f90 b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_MOD_l1b.f90
+index a9f5f58..7bee036 100644
+--- a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_MOD_l1b.f90
++++ b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_MOD_l1b.f90
+@@ -11,13 +11,13 @@ INTEGER (KIND=i4)         :: orbnum, orbnumsol !, gemssol_version
+ 
+ 
+ ! Define Data Maximum Dimension
+-INTEGER (KIND=i4), PARAMETER :: ntimes_max= 2000, nxtrack_max  = 60, nwavel_max  = 720 !wasp
++INTEGER (KIND=i4), PARAMETER :: ntimes_max= 2000, nxtrack_max  = 60, nwavel_max  = 720   ! ntimes_max 1645 -> 2000 geun mod
+ INTEGER (KIND=i4), PARAMETER :: mchannel=2 ! # of maximum channel , mswath
+ INTEGER :: nchannel, nxtrack, nfxtrack, ntimes  !nfxtrack = nxtrakc for UV1 if selected
+ INTEGER, DIMENSION (mchannel):: chs
+ INTEGER :: nxbin, nybin, ncoadd,first_pix, last_pix, first_line, last_line, offline, gems_nx, gems_ny
+-INTEGER, DIMENSION (ntimes_max) ::  lineloc
+-INTEGER, DIMENSION (nxtrack_max) ::  pixloc !wasp
++INTEGER, DIMENSION (ntimes_max) ::  lineloc  ! geun
++INTEGER, DIMENSION (nxtrack_max) ::  pixloc  ! geun
+ LOGICAL :: do_xbin, do_ybin
+ 
+ 
+diff --git a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_Main.f90 b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_Main.f90
+index 0dd4480..f0127bc 100755
+--- a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_Main.f90
++++ b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_Main.f90
+@@ -201,6 +201,7 @@ PROGRAM GEMS_O3P_Main
+         print*, "O3 Fitting Error !!! "
+         GOTO 1999  
+     ENDIF
++    print*,'GEMS O3 fitting process done.'
+     !-------------------------------------------------------------------------
+     !-------- . MPI Processing
+     !-------------------------------------------------------------------------
+@@ -705,6 +706,29 @@ SUBROUTINE GEMS_Share_MOD_MPI_DataSumProcess(myrank, mpi_pix, mpi_line, L2O3P_wr
+         retCode = errCode
+         RETURN  
+     ENDIF
++
++    ! geun added PIX output
++    CALL GEMS_Share_MOD_MPI_Process(myrank,                        &
++                                    gds_L2O3P%o3p_gfld%Pix,       &
++                                    L2O3P_wr%o3p_gfld%Pix,        &
++                                    mpi_pix, mpi_line, errCode)
++    IF ( errCode /= 0 ) THEN
++        PRINT*, "[Pix] MPI Processing Error !!!"
++        retCode = errCode
++        RETURN
++    ENDIF
++
++
++    ! geun added Line output
++    CALL GEMS_Share_MOD_MPI_Process(myrank,                        &
++                                    gds_L2O3P%o3p_gfld%Line,       &
++                                    L2O3P_wr%o3p_gfld%Line,        &
++                                    mpi_pix, mpi_line, errCode)
++    IF ( errCode /= 0 ) THEN
++        PRINT*, "[Line] MPI Processing Error !!!"
++        retCode = errCode
++        RETURN
++    ENDIF
+    
+     retCode = errCode
+     RETURN    
+diff --git a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_calibrate_l1b.f90 b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_calibrate_l1b.f90
+index 054dee4..7fcbca8 100644
+--- a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_calibrate_l1b.f90
++++ b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_calibrate_l1b.f90
+@@ -258,6 +258,9 @@ SUBROUTINE GEMS_O3P_SUB3_Irrad_cross_calibrate (first_pix, last_pix,  pge_error_
+      gems_ring%solwavl(gems_ring%sol_lin(ix):gems_ring%sol_uin(ix), ix)  = sol_spec_ring(1, 1:nsol_ring)
+   ENDDO
+ 
++    !write(*,*) nxbin, gems_irrad,gems_ring
++    !WRITE(*,'(A)') 'HELLO END!!!'
++!stop
+   RETURN
+ END SUBROUTINE GEMS_O3P_SUB3_Irrad_cross_calibrate
+ 
+diff --git a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_fitting_aux.f90 b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_fitting_aux.f90
+index 9a8b8a8..09c38c5 100644
+--- a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_fitting_aux.f90
++++ b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_fitting_aux.f90
+@@ -161,108 +161,110 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
+     !       5. same as 3 but LOG(I) 6. xtrack correction (theta) 7 xtrack and wave (don't need to match positions like 1) 
+     !       8. xw, relative difference I/F diff. vs. rad347  9.  xw, relative I/F difference vs. rad347 nm, but with option 7 correction as offset
+     !       It is much better to use direct correction instead of parameterized correction
+-   IF ( which_biascorr == 7) THEN ! need xw_bias*.dat
+-        OPEN(UNIT=l1l2inp_unit, FILE=TRIM(ADJUSTL(biasfname)), STATUS='OLD', IOSTAT=errstat)
+-        IF ( errstat /= pge_errstat_ok ) THEN
+-           errstat = OMI_SMF_setmsg (omsao_e_open_fitctrl_file, &
+-           TRIM(ADJUSTL(biasfname)), modulename, 0)
+-           pge_error_status = pge_errstat_error; RETURN
+-        ENDIF
+-        xwcorr = 1.0 ! Initialize to one
+-        DO is = 1, mchannel
+-           READ (l1l2inp_unit, *) nxcorr(is), nxwav(is)
+-           DO iw = 1, nxwav(is)
+-              READ (l1l2inp_unit, *) xwavs(is, iw), xwcorr(is, 1:nxcorr(is), iw)
+-           ENDDO
+-        
+-           IF (nxcorr(is) > nfxtrack) THEN
+-              nsub = nxcorr(is) / nfxtrack
+-              DO ix = 1, nfxtrack
+-                 fidx = (ix - 1) * nsub + 1
+-                 lidx = fidx + nsub - 1
+-                 DO iw = 1, nxwav(is)
+-                    xwcorr(is, ix, iw) = SUM(xwcorr(is, fidx:lidx, iw)) / nsub
+-                 ENDDO
+-              ENDDO
+-           ENDIF
++    IF ( which_biascorr == 7) THEN ! need xw_bias*.dat
++      OPEN(UNIT=l1l2inp_unit, FILE=TRIM(ADJUSTL(biasfname)), STATUS='OLD', IOSTAT=errstat)
++      IF ( errstat /= pge_errstat_ok ) THEN
++        errstat = OMI_SMF_setmsg (omsao_e_open_fitctrl_file, &
++                                  TRIM(ADJUSTL(biasfname)), modulename, 0)
++        pge_error_status = pge_errstat_error; RETURN
++      ENDIF
++
++      xwcorr = 1.0 ! Initialize to one
++
++      DO is = 1, mchannel
++        READ (l1l2inp_unit, *) nxcorr(is), nxwav(is)
++        DO iw = 1, nxwav(is)
++          READ (l1l2inp_unit, *) xwavs(is, iw), xwcorr(is, 1:nxcorr(is), iw)
+         ENDDO
+-        CLOSE(UNIT=l1l2inp_unit) 
++        
++        IF (nxcorr(is) > nfxtrack) THEN
++          nsub = nxcorr(is) / nfxtrack
++          DO ix = 1, nfxtrack
++            fidx = (ix - 1) * nsub + 1
++            lidx = fidx + nsub - 1
++            DO iw = 1, nxwav(is)
++              xwcorr(is, ix, iw) = SUM(xwcorr(is, fidx:lidx, iw)) / nsub
++            ENDDO
++          ENDDO
++        ENDIF
++      ENDDO
++      CLOSE(UNIT=l1l2inp_unit) 
+ 
+-        ! Correction for trace gases
+-        gascorr_fname = ADJUSTL(TRIM(refdbdir)) // 'OMI/OMIO3PROF_corrgas_hres_o10582.dat'
++      ! Correction for trace gases
++      gascorr_fname = ADJUSTL(TRIM(refdbdir)) // 'OMI/OMIO3PROF_corrgas_hres_o10582.dat'
+      
+-        OPEN (UNIT=l1l2inp_unit, FILE=TRIM(ADJUSTL(gascorr_fname)), STATUS='UNKNOWN', IOSTAT=errstat)
+-        IF ( errstat /= pge_errstat_ok ) THEN
+-           WRITE(*, '(2A)') modulename, ': Cannot open trace gas correction file!!!'
+-           errstat = pge_errstat_error; RETURN
+-        END IF
++      OPEN (UNIT=l1l2inp_unit, FILE=TRIM(ADJUSTL(gascorr_fname)), STATUS='UNKNOWN', IOSTAT=errstat)
++      IF ( errstat /= pge_errstat_ok ) THEN
++        WRITE(*, '(2A)') modulename, ': Cannot open trace gas correction file!!!'
++        errstat = pge_errstat_error; RETURN
++      END IF
+         
+-        READ (l1l2inp_unit, *); READ (l1l2inp_unit, *); READ(l1l2inp_unit, *) 
+-        READ (l1l2inp_unit, *) nxgascorr
+-        gascorr(:, :, 2) = 1.d0
+-        DO ix = 1, nxgascorr
+-           READ (l1l2inp_unit, *) idum, gascorr_npts(ix, 1:3)
+-           DO i = 1, gascorr_npts(ix, 1)
+-              READ (l1l2inp_unit, *) gascorr(ix, i, 1:2)
+-              gascorr(ix, i, 2) = EXP(gascorr(ix, i, 2))
+-           ENDDO
++      READ (l1l2inp_unit, *); READ (l1l2inp_unit, *); READ(l1l2inp_unit, *) 
++      READ (l1l2inp_unit, *) nxgascorr
++      gascorr(:, :, 2) = 1.d0
++      DO ix = 1, nxgascorr
++        READ (l1l2inp_unit, *) idum, gascorr_npts(ix, 1:3)
++        DO i = 1, gascorr_npts(ix, 1)
++          READ (l1l2inp_unit, *) gascorr(ix, i, 1:2)
++          gascorr(ix, i, 2) = EXP(gascorr(ix, i, 2))
+         ENDDO
+-        CLOSE(UNIT=l1l2inp_unit) 
++      ENDDO
++      CLOSE(UNIT=l1l2inp_unit) 
+ 
+-        ! Additional correction for x-track dependent biases
+-        xw2corr_fname = ADJUSTL(TRIM(refdbdir)) // 'OMI/OMIO3PROF_hres_xwcorr-2006m071116.dat'
++      ! Additional correction for x-track dependent biases
++      xw2corr_fname = ADJUSTL(TRIM(refdbdir)) // 'OMI/OMIO3PROF_hres_xwcorr-2006m071116.dat'
+      
+-        OPEN (UNIT=l1l2inp_unit, FILE=TRIM(ADJUSTL(xw2corr_fname)), STATUS='UNKNOWN', IOSTAT=errstat)
+-        IF ( errstat /= pge_errstat_ok ) THEN
+-           WRITE(*, '(2A)') modulename, ': Cannot open additional x-track dependent correction file!!!'
+-           errstat = pge_errstat_error; RETURN
+-        END IF
++      OPEN (UNIT=l1l2inp_unit, FILE=TRIM(ADJUSTL(xw2corr_fname)), STATUS='UNKNOWN', IOSTAT=errstat)
++      IF ( errstat /= pge_errstat_ok ) THEN
++        WRITE(*, '(2A)') modulename, ': Cannot open additional x-track dependent correction file!!!'
++        errstat = pge_errstat_error; RETURN
++      END IF
+         
+-        READ (l1l2inp_unit, *)
+-        READ (l1l2inp_unit, *) nxw2corr
+-        xw2corr(:, :, 2) = 0.0d0
+-        DO ix = 1, nxw2corr
+-           READ (l1l2inp_unit, *) idum, xw2corr_npts(ix, 1:3)
+-           DO i = 1, xw2corr_npts(ix, 1)
+-              READ (l1l2inp_unit, *) xw2corr(ix, i, 1:2)
+-           ENDDO
++      READ (l1l2inp_unit, *)
++      READ (l1l2inp_unit, *) nxw2corr
++      xw2corr(:, :, 2) = 0.0d0
++      DO ix = 1, nxw2corr
++        READ (l1l2inp_unit, *) idum, xw2corr_npts(ix, 1:3)
++        DO i = 1, xw2corr_npts(ix, 1)
++          READ (l1l2inp_unit, *) xw2corr(ix, i, 1:2)
+         ENDDO
+-        CLOSE(UNIT=l1l2inp_unit) 
+-   ELSE
+-     WRITE(*,'(A)') 'Which_bias should be 7 in'//modulename
+-   ENDIF
+-     first = .FALSE.
++      ENDDO
++      CLOSE(UNIT=l1l2inp_unit) 
++    ELSE
++      WRITE(*,'(A)') 'Which_bias should be 7 in'//modulename
++    ENDIF
++    first = .FALSE.
+   ENDIF
+ 
+   ! Radiance Spectrum
+   n_rad_wvl = gems_rad%nwav(currpix, currloop) 
+   div_rad   = gems_rad%norm(currpix, currloop)
+ 
+- 
+   curr_rad_spec(wvl_idx, 1:n_rad_wvl) = gems_rad%wavl(1:n_rad_wvl, currpix, currloop) 
+   curr_rad_spec(spc_idx, 1:n_rad_wvl) = gems_rad%spec(1:n_rad_wvl, currpix, currloop)   
++
+   IF (use_meas_sig) THEN
+-     curr_rad_spec(sig_idx, 1:n_rad_wvl) = gems_rad%prec(1:n_rad_wvl, currpix, currloop)
++    curr_rad_spec(sig_idx, 1:n_rad_wvl) = gems_rad%prec(1:n_rad_wvl, currpix, currloop)
+   ELSE
+-     curr_rad_spec(sig_idx, 1:n_rad_wvl) = normweight
++    curr_rad_spec(sig_idx, 1:n_rad_wvl) = normweight
+   ENDIF
+   nradpix(1:numwin) = gems_rad%npix(1:numwin, currpix, currloop)     ! Solar Spectrum
+ 
+ 
+   IF ( biascorr .AND. which_biascorr == 7 ) THEN
+-     fidx = 1
+-     DO i = 1, numwin
+-        lidx = fidx + nradpix(i) - 1; ch = band_selectors(i) 
+-        !print *, ch, currpix, fidx, lidx, nradpix(i), nxwav(ch)
+-        CALL INTERPOL(xwavs(ch, 1:nxwav(ch)), xwcorr(ch, currpix, 1:nxwav(ch)), nxwav(ch), &
+-             curr_rad_spec(wvl_idx, fidx:lidx),  corr(1:nradpix(i)), nradpix(i), errstat)
+-        IF (errstat < 0) THEN
+-           WRITE(*, *) modulename, ': INTERPOL error, errstat = ', errstat
+-           errstat = pge_errstat_error; RETURN
+-        ENDIF     
++    fidx = 1
++    DO i = 1, numwin
++      lidx = fidx + nradpix(i) - 1; ch = band_selectors(i) 
++      !print *, ch, currpix, fidx, lidx, nradpix(i), nxwav(ch)
++      CALL INTERPOL(xwavs(ch, 1:nxwav(ch)), xwcorr(ch, currpix, 1:nxwav(ch)), nxwav(ch), &
++                    curr_rad_spec(wvl_idx, fidx:lidx),  corr(1:nradpix(i)), nradpix(i), errstat)
++      IF (errstat < 0) THEN
++        WRITE(*, *) modulename, ': INTERPOL error, errstat = ', errstat
++        errstat = pge_errstat_error; RETURN
++      ENDIF     
+         curr_rad_spec(spc_idx, fidx:lidx) = curr_rad_spec(spc_idx, fidx:lidx) / corr(1:nradpix(i))
+         fidx = lidx + 1
+-     ENDDO
++    ENDDO
+   ENDIF
+ 
+   ! IRRadiance Spectrum
+@@ -272,11 +274,11 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
+   curr_sol_spec(spc_idx, 1:n_irrad_wvl) = gems_irrad%spec(gems_rad%wind(1:n_rad_wvl, currpix, currloop), currpix) 
+ 
+   IF (use_meas_sig .AND. orbnumsol /= 99999) THEN
+-     curr_sol_spec(sig_idx, 1:n_irrad_wvl) = gems_irrad%prec(gems_rad%wind(1:n_rad_wvl, currpix, currloop), currpix)
++    curr_sol_spec(sig_idx, 1:n_irrad_wvl) = gems_irrad%prec(gems_rad%wind(1:n_rad_wvl, currpix, currloop), currpix)
+   ELSE IF (orbnumsol == 99999) THEN
+-     curr_sol_spec(sig_idx, 1:n_irrad_wvl) = 0.0  ! Ignore error in solar irradiance
++    curr_sol_spec(sig_idx, 1:n_irrad_wvl) = 0.0  ! Ignore error in solar irradiance
+   ELSE
+-     curr_sol_spec(sig_idx, 1:n_irrad_wvl) = normweight
++    curr_sol_spec(sig_idx, 1:n_irrad_wvl) = normweight
+   ENDIF
+   nsolpix(1:numwin) = nradpix(1:numwin)  
+   
+@@ -286,21 +288,21 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
+   rad_specr(1:nrefl) = gems_refl%radspec(1:nrefl, currpix, currloop)
+ 
+   IF ( biascorr ) THEN
+-      IF ( which_biascorr == 7 ) THEN
+-        IF ( xwavs(mchannel, nxwav(mchannel)) < rad_posr(1) ) THEN
+-           rad_specr(1:nrefl) = rad_specr(1:nrefl) / xwcorr(mchannel, currpix, nxwav(mchannel))
+-        ELSE
+-           fidx = MINVAL( MINLOC( xwavs(mchannel, 1:nxwav(mchannel)), MASK = &
+-                (xwavs(mchannel, 1:nxwav(mchannel)) > rad_posr(1) )))
+-           lidx = MINVAL(MAXLOC( xwavs(mchannel, 1:nxwav(mchannel)), MASK = &
+-                (xwavs(mchannel, 1:nxwav(mchannel)) < rad_posr(nrefl) )))
+-           IF (fidx > lidx) THEN
+-              idum = fidx; fidx = lidx; lidx = idum
+-           ENDIF
+-           rad_specr(1:nrefl) = rad_specr(1:nrefl) / &
+-                (SUM(xwcorr(mchannel, currpix, fidx:lidx)) / (lidx - fidx + 1))
+-         ENDIF
++    IF ( which_biascorr == 7 ) THEN
++      IF ( xwavs(mchannel, nxwav(mchannel)) < rad_posr(1) ) THEN
++        rad_specr(1:nrefl) = rad_specr(1:nrefl) / xwcorr(mchannel, currpix, nxwav(mchannel))
++      ELSE
++        fidx = MINVAL( MINLOC( xwavs(mchannel, 1:nxwav(mchannel)), MASK = &
++                             ( xwavs(mchannel, 1:nxwav(mchannel)) > rad_posr(1) )))
++        lidx = MINVAL(MAXLOC( xwavs(mchannel, 1:nxwav(mchannel)), MASK = &
++                            ( xwavs(mchannel, 1:nxwav(mchannel)) < rad_posr(nrefl) )))
++        IF (fidx > lidx) THEN
++          idum = fidx; fidx = lidx; lidx = idum
++        ENDIF
++          rad_specr(1:nrefl) = rad_specr(1:nrefl) / &
++                              (SUM(xwcorr(mchannel, currpix, fidx:lidx)) / (lidx - fidx + 1))
+       ENDIF
++    ENDIF
+   ENDIF
+ 
+   nview       = 1
+@@ -335,34 +337,35 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
+   READ (the_utc, '(I4, 1x, I2, 1x, I2, 1x, I2, 1x, I2, 1x, F9.6)') the_year, the_month, &
+        the_day, hour, minute, second
+ 
+-  ! Chechk cloud fractions !now which_cld = 3 (OMCLDO2 + TOMS) ELSE 2: only TOMS
++  ! Check cloud fractions !now which_cld = 3 (OMCLDO2 + TOMS) ELSE 2: only TOMS
+   IF (which_cld /= 2) THEN
+-     the_cld_flg = gems_clouds%qflags(currpix, currloop)
+-     IF (the_cld_flg /= 10) THEN  ! Bad clouds for 10
++    the_cld_flg = gems_clouds%qflags(currpix, currloop)
++    IF (the_cld_flg /= 10) THEN  ! Bad clouds for 10
+         the_cfrac = gems_clouds%cfr(currpix, currloop)
+         the_ctp   = gems_clouds%ctp(currpix, currloop)
+-     ELSE
+-        the_cfrac = 0.0;      the_ctp = 0.0
+-     ENDIF
++    ELSE
++      the_cfrac = 0.0;      the_ctp = 0.0
++    ENDIF
+   ENDIF
+ 
+   IF (which_cld == 2 .OR. (the_cld_flg == 10 .AND. which_cld >= 3 ))  THEN
+-     the_cld_flg = 2  ! Derived based on OMCLDRR
+-     CALL GET_TOMSV8_CTP(the_month, the_day, the_lon, the_lat, the_ctp, pge_error_status)
+-     the_cfrac = 0.5  ! will be updated anyway at longer wavelength
+-     the_ai = -999.0
++    the_cld_flg = 2  ! Derived based on OMCLDRR
++    CALL GET_TOMSV8_CTP(the_month, the_day, the_lon, the_lat, the_ctp, pge_error_status)
++    the_cfrac = 0.5  ! will be updated anyway at longer wavelength
++    the_ai = -999.0
++    pge_error_status=pge_errstat_error !wasp
+   ENDIF
+ 
+   ! Special treatments for sea glint
+   has_glint = .FALSE.; glintprob = 0.0
+   ! Land-water flag=1: >=8 not used, else contain water
+   IF  (gems_gflag%land_water(currpix, currloop) /= 1 .AND. gems_gflag%land_water(currpix, currloop) < 8) THEN 
+-     IF (gems_gflag%glint(currpix, currloop) == 1) THEN
+-        has_glint = .TRUE.
+-        CALL SUNGLINT_PROBABILITY (the_sza_atm, the_vza_atm, the_aza_atm, glintprob)
+-        !PRINT *, 'Glint Probability: ', glintprob, the_cfrac
+-        !IF (the_cfrac < 0.30 * glintprob) the_cfrac = 0.0
+-     ENDIF
++    IF (gems_gflag%glint(currpix, currloop) == 1) THEN
++      has_glint = .TRUE.
++      CALL SUNGLINT_PROBABILITY (the_sza_atm, the_vza_atm, the_aza_atm, glintprob)
++      !PRINT *, 'Glint Probability: ', glintprob, the_cfrac
++      !IF (the_cfrac < 0.30 * glintprob) the_cfrac = 0.0
++    ENDIF
+   ENDIF
+ 
+   ! Snow/ice flag
+@@ -383,39 +386,39 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
+   the_glint_flag     = gems_gflag%glint(currpix, currloop)
+ 
+   IF ( do_lambcld ) THEN
+-     the_cod = 0.0
++    the_cod = 0.0
+   ELSE
+      ! Pixel-independent approximation: cloudy scence with an effective COD 20.0 
+      ! (cloud thickness 100 mb) and clear-sky scene. If cloud fraction is 20, 
+      ! then rederive the effective COD.  Since CTP from OMI products are based on
+      ! Lambertian cloud model, it is better to assume thin cloud layer (e.g., 100 mb)
+      ! even for thick clouds
+-     the_cod = scacld_initcod
++    the_cod = scacld_initcod
+   ENDIF
+ 
+   IF (do_simu .AND. .NOT. radcalwrt) THEN
+-     OPEN(UNIT=l1l2inp_unit, FILE='INP/sim.inp', STATUS='unknown')
+-     READ(l1l2inp_unit, *) the_sza_atm, the_vza_atm, the_aza_atm, the_fixalb, the_surfalt, &
+-          the_cfrac, the_ctp, the_cod, the_lon, the_lat, the_month, the_day, which_aerosol, &
+-          scaled_aod, do_lambcld, lambcld_refl
+-     IF (which_aerosol < 0 ) THEN
+-        aerosol = .FALSE.
+-        scale_aod = .FALSE.
+-        scaled_aod = 0.0
+-     ELSE
+-        aerosol = .TRUE.
+-        scale_aod = .TRUE.
+-     ENDIF
+-
+-     IF (the_cfrac == 0.0 .OR. the_cod == 0) THEN
+-        the_ctp = 0.0; the_cod = 0.0; the_cfrac = 0
+-     ENDIF
++    OPEN(UNIT=l1l2inp_unit, FILE='INP/sim.inp', STATUS='unknown')
++    READ(l1l2inp_unit, *) the_sza_atm, the_vza_atm, the_aza_atm, the_fixalb, the_surfalt, &
++        the_cfrac, the_ctp, the_cod, the_lon, the_lat, the_month, the_day, which_aerosol, &
++        scaled_aod, do_lambcld, lambcld_refl
++    IF (which_aerosol < 0 ) THEN
++      aerosol = .FALSE.
++      scale_aod = .FALSE.
++      scaled_aod = 0.0
++    ELSE
++      aerosol = .TRUE.
++      scale_aod = .TRUE.
++    ENDIF
++
++    IF (the_cfrac == 0.0 .OR. the_cod == 0) THEN
++      the_ctp = 0.0; the_cod = 0.0; the_cfrac = 0
++    ENDIF
+      
+-     IF (do_lambcld ) THEN
+-        the_cod = 0.0
+-     ENDIF
++    IF (do_lambcld ) THEN
++      the_cod = 0.0
++    ENDIF
+ 
+-     CLOSE (l1l2inp_unit)
++    CLOSE (l1l2inp_unit)
+   ENDIF
+ 
+   ! These properties may be slightly modified later (save them)
+@@ -425,23 +428,23 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
+ 
+   ! Detect Spikes over the South Atlantic Anomaly region 
+   IF (.NOT. do_simu .AND. .NOT. radcalwrt) THEN
+-     IF ( ((the_lat > saa_minlat  .AND. the_lat < saa_maxlat    .AND. &
++    IF ( ((the_lat > saa_minlat  .AND. the_lat < saa_maxlat    .AND. &
+           the_lon  > saa_minlon  .AND. the_lon < saa_maxlon)   .OR.  & 
+           (the_lat > saa_minlat1 .AND. the_lat < saa_maxlat1   .AND. &
+           the_lon  > saa_minlon1 .AND. the_lon < saa_maxlon1)) .AND. .NOT. do_simu )  THEN   
+-        CALL ROUGH_SPIKE_DETECT(n_rad_wvl, curr_rad_spec(wvl_idx, 1:n_rad_wvl), &
+-             curr_rad_spec(spc_idx, 1:n_rad_wvl), curr_sol_spec(spc_idx, 1:n_rad_wvl), nsaa_spike)
+-        saa_flag = .FALSE. !; nsaa_spike = 0
+-     ELSE
+-        saa_flag = .FALSE.;     nsaa_spike = 0
+-     ENDIF
++      CALL ROUGH_SPIKE_DETECT(n_rad_wvl, curr_rad_spec(wvl_idx, 1:n_rad_wvl), &
++                              curr_rad_spec(spc_idx, 1:n_rad_wvl), curr_sol_spec(spc_idx, 1:n_rad_wvl), nsaa_spike)
++      saa_flag = .FALSE. !; nsaa_spike = 0
++    ELSE
++      saa_flag = .FALSE.;     nsaa_spike = 0
++    ENDIF
+   ELSE
+-     saa_flag = .FALSE.;     nsaa_spike = 0
++    saa_flag = .FALSE.;     nsaa_spike = 0
+   ENDIF
+  
+   ! Obtain measurement error in term sun-normalized radiance
+   CALL gems_o3p_adj_sig (curr_rad_spec(wvl_idx:sig_idx, 1:n_rad_wvl),  &
+-       curr_sol_spec(wvl_idx:sig_idx, 1:n_rad_wvl), n_rad_wvl)
++                         curr_sol_spec(wvl_idx:sig_idx, 1:n_rad_wvl), n_rad_wvl)
+     
+   ! Make sure that reference spectra has  more wavelengths than
+   ! irradiance interpolation and shifting      
+@@ -450,45 +453,45 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
+ 
+   fidx = 1
+   DO i = 1, numwin
+-     lidx = fidx + nradpix(i) - ntrunc1
+-     curr_rad_spec(1:sig_idx, fidx:lidx) = curr_rad_spec(1:sig_idx, fidx + nhtrunc : lidx + nhtrunc)
+-     IF (lidx  < n_rad_wvl - ntrunc1 ) THEN
++    lidx = fidx + nradpix(i) - ntrunc1
++    curr_rad_spec(1:sig_idx, fidx:lidx) = curr_rad_spec(1:sig_idx, fidx + nhtrunc : lidx + nhtrunc)
++    IF (lidx  < n_rad_wvl - ntrunc1 ) THEN
+         curr_rad_spec(1:sig_idx, lidx+1:n_rad_wvl - ntrunc) =  &
+-             curr_rad_spec(1:sig_idx, lidx+ntrunc1:n_rad_wvl)
+-     ENDIF    
+-     nradpix(i) = nradpix(i) - ntrunc; fidx = lidx + 1; n_rad_wvl = n_rad_wvl - ntrunc
++        curr_rad_spec(1:sig_idx, lidx+ntrunc1:n_rad_wvl)
++    ENDIF    
++    nradpix(i) = nradpix(i) - ntrunc; fidx = lidx + 1; n_rad_wvl = n_rad_wvl - ntrunc
+   ENDDO
+  
+   ! save the original grids for later obtain ozone cross section
+   n_radwvl_sav = n_rad_wvl; nradpix_sav = nradpix
+   radwvl_sav(1:n_rad_wvl) = curr_rad_spec(wvl_idx, 1:n_rad_wvl)  
+ 
+-  ! redo_database = .FALSE.
+-  redo_database = .TRUE.  !wasp
+-
++  !redo_database = .FALSE.
++  redo_database = .TRUE.  !geun  on: db_fix 
++ 
+   IF (theline >= 1) THEN
+ 
+-     IF (gems_rad%nwav(currpix, currloop) /= gems_rad%nwav(currpix, currloop-1)) THEN
+-        redo_database = .TRUE.
+-     ELSE 
+-        IF (ANY(gems_rad%wind(1:n_rad_wvl, currpix, currloop) - &
+-             gems_rad%wind(1:n_rad_wvl, currpix, currloop-1) /= 0)) redo_database = .TRUE.
+-     ENDIF
++    IF (gems_rad%nwav(currpix, currloop) /= gems_rad%nwav(currpix, currloop-1)) THEN
++      redo_database = .TRUE.
++    ELSE 
++    IF (ANY(gems_rad%wind(1:n_rad_wvl, currpix, currloop) - &
++            gems_rad%wind(1:n_rad_wvl, currpix, currloop-1) /= 0)) redo_database = .TRUE.
++    ENDIF
+   ENDIF
+ 
+   IF ( MOD (theline, radwavcal_freq) == 0 .OR. redo_database) THEN 
+-     ! --------------------------------------------------------------
+-     ! Spline data bases, compute undersampling spectrum, and prepare
+-     ! reference spectra for fitting.
+-     ! ---- ----------------------------------------------------------
++    ! --------------------------------------------------------------
++    ! Spline data bases, compute undersampling spectrum, and prepare
++    ! reference spectra for fitting.
++    ! ---- ----------------------------------------------------------
+     
+-     CALL prepare_databases ( n_rad_wvl, curr_rad_spec(wvl_idx,1:n_rad_wvl), pge_error_status )
+-     IF ( pge_error_status >= pge_errstat_error ) RETURN
++    CALL prepare_databases ( n_rad_wvl, curr_rad_spec(wvl_idx,1:n_rad_wvl), pge_error_status )
++    IF ( pge_error_status >= pge_errstat_error ) RETURN
+ 
+-     !CALL avg_band_spec(curr_rad_spec(wvl_idx, 1:n_rad_wvl), strayspec(1, 1:n_rad_wvl), &
+-     !     n_rad_wvl, idum, errstat)
+-     !CALL avg_band_spec(curr_rad_spec(wvl_idx, 1:n_rad_wvl), strayspec(2, 1:n_rad_wvl), &
+-     !     n_rad_wvl, idum, errstat)
++    !CALL avg_band_spec(curr_rad_spec(wvl_idx, 1:n_rad_wvl), strayspec(1, 1:n_rad_wvl), &
++    !     n_rad_wvl, idum, errstat)
++    !CALL avg_band_spec(curr_rad_spec(wvl_idx, 1:n_rad_wvl), strayspec(2, 1:n_rad_wvl), &
++    !     n_rad_wvl, idum, errstat)
+   ENDIF 
+ 
+   !WRITE original wavelengths and solar irradiance spectra
+@@ -498,43 +501,42 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
+ 
+   ! average and subsampling for selected bands and update nradpix
+   IF (do_bandavg) THEN 
+-     CALL avg_band_radspec (curr_rad_spec(wvl_idx:sig_idx, 1:n_rad_wvl), &
+-          n_rad_wvl, pge_error_status)
+-     IF ( pge_error_status >= pge_errstat_error ) RETURN
++    CALL avg_band_radspec (curr_rad_spec(wvl_idx:sig_idx, 1:n_rad_wvl), &
++                           n_rad_wvl, pge_error_status)
++    IF ( pge_error_status >= pge_errstat_error ) RETURN
+   ENDIF
+ 
+   fidx = 1
+   DO i = 1, numwin
+-     lidx = fidx + nradpix(i) - 1
+-     idxoff = refnhextra + (i - 1) * 2 * refnhextra
+-     refidx(fidx:lidx) = (/(j, j = fidx + idxoff, lidx + idxoff)/)
+-     fidx = lidx  + 1
++    lidx = fidx + nradpix(i) - 1
++    idxoff = refnhextra + (i - 1) * 2 * refnhextra
++    refidx(fidx:lidx) = (/(j, j = fidx + idxoff, lidx + idxoff)/)
++    fidx = lidx  + 1
+   ENDDO
+ 
+   IF (radcalwrt) THEN
+-     actspec_rad(1:n_rad_wvl) = curr_rad_spec(spc_idx, 1:n_rad_wvl) / &
+-          database(solar_idx, refidx(1:n_rad_wvl)) * div_rad / div_sun
++    actspec_rad(1:n_rad_wvl) = curr_rad_spec(spc_idx, 1:n_rad_wvl) / &
++                               database(solar_idx, refidx(1:n_rad_wvl)) * div_rad / div_sun
+   ENDIF
+ 
+   ! load databases for common modes
+-        
+   IF ( MOD (theline, radwavcal_freq) == 0 .OR. redo_database) THEN
+-     CALL load_omi_comres(pge_error_status)
++    CALL load_omi_comres(pge_error_status)
+       
+-     IF ( pge_error_status >= pge_errstat_error ) RETURN
++    IF ( pge_error_status >= pge_errstat_error ) RETURN
+   ENDIF
+    
+ 
+   
+   IF (biascorr) THEN
+-     IF ( which_biascorr == 7) THEN
++    IF ( which_biascorr == 7) THEN
+ 	    IF (curr_rad_spec(1,1) > 271) then 
+-        curr_rad_spec(spc_idx, 1:n_rad_wvl)  = curr_rad_spec(spc_idx, 1:n_rad_wvl) * gascorr(currpix, 1:n_rad_wvl, 2)
+-        curr_rad_spec(spc_idx, 1:n_rad_wvl)  = curr_rad_spec(spc_idx, 1:n_rad_wvl) * &
++          curr_rad_spec(spc_idx, 1:n_rad_wvl)  = curr_rad_spec(spc_idx, 1:n_rad_wvl) * gascorr(currpix, 1:n_rad_wvl, 2)
++          curr_rad_spec(spc_idx, 1:n_rad_wvl)  = curr_rad_spec(spc_idx, 1:n_rad_wvl) * &
+                                                (1.0d0 + xw2corr(currpix, 1:n_rad_wvl, 2) / 100.)
+          !print * , 'which_biascorr=7 is blocked for different fitting window' ! jbak 
+-        ENDIF
+-     ENDIF
++      ENDIF
++    ENDIF
+   ENDIF
+   
+   ! Initialized fitted variables from valid western and southern neighbors 
+@@ -544,32 +546,32 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
+ 
+   gems_initval(currpix, currloop) = 0.0; fitvar = 0.0; finit = 0.0
+   IF (west_idx > 0) THEN
+-     IF (gems_exitval(west_idx, currloop) > 0) THEN  ! Western pixel (success retrieval)
++    IF (gems_exitval(west_idx, currloop) > 0) THEN  ! Western pixel (success retrieval)
+         fitvar(1:n_fitvar_rad) = fitvar(1:n_fitvar_rad) + &
+-             gems_fitvar(west_idx, currloop, 1:n_fitvar_rad)
++                                 gems_fitvar(west_idx, currloop, 1:n_fitvar_rad)
+         finit = finit + 1.0
+-     ENDIF
++    ENDIF
+      
+-     IF (south_idx >= 0 .AND. south_idx /= nlines_max - 1) THEN
+-        IF (gems_exitval(west_idx, south_idx) > 0) THEN ! Southwestern pixel (success retrieval)
+-           fitvar(1:n_fitvar_rad) = fitvar(1:n_fitvar_rad) &
+-                + gems_fitvar(west_idx, south_idx, 1:n_fitvar_rad) * 0.5
+-           finit = finit + 0.5
+-        ENDIF
+-     ENDIF
++    IF (south_idx >= 0 .AND. south_idx /= nlines_max - 1) THEN
++      IF (gems_exitval(west_idx, south_idx) > 0) THEN ! Southwestern pixel (success retrieval)
++        fitvar(1:n_fitvar_rad) = fitvar(1:n_fitvar_rad) &
++                               + gems_fitvar(west_idx, south_idx, 1:n_fitvar_rad) * 0.5
++        finit = finit + 0.5
++      ENDIF
++    ENDIF
+   ENDIF
+   
+   IF ( south_idx >= 0 ) THEN
+-     IF (gems_exitval(currpix, south_idx) > 0) THEN     ! Southern pixel (success retrieval)
+-        fitvar(1:n_fitvar_rad) = fitvar(1:n_fitvar_rad) + &
+-             gems_fitvar(currpix, south_idx, 1:n_fitvar_rad) 
+-        finit = finit + 1.0
+-     ENDIF
++    IF (gems_exitval(currpix, south_idx) > 0) THEN     ! Southern pixel (success retrieval)
++      fitvar(1:n_fitvar_rad) = fitvar(1:n_fitvar_rad) + &
++                               gems_fitvar(currpix, south_idx, 1:n_fitvar_rad) 
++      finit = finit + 1.0
++    ENDIF
+   ENDIF
+ 
+   IF (finit > 0) THEN
+-     fitvar_rad_saved(mask_fitvar_rad(1:n_fitvar_rad)) = fitvar(1:n_fitvar_rad) / finit
+-     gems_initval(currpix, currloop) = 1
++    fitvar_rad_saved(mask_fitvar_rad(1:n_fitvar_rad)) = fitvar(1:n_fitvar_rad) / finit
++    gems_initval(currpix, currloop) = 1
+   ENDIF
+ 
+   RETURN
+diff --git a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_fitting_process.f90 b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_fitting_process.f90
+index 5f94f00..2763037 100644
+--- a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_fitting_process.f90
++++ b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_fitting_process.f90
+@@ -23,16 +23,17 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
+   USE OMSAO_precision_module
+   USE OMSAO_variables_module,  ONLY: currpix,currloop,currtrack, currline,currtime, &
+                                      the_lons, the_lats,ozabs_convl, so2crs_convl, wavcal, scnwrt, &
+-                                     npix_fitting, npix_fitted,n_fitvar_rad, fitvar_rad_saved,mask_fitvar_rad 
++                                     npix_fitting, npix_fitted,n_fitvar_rad, fitvar_rad_saved, mask_fitvar_rad 
+   USE ozprof_data_module, ONLY:num_iter
+  !USE OMSAO_slitfunction_module
+   USE GEMS_o3P_geo_module
+   USE OMSAO_errstat_module
+   USE GEMS_O3P_gemsdata_module, ONLY: ncoadd, nxbin, nybin, lineloc, pixloc, &
+-                                      first_pix, last_pix, first_line,last_line, offline, &
++                                      first_pix, last_pix, first_line, last_line, offline, &
+                                       gems_rad, gems_irrad, gems_exitval, gems_fitvar, gems_initval
+   USE Share_l2_o3p_mod_write_read
+   USE O3P_MOD_Output, ONLY:GEMS_O3P_Write
++
+   IMPLICIT NONE
+ 
+   ! -----------------------
+@@ -44,7 +45,7 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
+   ! Local variables 
+   ! -------------------------
+   INTEGER :: initval, errstat, exval
+-  INTEGER :: curr_fitted_line, nxcoadd, iy, ix
++  INTEGER :: curr_fitted_line, nxcoadd, iy, ix, iw  ! wasp
+   REAL (KIND=dp), DIMENSION(3)    :: fitcol
+   REAL (KIND=dp), DIMENSION(3, 2) :: dfitcol
+   REAL (KIND=dp)     :: fitcol_avg, rms_avg, dfitcol_avg, drel_fitcol_avg, rms
+@@ -72,10 +73,9 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
+   ! Read Cloud Pressure
+   !------------------------------
+   WRITE(*, '(A)') ' => Preparing Cloud data'
+-  CALL gems_o3p_prep_cld (last_line, offline, pge_error_status)
++  Call gems_o3p_prep_cld (last_line, offline, pge_error_status)
+   IF ( pge_error_status >= pge_errstat_error ) RETURN
+ 
+-
+   !---------------------------
+   ! Read radiance
+   !------------------------------
+@@ -83,8 +83,6 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
+   CALL GEMS_O3P_read_l1b_rad ( nxcoadd, first_pix, last_pix,  last_line, offline, pge_error_status)
+   If (pge_error_status >= pge_errstat_error) RETURN
+   
+-
+-  
+   IF (wavcal) THEN
+      !CALL gems_o3p_rad_cross_calibrate (first_pix, last_pix, last_line, offline, pge_error_status)
+      IF ( pge_error_status >= pge_errstat_error ) RETURN
+@@ -101,7 +99,6 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
+   gems_initval(:,:)  = 0
+ 
+   WRITE(*, '(6A5,2A8,A6, a5,A8)') 'LINE','XPix','CLine','Cpix','Lloc','Ploc', 'Lon','Lat','Exval','RMS','NUM'
+-
+   GEMS_PIX: DO currpix = first_pix, last_pix   
+      
+      ! Load/adjust irradiances and slit calibration parameters
+@@ -128,7 +125,6 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
+          IF ( pge_error_status >= pge_errstat_error ) gems_exitval(currpix, currloop) = -9
+       ENDIF
+ 
+-
+      CALL timestamp(currtime)
+       IF (gems_exitval(currpix, currloop) == -10) THEN
+               
+@@ -139,7 +135,6 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
+      ELSE
+          exval = -9
+      ENDIF
+-     
+      WRITE(*, '(6I5,2f8.2,I6, f8.3,i5, A27)') currline, currtrack,currloop, currpix,lineloc(currloop), pixloc(currpix), &
+                                               the_lons(5), the_lats(5) ,exval, rms, num_iter, currtime
+ 
+diff --git a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_prep_cld.f90 b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_prep_cld.f90
+index d7dfaf9..a16e66c 100644
+--- a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_prep_cld.f90
++++ b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_prep_cld.f90
+@@ -37,8 +37,7 @@ SUBROUTINE gems_o3p_prep_cld ( ny, offline, pge_error_status)
+   CALL Gems_o3p_share_l2_cld(nx, nt, cfr, ctp1, qflag)
+ 
+   ctp = ctp1*1.0
+-  
+-  
++
+   ! convert 2bytes to 16 its
+   Do ix = 1, nx
+     CALL convert_2bytes_to_16bits (nbit, nt, qflag(ix, 1:nt), flgbits(ix, 1:nt, 0:nbit-1))
+@@ -60,7 +59,6 @@ SUBROUTINE gems_o3p_prep_cld ( ny, offline, pge_error_status)
+   gems_clouds%cfr    (1:nbx, 1:ny) = 0.0 
+   gems_clouds%ctp    (1:nbx, 1:ny) = 0.0 
+   gems_clouds%qflags (1:nbx, 1:ny) = 1 
+-  
+   DO ix = 1, nbx 
+     DO iy = 1, ny
+ 
+@@ -74,20 +72,35 @@ SUBROUTINE gems_o3p_prep_cld ( ny, offline, pge_error_status)
+                  gems_clouds%cfr(ix, iy) = gems_clouds%cfr(ix, iy) + cfr(j, k)
+                  count1 = count1 + 1.0
+              ENDIF
++            !+---------------------------------------------------------------------------+
++             !ORIGINAL
+              IF ( ctp(j, k) > 0.0 .AND. cfr(j, k) >= 0.0  ) THEN                 
+                  gems_clouds%ctp(ix, iy) = gems_clouds%ctp(ix, iy) + LOG(ctp(j, k)) * cfr(j, k)
+-                 tmpsum = tmpsum + LOG(ctp(j, k)) 
++                 tmpsum = tmpsum + LOG(ctp(j, k))
+                  scfr = scfr + cfr(j, k)
+                  count0 = count0 + 1.0
+-                 ! print * , j,k, ctp(j, k), cfr(j, k)
++                 !print * , 'O2 ctp,cfrac wasp!',j,k, log(ctp(j, k)), cfr(j,k)
+              ENDIF
++            !+---------------------------------------------------------------------------+
++             !TEST by WASP!
++             !IF ( ctp(j, k) > 0.0 .AND. cfr(j, k) >= 0.0  ) THEN                 
++                 !gems_clouds%ctp(ix, iy) = gems_clouds%ctp(ix, iy) + LOG(ctp(j, k)-100) * cfr(j, k)
++                 !tmpsum = tmpsum + LOG(ctp(j, k)-100)
++                 !scfr = scfr + cfr(j, k)
++                 !count0 = count0 + 1.0
++                 !print * , 'O2 ctp,cfrac wasp!',j,k, log(ctp(j, k)-100), cfr(j,k)
++             !ENDIF
++            !+---------------------------------------------------------------------------+
+            ENDDO
+       ENDDO
+-    
++
++  
+       IF (scfr /= 0.0) THEN       ! Weighted by Cloud Fraction
+         gems_clouds%ctp(ix, iy) = EXP(gems_clouds%ctp(ix, iy) / scfr)
++        !print * , 'prep cld ctp added',gems_clouds%ctp(ix,iy)
+       ELSE IF (count0 > 0.0 ) THEN ! Simple average if cloud fraction is all zero
+         gems_clouds%ctp(ix, iy) = EXP(tmpsum / count0)      
++        !print * , 'prep cld ctp added',gems_clouds%ctp(ix,iy)
+       ELSE
+         gems_clouds%ctp(ix, iy) = 0.0
+         gems_clouds%qflags(ix,iy) = 10 ! bad results (should not be used)
+@@ -99,11 +112,9 @@ SUBROUTINE gems_o3p_prep_cld ( ny, offline, pge_error_status)
+         gems_clouds%cfr(ix, iy) = 0.0
+       ENDIF
+ 
+-       print * , scfr, count0, gems_clouds%ctp(ix, iy), ctp1(ix, iy)
++       !print * , scfr, count0, gems_clouds%ctp(ix, iy), ctp1(ix, iy)
+      ENDDO ! Loop of Y-track
+   ENDDO ! Loop of X-track
+-
+- 
+   RETURN
+   END SUBROUTINE gems_o3p_prep_cld
+ 
+diff --git a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_read_l1b.f90 b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_read_l1b.f90
+index 0937780..c753d16 100644
+--- a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_read_l1b.f90
++++ b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_read_l1b.f90
+@@ -11,42 +11,42 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
+   USE GEMS_O3P_gemsdata_module, ONLY: mchannel, nwavel_max, nxtrack, nchannel,ncoadd, nxbin, gemsraddate, chs, &
+                                       gems_irrad,gems_refl, gems_ring
+   IMPLICIT NONE
+- !-----------------------
+- ! INput/Output varialbes
+- !-----------------------
+- INTEGER, INTENT (IN)  :: nxcoadd, first_pix, last_pix
+- INTEGER, INTENT (OUT) :: pge_error_status
++  !-----------------------
++  ! Input/Output varialbes
++  !-----------------------
++  INTEGER, INTENT (IN)  :: nxcoadd, first_pix, last_pix
++  INTEGER, INTENT (OUT) :: pge_error_status
+  
+   ! ---------------
+   ! Local variables
+   ! ---------------
+- INTEGER (KIND=i4), PARAMETER            :: nbits = 16
+- INTEGER (KIND=i2), DIMENSION(0:nbits-1) :: mflgbits
+- INTEGER (KIND=i2), DIMENSION(nxcoadd, nwavel_max, 0:nbits-1) :: flgbits
+- INTEGER (KIND=i2), DIMENSION(nwavel_max):: flgmsks
+- INTEGER :: theyear, themon, theday, thedoy
+- INTEGER :: i, j, is, ix, idx, iix, iw, irefl,ic
+- INTEGER :: fidx, lidx, ch
+- INTEGER :: nsolbin,nwavel,nbin, nx,  nsub, nring, noff1, noff2
++  INTEGER (KIND=i4), PARAMETER            :: nbits = 16
++  INTEGER (KIND=i2), DIMENSION(0:nbits-1) :: mflgbits
++  INTEGER (KIND=i2), DIMENSION(nxcoadd, nwavel_max, 0:nbits-1) :: flgbits
++  INTEGER (KIND=i2), DIMENSION(nwavel_max):: flgmsks
++  INTEGER :: theyear, themon, theday, thedoy
++  INTEGER :: i, j, is, ix, idx, iix, iw, irefl,ic
++  INTEGER :: fidx, lidx, ch
++  INTEGER :: nsolbin,nwavel,nbin, nx,  nsub, nring, noff1, noff2
+  
+- INTEGER (KIND=i4)             :: errstat
+- INTEGER, DIMENSION (mchannel) :: spos, epos
+- INTEGER, DIMENSION (mchannel) :: nwls
+- INTEGER, DIMENSION (maxwin)   :: nwbin 
+- REAL (KIND = dp)              :: normsc, wcenter
+- REAL (KIND = dp), DIMENSION (maxwin, nxcoadd) :: wshis, wsqus  
+- REAL (KIND = dp), DIMENSION (nxcoadd*2, sig_idx, nwavel_max) :: subspec
+- REAL (KIND = dp), DIMENSION (spc_idx, max_ring_pts)          :: subrsol 
+- 
+- LOGICAL :: error
+- CHARACTER (LEN=maxchlen)                :: bkfname
+- ! ------------------------------
+- ! Name of this module/subroutine
+- ! ------------------------------
+- CHARACTER (LEN=24), PARAMETER :: modulename = 'GEMS_O3P_read_l1b_irrad' 
++  INTEGER (KIND=i4)             :: errstat
++  INTEGER, DIMENSION (mchannel) :: spos, epos
++  INTEGER, DIMENSION (mchannel) :: nwls
++  INTEGER, DIMENSION (maxwin)   :: nwbin 
++  REAL (KIND = dp)              :: normsc, wcenter
++  REAL (KIND = dp), DIMENSION (maxwin, nxcoadd) :: wshis, wsqus  
++  REAL (KIND = dp), DIMENSION (nxcoadd*2, sig_idx, nwavel_max) :: subspec
++  REAL (KIND = dp), DIMENSION (spc_idx, max_ring_pts)          :: subrsol 
++   
++  LOGICAL :: error
++  CHARACTER (LEN=maxchlen)                :: bkfname
++  ! ------------------------------
++  ! Name of this module/subroutine
++  ! ------------------------------
++  CHARACTER (LEN=24), PARAMETER :: modulename = 'GEMS_O3P_read_l1b_irrad' 
+ 
+ 
+-   ! ----------------------------
++  ! ----------------------------
+   ! Initialize variables
+   ! ---------------------------- 
+   pge_error_status = pge_errstat_ok
+@@ -66,9 +66,9 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
+   !ENDIF
+ 
+   IF (nsolbin == 2) THEN
+-      pge_error_status  = pge_errstat_error
+-      WRITE(*,*) ' NOt process for zoom-in mode'
+-      return
++    pge_error_status  = pge_errstat_error
++    WRITE(*,*) ' Not process for zoom-in mode'
++    return
+   ENDIF
+ 
+   !-----------------------------------------
+@@ -79,29 +79,29 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
+   IF (thedoy == 366) thedoy = 365
+  
+   OPEN (UNIT=lun, FILE= ADJUSTL(TRIM(refdbdir)) // 'solar-distance.dat', &
+-           STATUS='UNKNOWN', IOSTAT=errstat)
++        STATUS='UNKNOWN', IOSTAT=errstat)
+   IF ( errstat /= pge_errstat_ok ) THEN
+       WRITE(*, '(2A)') modulename, ': Cannot open Sun-Earth Distance datafile!!!'
+       pge_error_status = pge_errstat_error; RETURN
+   END IF
+   DO i = 1, 12
+-   READ(LUN, *)
++    READ(LUN, *)
+   ENDDO
+   DO i = 1, thedoy
+-   READ(LUN, *) normsc, normsc
++    READ(LUN, *) normsc, normsc
+   ENDDO
+   CLOSE(LUN)
+      
+   normsc = 1.0 / normsc ** 2  ! solar energy is inversely proportional to square distance
+     
+- !-----------------------------------------
+- ! load irradiance dataset to gems_irrad array
+- !-----------------------------------------
++  !-----------------------------------------
++  ! load irradiance dataset to gems_irrad array
++  !-----------------------------------------
+   bkfname = ADJUSTL(TRIM(refdbdir)) // 'OMI/omisol_v003_avg_nshi_backup.dat'
+   OPEN (UNIT=lun, FILE=TRIM(ADJUSTL(bkfname)), STATUS='UNKNOWN', IOSTAT=errstat)
+   IF ( errstat /= pge_errstat_ok ) THEN
+-     WRITE(*, '(2A)') modulename, ': Cannot open solar backup file!!!'
+-     pge_error_status = pge_errstat_error; RETURN
++    WRITE(*, '(2A)') modulename, ': Cannot open solar backup file!!!'
++    pge_error_status = pge_errstat_error; RETURN
+   END IF
+ 
+   nwavel = 0
+@@ -109,13 +109,13 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
+     READ(lun, *) nx, nwls(is)
+     spos(is) = nwavel + 1; epos(is) = nwavel + nwls(is)
+     DO i = 1, nx
+-       READ(lun, *) 
+-       DO j = 1, nwls(is)
+-       READ(lun, *) gems_irrad%wavl(nwavel + j, i), gems_irrad%spec(nwavel + j, i), &
+-                    gems_irrad%prec(nwavel + j, i), nsub, nsub
+-       IF (nsub > 0) gems_irrad%prec(nwavel + j, i) = gems_irrad%prec(nwavel + j, i) &
++      READ(lun, *) 
++      DO j = 1, nwls(is)
++        READ(lun, *) gems_irrad%wavl(nwavel + j, i), gems_irrad%spec(nwavel + j, i), &
++                     gems_irrad%prec(nwavel + j, i), nsub, nsub
++        IF (nsub > 0) gems_irrad%prec(nwavel + j, i) = gems_irrad%prec(nwavel + j, i) &
+                      / SQRT( REAL(nsub, KIND=dp) )
+-       ENDDO
++      ENDDO
+     ENDDO
+     gems_irrad%spec(spos(is):epos(is), 1:nx) = gems_irrad%spec(spos(is):epos(is), 1:nx) * normsc
+     gems_irrad%prec(spos(is):epos(is), 1:nx) = gems_irrad%prec(spos(is):epos(is), 1:nx) * normsc
+@@ -128,11 +128,11 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
+     IF (band_selectors(1) == 1) THEN
+        nwavel = nwls(1)         
+     ELSE
+-       nwavel = nwls(2)
+-       gems_irrad%wavl(1:nwavel, :) = gems_irrad%wavl(spos(2):epos(2), :)
+-       gems_irrad%spec(1:nwavel, :) = gems_irrad%spec(spos(2):epos(2), :) 
+-       gems_irrad%prec(1:nwavel, :) = gems_irrad%prec(spos(2):epos(2), :)
+-       spos(2) = spos(2) - nwls(1); epos(2) = epos(2) - nwls(1) 
++      nwavel = nwls(2)
++      gems_irrad%wavl(1:nwavel, :) = gems_irrad%wavl(spos(2):epos(2), :)
++      gems_irrad%spec(1:nwavel, :) = gems_irrad%spec(spos(2):epos(2), :) 
++      gems_irrad%prec(1:nwavel, :) = gems_irrad%prec(spos(2):epos(2), :)
++      spos(2) = spos(2) - nwls(1); epos(2) = epos(2) - nwls(1) 
+     ENDIF
+   ENDIF
+   CLOSE(LUN)
+@@ -143,8 +143,8 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
+   ! ENDIF
+ 
+   IF (nwavel > nwavel_max) THEN
+-     WRITE(*, '(A, 2i5)') "Need to increase nwavel_max!!!", nwavel, nwavel_max
+-     pge_error_status = pge_errstat_error; RETURN
++    WRITE(*, '(A, 2i5)') "Need to increase nwavel_max!!!", nwavel, nwavel_max
++    pge_error_status = pge_errstat_error; RETURN
+   ENDIF
+   ! Determine number of wavelengths to be read for deteriming cloud fraction
+   fidx = MAXVAL ( MINLOC ( gems_irrad%wavl(1:nwavel, 1), MASK = &
+@@ -158,157 +158,157 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
+   nrefl = lidx - fidx + 1 
+ 
+   IF (nrefl > mrefl .or. nrefl == 1) THEN
+-     WRITE(*, '(2A)') modulename, ': check of nref, mrefl!!!'
+-     pge_error_status = pge_errstat_error; RETURN
++    WRITE(*, '(2A)') modulename, ': check of nref, mrefl!!!'
++    pge_error_status = pge_errstat_error; RETURN
+   ENDIF
+ 
+ 
+   ! Determine number of binning for different fitting windows
+   DO iw = 1, numwin     
+-     ch = band_selectors(iw)
+-     nwbin(iw) = nxbin 
+-     IF (ch == 2 .and. ncoadd .ne. 1 ) THEN 
+-        nwbin(iw) = nxbin * ncoadd 
+-     ENDIF
+-     nwbin(iw) = nwbin(iw) * nsolbin
++    ch = band_selectors(iw)
++    nwbin(iw) = nxbin 
++    IF (ch == 2 .and. ncoadd .ne. 1 ) THEN 
++      nwbin(iw) = nxbin * ncoadd 
++    ENDIF
++    nwbin(iw) = nwbin(iw) * nsolbin
+   ENDDO
+- !-----------------------------------------
+- ! subset and coadding
+- !-----------------------------------------
++  !-----------------------------------------
++  ! subset and coadding
++  !-----------------------------------------
+ 
+   DO ix = first_pix, last_pix
+-     ! print *  , 'read irrad ix', ix
+-  currpix = ix
+-   ! Indices for UV-1 are from 1 to nfxtrack
+-   ! Indices for UV-2 are from 1 to nxtrack (nfxtrack * 2)
+-   ! UV2 indices corresponding to UV-1 pixel ix are ix * 2 -1 & ix * 2 (or iix+1, iix+2), respectively
+-   ! If additional across track coadding (e.g., nxbin) is performed, then for a particular ix
+-   ! UV1: nbin = nxbin; UV-2: nbin = nxbin * 2
+-   ! Coadded original across track pixels are: iix + 1 : iix + nbin (iix = (ix-1) * nbin)
+-   ! convert flags
+-
+-   ! Get quality flag bits, coadd flags 
+-   flgmsks = 0 
+-   DO is = 1, nchannel 
+-       ch = chs(is)
+-       ! not use uwbin here because nwbin for different fitting window, the flags just for different channel
+-       IF (is == 1 ) THEN 
+-           nbin = nxbin
+-       ELSE 
+-           nbin = nxbin*ncoadd
+-       ENDIF
+-       nbin = nbin*nsolbin ! zoom mode UV1 solar irradiance got 60 positions
+-       iix = (ix-1)*nbin
+-       ! shift the position by 15
+-       IF (ch == 2 .AND. nsolbin == 2 ) THEN 
+-          ! iix = iix - (zoom_p1 - 1) * nsolbin
+-          pge_error_status  = pge_errstat_error
+-          WRITE (*,*) 'No process for zoom_p1!!! in read irradiance'
+-          return
+-       ENDIF
+-
+-       IF (nbin  > 2) THEN
+-	  ! properly align cross track positions to be coadded (should be within one pixel)
+-          CALL prespec_align(nwls(ch), nbin, &
+-               gems_irrad%wavl(spos(ch):epos(ch), iix+1:iix+nbin), &
+-               gems_irrad%spec(spos(ch):epos(ch), iix+1:iix+nbin), &
+-               gems_irrad%prec(spos(ch):epos(ch), iix+1:iix+nbin), &       
+-               gems_irrad%qflg(spos(ch):epos(ch), iix+1:iix+nbin))	
+-	       !if (is == 2) print * , nbin, iix, gems_irrad%wavl(spos(ch):epos(ch), iix+nbin:iix+nbin)
+-       ENDIF
++    ! print *  , 'read irrad ix', ix
++    currpix = ix
++    ! Indices for UV-1 are from 1 to nfxtrack
++    ! Indices for UV-2 are from 1 to nxtrack (nfxtrack * 2)
++    ! UV2 indices corresponding to UV-1 pixel ix are ix * 2 -1 & ix * 2 (or iix+1, iix+2), respectively
++    ! If additional across track coadding (e.g., nxbin) is performed, then for a particular ix
++    ! UV1: nbin = nxbin; UV-2: nbin = nxbin * 2
++    ! Coadded original across track pixels are: iix + 1 : iix + nbin (iix = (ix-1) * nbin)
++    ! convert flags
++
++    ! Get quality flag bits, coadd flags 
++    flgmsks = 0 
++    DO is = 1, nchannel 
++      ch = chs(is)
++      ! not use uwbin here because nwbin for different fitting window, the flags just for different channel
++      IF (is == 1 ) THEN 
++        nbin = nxbin
++      ELSE 
++        nbin = nxbin*ncoadd
++      ENDIF
++        nbin = nbin*nsolbin ! zoom mode UV1 solar irradiance got 60 positions
++        iix = (ix-1)*nbin
++        ! shift the position by 15
++      IF (ch == 2 .AND. nsolbin == 2 ) THEN 
++        ! iix = iix - (zoom_p1 - 1) * nsolbin
++        pge_error_status  = pge_errstat_error
++        WRITE (*,*) 'No process for zoom_p1!!! in read irradiance'
++        return
++      ENDIF
++
++      IF (nbin  > 2) THEN
++	    ! properly align cross track positions to be coadded (should be within one pixel)
++        CALL prespec_align(nwls(ch), nbin, &
++              gems_irrad%wavl(spos(ch):epos(ch), iix+1:iix+nbin), &
++              gems_irrad%spec(spos(ch):epos(ch), iix+1:iix+nbin), &
++              gems_irrad%prec(spos(ch):epos(ch), iix+1:iix+nbin), &       
++              gems_irrad%qflg(spos(ch):epos(ch), iix+1:iix+nbin))	
++	    !if (is == 2) print * , nbin, iix, gems_irrad%wavl(spos(ch):epos(ch), iix+nbin:iix+nbin)
++      ENDIF
+       
+-       DO ic = 1, nbin
+-          call convert_2bytes_to_16bits (nbits, nwls(ch), gems_irrad%qflg(spos(ch):epos(ch), iix+ic) , &
+-            flgbits(ic, spos(ch):epos(ch), 0:nbits-1))
+-            flgmsks(spos(ch):epos(ch)) = + flgbits(ic,spos(ch):epos(ch), 0)                &   ! Missing
+-                                         + flgbits(ic,spos(ch):epos(ch), 1)                &   ! Bad 
+-                                         + flgbits(ic,spos(ch):epos(ch), 2)                    ! Processing error
++      DO ic = 1, nbin
++        call convert_2bytes_to_16bits (nbits, nwls(ch), gems_irrad%qflg(spos(ch):epos(ch), iix+ic) , &
++                                      flgbits(ic, spos(ch):epos(ch), 0:nbits-1))
++             flgmsks(spos(ch):epos(ch)) = + flgbits(ic,spos(ch):epos(ch), 0)                &   ! Missing
++                                          + flgbits(ic,spos(ch):epos(ch), 1)                &   ! Bad 
++                                          + flgbits(ic,spos(ch):epos(ch), 2)                    ! Processing error
+ 	
+-       ENDDO	
+-       ! More process for reduce_resolution
+-   ENDDO ! loop of nchannel
++      ENDDO	
++      ! More process for reduce_resolution
++  ENDDO ! loop of nchannel
+    
+-   ! Subset valid spectrum
+-   nsub =0; subspec = 0.0
+-   Do iw = 1, numwin
+-      ch   = band_selectors (iw)
+-      nbin = nwbin(iw);  iix = (ix - 1) * nbin
++  ! Subset valid spectrum
++  nsub =0; subspec = 0.0
++  Do iw = 1, numwin
++    ch   = band_selectors (iw)
++    nbin = nwbin(iw);  iix = (ix - 1) * nbin
+       
+-      winpix(iw, 1) = MINVAL ( MINLOC ( gems_irrad%wavl(spos(ch):epos(ch),iix + 1), &
+-             MASK = gems_irrad%wavl(spos(ch):epos(ch),iix + 1) >= winlim(iw, 1)) )
+-      winpix(iw, 2) = MAXVAL ( MAXLOC ( gems_irrad%wavl(spos(ch):epos(ch),iix + 1), &
++    winpix(iw, 1) = MINVAL ( MINLOC ( gems_irrad%wavl(spos(ch):epos(ch),iix + 1), &
++              MASK = gems_irrad%wavl(spos(ch):epos(ch),iix + 1) >= winlim(iw, 1)) )
++    winpix(iw, 2) = MAXVAL ( MAXLOC ( gems_irrad%wavl(spos(ch):epos(ch),iix + 1), &
+              MASK = gems_irrad%wavl(spos(ch):epos(ch),iix + 1) <= winlim(iw, 2)) )
+ 
+-      gems_irrad%npix  (iw, ix) = nsub
+-      fidx = winpix(iw, 1) + spos(ch) - 1
+-      lidx = winpix(iw, 2) + spos(ch) - 1
+-      gems_irrad%winpix(iw,ix,1:2) = 0
+-
+-      IF (rm_mgline .AND. winlim(iw, 1) < 286.0 .AND. winlim(iw, 2) > 286.0) THEN
+-        DO i = fidx, lidx
+-          IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin)  > 0.0)   .AND. &
+-              ALL(gems_irrad%spec(i, iix+1:iix+nbin)  < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
+-              (ALL(gems_irrad%wavl(i, iix+1:iix+nbin) < 278.8)   .OR. &
+-               ALL(gems_irrad%wavl(i, iix+1:iix+nbin)  > 281.0))  .AND. &
+-              (ALL(gems_irrad%wavl(i, iix+1:iix+nbin) < 284.7)   .OR. &
+-              ALL(gems_irrad%wavl(i, iix+1:iix+nbin)  > 285.7))) THEN
+-              nsub = nsub + 1
+-              subspec(1:nbin, wvl_idx, nsub) = gems_irrad%wavl(i, iix+1:iix+nbin)
+-              subspec(1:nbin, spc_idx, nsub) = gems_irrad%spec(i, iix+1:iix+nbin)
+-              subspec(1:nbin, sig_idx, nsub) = gems_irrad%prec(i, iix+1:iix+nbin)
+-              IF ( gems_irrad%winpix(iw, ix, 1) == 0)   gems_irrad%winpix(iw, ix, 1) = i
+-              gems_irrad%winpix(iw, ix, 2) = i
+-              gems_irrad%wind(nsub, ix) = i
+-          ENDIF
+-	ENDDO
+-      ELSE
+-        DO i = fidx, lidx
+-          IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin)  > 0.0)   .AND. &
+-              ALL(gems_irrad%spec(i, iix+1:iix+nbin)  < 4.0E14) .AND. flgmsks(i) == 0 ) THEN
+-              nsub = nsub + 1
+-              subspec(1:nbin, wvl_idx, nsub) = gems_irrad%wavl(i, iix+1:iix+nbin)
+-              subspec(1:nbin, spc_idx, nsub) = gems_irrad%spec(i, iix+1:iix+nbin)
+-              subspec(1:nbin, sig_idx, nsub) = gems_irrad%prec(i, iix+1:iix+nbin)
+-              IF ( gems_irrad%winpix(iw, ix, 1) == 0)   gems_irrad%winpix(iw, ix, 1) = i
+-              gems_irrad%winpix(iw, ix, 2) = i
+-              gems_irrad%wind(nsub, ix) = i
+-          ENDIF          
+-        ENDDO    
+-      ENDIF
+-     gems_irrad%npix(iw, ix) = nsub - gems_irrad%npix(iw, ix)
+-   ENDDO ! loop of numwin
+-   gems_irrad%nwav(ix) = nsub
++    gems_irrad%npix  (iw, ix) = nsub
++    fidx = winpix(iw, 1) + spos(ch) - 1
++    lidx = winpix(iw, 2) + spos(ch) - 1
++    gems_irrad%winpix(iw,ix,1:2) = 0
++
++    IF (rm_mgline .AND. winlim(iw, 1) < 286.0 .AND. winlim(iw, 2) > 286.0) THEN
++      DO i = fidx, lidx
++        IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin)  > 0.0)   .AND. &
++            ALL(gems_irrad%spec(i, iix+1:iix+nbin)  < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
++            (ALL(gems_irrad%wavl(i, iix+1:iix+nbin) < 278.8)   .OR. &
++            ALL(gems_irrad%wavl(i, iix+1:iix+nbin)  > 281.0))  .AND. &
++            (ALL(gems_irrad%wavl(i, iix+1:iix+nbin) < 284.7)   .OR. &
++            ALL(gems_irrad%wavl(i, iix+1:iix+nbin)  > 285.7))) THEN
++          nsub = nsub + 1
++          subspec(1:nbin, wvl_idx, nsub) = gems_irrad%wavl(i, iix+1:iix+nbin)
++          subspec(1:nbin, spc_idx, nsub) = gems_irrad%spec(i, iix+1:iix+nbin)
++          subspec(1:nbin, sig_idx, nsub) = gems_irrad%prec(i, iix+1:iix+nbin)
++        IF ( gems_irrad%winpix(iw, ix, 1) == 0)   gems_irrad%winpix(iw, ix, 1) = i
++             gems_irrad%winpix(iw, ix, 2) = i
++             gems_irrad%wind(nsub, ix) = i
++        ENDIF
++	    ENDDO
++    ELSE
++      DO i = fidx, lidx
++        IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin)  > 0.0)   .AND. &
++            ALL(gems_irrad%spec(i, iix+1:iix+nbin)  < 4.0E14) .AND. flgmsks(i) == 0 ) THEN
++          nsub = nsub + 1
++          subspec(1:nbin, wvl_idx, nsub) = gems_irrad%wavl(i, iix+1:iix+nbin)
++          subspec(1:nbin, spc_idx, nsub) = gems_irrad%spec(i, iix+1:iix+nbin)
++          subspec(1:nbin, sig_idx, nsub) = gems_irrad%prec(i, iix+1:iix+nbin)
++          IF ( gems_irrad%winpix(iw, ix, 1) == 0)   gems_irrad%winpix(iw, ix, 1) = i
++                 gems_irrad%winpix(iw, ix, 2) = i
++                 gems_irrad%wind(nsub, ix) = i
++        ENDIF          
++      ENDDO    
++    ENDIF
++    gems_irrad%npix(iw, ix) = nsub - gems_irrad%npix(iw, ix)
++  ENDDO ! loop of numwin
++  gems_irrad%nwav(ix) = nsub
+ 
+   ! Coadding spectrum when necessary
+   fidx = 1
+   DO iw = 1, numwin       
+-     ch = band_selectors(iw)
+-     nbin = nwbin(iw)
+-     lidx = fidx + gems_irrad%npix(iw, ix) - 1 
+-     IF (nbin > 1) THEN ! wcal_bef_coadd F
+-        !WRITE(*,'(A)') ' Perform solwavcal_coadd'
+-         !print * , subspec(1:nbin,1, fidx:fidx), sum(subspec(1:nbin,1, fidx:fidx))/nbin
+-        CALL solwavcal_coadd(wcal_bef_coadd, gems_irrad%npix(iw, ix), nbin, &
+-             subspec(1:nbin, :, fidx:lidx), wshis(iw, 1:nbin), wsqus(iw, 1:nbin), error)
+-        ! print * , subspec(1:nbin,1, fidx:fidx)
++    ch = band_selectors(iw)
++    nbin = nwbin(iw)
++    lidx = fidx + gems_irrad%npix(iw, ix) - 1 
++    IF (nbin > 1) THEN ! wcal_bef_coadd F
++      !WRITE(*,'(A)') ' Perform solwavcal_coadd'
++      !print * , subspec(1:nbin,1, fidx:fidx), sum(subspec(1:nbin,1, fidx:fidx))/nbin
++      CALL solwavcal_coadd(wcal_bef_coadd, gems_irrad%npix(iw, ix), nbin, &
++           subspec(1:nbin, :, fidx:lidx), wshis(iw, 1:nbin), wsqus(iw, 1:nbin), error)
++      ! print * , subspec(1:nbin,1, fidx:fidx)
+ 	      
+-        IF (error) THEN
+-           WRITE(*, '(A)') 'No solar wavelength calibration before coadding!!!'
+-           gems_irrad%errstat(ix) = pge_errstat_warning
+-        ENDIF
+-     ENDIF
+-     fidx = lidx + 1    
++      IF (error) THEN
++        WRITE(*, '(A)') 'No solar wavelength calibration before coadding!!!'
++        gems_irrad%errstat(ix) = pge_errstat_warning
++      ENDIF
++    ENDIF
++    fidx = lidx + 1    
+   ENDDO
+  
+- ! GET solar spectrum for ring effect
++  ! GET solar spectrum for ring effect
+   subrsol = 0.0
+ 
+   !ring (a) iw=1 ring(13:126) = 269.13-308.817 Same As SubSPectra
+   ch = band_selectors(1)
+   IF (ch == 1) THEN 
+-      noff1 = 12
++    noff1 = 12
+   ELSE
+-      noff1 = 25
++    noff1 = 25
+   ENDIF
+   nring = gems_irrad%npix(1,ix) + noff1
+   subrsol(1:spc_idx, noff1+1: nring) = subspec(1, 1:spc_idx, 1:gems_irrad%npix(1,ix))
+@@ -317,161 +317,161 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
+   ! ring (b) iw=1, ring(1:12) = 264.825-268.78
+   ! add extra spectra before first window (uncoadded)
+   ! if unavailable, needed to ammened with solar reference spectrum
+-   noff1 = noff1 + 1 ;     nbin = nwbin(1); iix = (ix - 1) * nbin
++  noff1 = noff1 + 1 ;     nbin = nwbin(1); iix = (ix - 1) * nbin
+ 
+ 
+-   DO i = winpix(1, 1) - 1, 1, -1
+-      IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
+-          ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
+-          noff1 = noff1 - 1
+-          subrsol(wvl_idx, noff1) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
+-          subrsol(spc_idx, noff1) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
++  DO i = winpix(1, 1) - 1, 1, -1
++    IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
++        ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
++        noff1 = noff1 - 1
++        subrsol(wvl_idx, noff1) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
++        subrsol(spc_idx, noff1) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
+ 	
+-           IF (noff1 == 1) EXIT
+-       ENDIF
+-   ENDDO
++        IF (noff1 == 1) EXIT
++    ENDIF
++  ENDDO
+ 
+-   DO iw = 2, numwin
+-      ch = band_selectors(iw)
+-      nbin = nwbin(iw - 1) ; iix = (ix - 1) * nbin           
++  DO iw = 2, numwin
++    ch = band_selectors(iw)
++    nbin = nwbin(iw - 1) ; iix = (ix - 1) * nbin           
+ 
+      
+-      IF (ch == band_selectors(iw - 1) ) THEN   
+-          DO i = winpix(iw-1, 2)+1, winpix(iw, 1)-1 
+-             IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
+-                 ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
+-                 nring = nring + 1
+-
+-                 subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
+-                 subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
++    IF (ch == band_selectors(iw - 1) ) THEN   
++      DO i = winpix(iw-1, 2)+1, winpix(iw, 1)-1 
++        IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
++            ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
++            nring = nring + 1
++
++            subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
++            subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
+                  
+-              ENDIF
+-          ENDDO
+-      ELSE  ! first channel 1 and second channel 2
+-          wcenter = (winlim(iw-1, 2) + winlim(iw, 1)) / 2.0 
+-          idx = MAXVAL ( MAXLOC ( gems_irrad%wavl(spos(ch-1):epos(ch-1), iix+1), &
+-                   MASK =gems_irrad%wavl(spos(ch-1):epos(ch-1), iix+1) < wcenter ) ) + spos(ch-1) - 1
+-          !(c) ring(127:131) : 309.114~310.29              
+-          DO i = winpix(iw-1, 2)+1, idx 
+-              IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
+-                  ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
+-                  ALL(gems_irrad%wavl(i, iix+1:iix+nbin) > subrsol(wvl_idx, nring)) ) THEN
+-                  nring = nring + 1
+-
+-                  subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
+-                  subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin                   
++        ENDIF
++      ENDDO
++    ELSE  ! first channel 1 and second channel 2
++      wcenter = (winlim(iw-1, 2) + winlim(iw, 1)) / 2.0 
++      idx = MAXVAL ( MAXLOC ( gems_irrad%wavl(spos(ch-1):epos(ch-1), iix+1), &
++      MASK =gems_irrad%wavl(spos(ch-1):epos(ch-1), iix+1) < wcenter ) ) + spos(ch-1) - 1
++      !(c) ring(127:131) : 309.114~310.29              
++      DO i = winpix(iw-1, 2)+1, idx 
++        IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
++            ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
++            ALL(gems_irrad%wavl(i, iix+1:iix+nbin) > subrsol(wvl_idx, nring)) ) THEN
++            nring = nring + 1
++
++            subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
++            subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin                   
+ 		!  print * , i, nring, subrsol(1, nring)
+-              ENDIF
+-          ENDDO
+-         !(c) ring(132:141) : 310.58-312.01
+-          gems_ring%sol_ndiv(ix) = nring               ! 1:nring is from the same channel
+-          nbin = nwbin(iw) ; iix = (ix - 1) * nbin
++        ENDIF
++      ENDDO
++      !(c) ring(132:141) : 310.58-312.01
++      gems_ring%sol_ndiv(ix) = nring               ! 1:nring is from the same channel
++      nbin = nwbin(iw) ; iix = (ix - 1) * nbin
+               
+-          idx = MAXVAL ( MINLOC ( gems_irrad%wavl(spos(ch):epos(ch), iix+1),   &
+-                MASK = gems_irrad%wavl(spos(ch):epos(ch), iix+1) > wcenter ) ) + spos(ch) - 1
++      idx = MAXVAL ( MINLOC ( gems_irrad%wavl(spos(ch):epos(ch), iix+1),   &
++      MASK = gems_irrad%wavl(spos(ch):epos(ch), iix+1) > wcenter ) ) + spos(ch) - 1
+ 
+-          DO i = idx, winpix(iw, 1) - 2 + spos(ch)                 
+-                 IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
+-                      ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
+-                      ALL(gems_irrad%wavl(i, iix+1:iix+nbin) > subrsol(wvl_idx, nring)) ) THEN
+-                    nring = nring + 1
++      DO i = idx, winpix(iw, 1) - 2 + spos(ch)                 
++        IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
++            ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
++            ALL(gems_irrad%wavl(i, iix+1:iix+nbin) > subrsol(wvl_idx, nring)) ) THEN
++          nring = nring + 1
+ 
+-                    subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
+-                    subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin                   
++          subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
++          subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin                   
+ 		   ! print * , i, nring, subrsol(1, nring), nbin
+-                 ENDIF
+-          ENDDO
++        ENDIF
++      ENDDO
+ 	  
+-      ENDIF
++    ENDIF
+            
+-      idx = SUM(gems_irrad%npix(1:iw-1, ix))
+-      subrsol(wvl_idx:spc_idx, nring+1:nring+gems_irrad%npix(iw, ix)) = subspec(1, wvl_idx:spc_idx, &
+-               idx+1:idx+gems_irrad%npix(iw, ix))
+-      nring = nring + gems_irrad%npix(iw, ix)
+-   ENDDO
+-
+-   ! Add extra spectra after fitting window
+-   noff2 = nring
+-   IF (ch == 2) THEN
+-       nring = nring + 25
+-   ELSE
+-       nring = nring + 12
+-   ENDIF
++    idx = SUM(gems_irrad%npix(1:iw-1, ix))
++    subrsol(wvl_idx:spc_idx, nring+1:nring+gems_irrad%npix(iw, ix)) = subspec(1, wvl_idx:spc_idx, &
++            idx+1:idx+gems_irrad%npix(iw, ix))
++    nring = nring + gems_irrad%npix(iw, ix)
++  ENDDO
++
++  ! Add extra spectra after fitting window
++  noff2 = nring
++  IF (ch == 2) THEN
++    nring = nring + 25
++  ELSE
++    nring = nring + 12
++  ENDIF
+         
+-   DO i = spos(ch) + winpix(numwin, 2), epos(ch)
+-
+-       IF (ch == 1 ) THEN
+-           nbin = nxbin
+-       ELSE
+-           nbin = nxbin * ncoadd
+-       ENDIF
+-       iix = (ix - 1) * nbin
++  DO i = spos(ch) + winpix(numwin, 2), epos(ch)
++
++    IF (ch == 1 ) THEN
++      nbin = nxbin
++    ELSE
++      nbin = nxbin * ncoadd
++    ENDIF
++      iix = (ix - 1) * nbin
+            
+-       IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
+-           ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
+-           noff2 = noff2 + 1
+-
+-           subrsol(wvl_idx, noff2) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
+-           subrsol(spc_idx, noff2) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
+-         ! write(*,'(3i5,3f10.4)') i, noff2,iix, subrsol(wvl_idx, noff2),gems_irrad%wavl(i, iix+1:iix+nbin)
+-       ENDIF
++    IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
++        ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
++      noff2 = noff2 + 1
++
++      subrsol(wvl_idx, noff2) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
++      subrsol(spc_idx, noff2) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
++      ! write(*,'(3i5,3f10.4)') i, noff2,iix, subrsol(wvl_idx, noff2),gems_irrad%wavl(i, iix+1:iix+nbin)
++    ENDIF
+            
+-        IF (noff2 == nring) EXIT
+-   ENDDO     
+-   gems_ring%nsol(ix) = nring; gems_ring%sol_lin(ix) = noff1; gems_ring%sol_uin(ix) = noff2
+-
+- ! Get data for surface albedo & cloud fraction at 370.2 nm +/- 15 pixels
+-     irefl = 0; gems_refl%solwinpix(ix, 1:2) = 0
+-     nbin = nxbin * ncoadd
+-     iix = (ix - 1) * nbin
++    IF (noff2 == nring) EXIT
++  ENDDO     
++  gems_ring%nsol(ix) = nring; gems_ring%sol_lin(ix) = noff1; gems_ring%sol_uin(ix) = noff2
++
++  ! Get data for surface albedo & cloud fraction at 370.2 nm +/- 15 pixels
++  irefl = 0; gems_refl%solwinpix(ix, 1:2) = 0
++  nbin = nxbin * ncoadd
++  iix = (ix - 1) * nbin
+      
+-     idx = MAXVAL ( MINLOC ( gems_irrad%wavl(1:nwavel, iix+1), MASK = &
+-          (gems_irrad%wavl(1:nwavel, iix+1) > pos_alb - toms_fwhm * 1.4) ))
+-
+-     DO i  = idx, nwavel
+-        IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
+-             ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
+-           irefl = irefl + 1
+-           gems_refl%solwavl(irefl, ix) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
+-           gems_refl%solspec(irefl, ix) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
+-         !  write(*,'(3i5,3f10.3)') irefl,nbin, iix+1,gems_refl%solwavl(irefl, ix), gems_irrad%wavl(i, iix+1:iix+nbin)
+-           IF ( gems_refl%solwinpix(ix, 1) == 0)  gems_refl%solwinpix(ix, 1) = i
+-            gems_refl%solwinpix(ix, 2) = i
+-           ENDIF
+-        IF (irefl == nrefl) EXIT
+-     ENDDO
+-     IF (irefl /= nrefl) THEN
+-        WRITE(*, *) 'Could not get enough irradiance points for cloud fraction!!!'
+-        gems_irrad%errstat(ix) = pge_errstat_error; CYCLE
+-     ENDIF
++  idx = MAXVAL ( MINLOC ( gems_irrad%wavl(1:nwavel, iix+1), &
++                          MASK = (gems_irrad%wavl(1:nwavel, iix+1) > pos_alb - toms_fwhm * 1.4) ))
++
++  DO i  = idx, nwavel
++    IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
++        ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
++      irefl = irefl + 1
++      gems_refl%solwavl(irefl, ix) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
++      gems_refl%solspec(irefl, ix) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
++      !write(*,'(3i5,3f10.3)') irefl,nbin, iix+1,gems_refl%solwavl(irefl, ix), gems_irrad%wavl(i, iix+1:iix+nbin)
++      IF ( gems_refl%solwinpix(ix, 1) == 0)  gems_refl%solwinpix(ix, 1) = i
++        gems_refl%solwinpix(ix, 2) = i
++      ENDIF
++      IF (irefl == nrefl) EXIT
++  ENDDO
++  IF (irefl /= nrefl) THEN
++    WRITE(*, *) 'Could not get enough irradiance points for cloud fraction!!!'
++    gems_irrad%errstat(ix) = pge_errstat_error; CYCLE
++  ENDIF
+       
+-     IF (scnwrt) THEN
+-       WRITE(*, *) 'End Of Reading Irradiance Spectrum: ', ix
+-       DO i = 1, numwin
+-          WRITE(*,'(A10,I4,2f8.3,I4)') 'win = ', i, winlim(i,1), winlim(i,2),gems_irrad%npix(i, ix)
+-          IF (gems_irrad%npix(i, ix) < 4) THEN
+-             WRITE(*, '(A,f8.3,A3,f8.3)') ' Not enough points (>=4)  in window: ', winlim(i,1), ' - ', winlim(i,2)
+-             pge_error_status = pge_errstat_error
+-          ENDIF
+-       ENDDO
+-     ENDIF
++  IF (scnwrt) THEN
++    WRITE(*, *) 'End Of Reading Irradiance Spectrum: ', ix
++    DO i = 1, numwin
++      WRITE(*,'(A10,I4,2f8.3,I4)') 'win = ', i, winlim(i,1), winlim(i,2),gems_irrad%npix(i, ix)
++      IF (gems_irrad%npix(i, ix) < 4) THEN
++        WRITE(*, '(A,f8.3,A3,f8.3)') ' Not enough points (>=4)  in window: ', winlim(i,1), ' - ', winlim(i,2)
++        pge_error_status = pge_errstat_error
++      ENDIF
++    ENDDO
++  ENDIF
+ 
+-     gems_irrad%norm(ix) = SUM ( subspec(1, spc_idx, 1:nsub) ) / nsub
++  gems_irrad%norm(ix) = SUM ( subspec(1, spc_idx, 1:nsub) ) / nsub
+      
+-     IF (gems_irrad%norm(ix) <= 0.0 ) THEN 
+-         gems_irrad%errstat(ix) = pge_errstat_error; CYCLE
+-     ENDIF
++  IF (gems_irrad%norm(ix) <= 0.0 ) THEN 
++    gems_irrad%errstat(ix) = pge_errstat_error; CYCLE
++  ENDIF
+      
+-     gems_irrad%wavl(1:nsub, ix)  = subspec(1, wvl_idx, 1:nsub)
+-     gems_irrad%spec(1:nsub, ix)  = subspec(1, spc_idx, 1:nsub) / gems_irrad%norm(ix)
+-     gems_irrad%prec(1:nsub, ix)  = subspec(1, sig_idx, 1:nsub) / gems_irrad%norm(ix)    
++  gems_irrad%wavl(1:nsub, ix)  = subspec(1, wvl_idx, 1:nsub)
++  gems_irrad%spec(1:nsub, ix)  = subspec(1, spc_idx, 1:nsub) / gems_irrad%norm(ix)
++  gems_irrad%prec(1:nsub, ix)  = subspec(1, sig_idx, 1:nsub) / gems_irrad%norm(ix)    
+ 
+-     gems_ring%solwavl(1:nring, ix) = subrsol(1, 1:nring)
+-     gems_ring%solspec(1:nring, ix) = subrsol(2, 1:nring) / gems_irrad%norm(ix) 
+-     !print * , gems_irrad%norm(ix)
+-     !print * , gems_irrad%wavl(1:5, ix)
+-     !print * , gems_irrad%spec(1:5, ix)
+-     !print * , gems_irrad%prec(1:5, ix)
++  gems_ring%solwavl(1:nring, ix) = subrsol(1, 1:nring)
++  gems_ring%solspec(1:nring, ix) = subrsol(2, 1:nring) / gems_irrad%norm(ix) 
++  !print * , gems_irrad%norm(ix)
++  !print * , gems_irrad%wavl(1:5, ix)
++  !print * , gems_irrad%spec(1:5, ix)
++  !print * , gems_irrad%prec(1:5, ix)
+ 
+   ENDDO ! xtrack
+ RETURN
+@@ -487,240 +487,242 @@ SUBROUTINE GEMS_O3P_read_l1b_rad (nxcoadd, first_pix, last_pix,ny, offline, pge_
+                                      currpix, rm_mgline,wcal_bef_coadd, szamax
+   USE OMSAO_parameters_module, ONLY: maxchlen, mrefl
+   USE OMSAO_errstat_module
+-  USE GEMS_O3P_gemsdata_module, ONLY: nchannel,mchannel, nwavel_max, nxtrack_max,nxtrack,nfxtrack, ntimes, chs,ncoadd, nxbin, nybin, &
++  USE GEMS_O3P_gemsdata_module, ONLY: nchannel, mchannel, nwavel_max, nxtrack_max, &
++                                      nxtrack, nfxtrack, ntimes, chs, ncoadd, nxbin, nybin, &
+                                      gemsl1btype, gems_uv1, gems_uv2,  &
+-                                     gems_rad,gems_irrad, &
+-                                     gems_mqflg,gems_saa,  gems_xflag, &
+-                                     gems_sza, gems_refl
++                                     gems_rad, gems_irrad,  &
++                                     gems_mqflg, gems_saa,  gems_xflag, &
++                                     gems_sza, gems_refl, gems_aza, gems_vza
+   USE ozprof_data_module,       ONLY:  nrefl
+   IMPLICIT NONE	
+-!-----------------------
+- ! INput/Output varialbes
+- !-----------------------
+- INTEGER, INTENT (IN)  :: nxcoadd, first_pix, last_pix, ny, offline
+- INTEGER, INTENT (OUT) :: pge_error_status
+-!-----------------------
+-! Local varialbes
+-!-----------------------
+-INTEGER, PARAMETER    :: nbits = 16
+-INTEGER (KIND=i2), DIMENSION(0:nbits-1)   :: mflgbits , tmp_mflgbits 
+-INTEGER (KIND=i2), DIMENSION(nxcoadd, nwavel_max, 0:nbits-1) :: flgbits
+-INTEGER (KIND=i2), DIMENSION(nwavel_max)                     :: flgmsks
+-REAL   (KIND= dp)                         :: tmpNinteg
+-INTEGER, DIMENSION (nwavel_max)           :: idxs
+-INTEGER   (KIND=4), DIMENSION (nchannel)  :: nwls
+-INTEGER   (KIND=i2), DIMENSION(nchannel)  :: spos, epos
+-INTEGER, DIMENSION (maxwin)   :: nwbin 
+-REAL (KIND = dp), DIMENSION (nxcoadd, sig_idx, nwavel_max) :: subspec
+-LOGICAL, DIMENSION (maxwin, nxtrack_max)  :: wavcals 
+-REAL (KIND = dp), DIMENSION (maxwin, nxtrack_max, nxcoadd) :: wshis, wsqus 
+-INTEGER :: i,j,k, is, ix,iix, iy,iiy,iw, ch, nwavel,nwl, nx, nbin, ic, nsub, fidx, lidx, ii, error, irefl
+-LOGICAL :: correct_merr = .TRUE.
+-TYPE (gemsl1btype) :: gems_uv
+-! ------------------------------
+-! Name of this module/subroutine
+-! ------------------------------
++  !-----------------------
++  ! INput/Output varialbes
++  !-----------------------
++  INTEGER, INTENT (IN)  :: nxcoadd, first_pix, last_pix, ny, offline
++  INTEGER, INTENT (OUT) :: pge_error_status
++  !-----------------------
++  ! Local varialbes
++  !-----------------------
++  INTEGER, PARAMETER    :: nbits = 16
++  INTEGER (KIND=i2), DIMENSION(0:nbits-1)   :: mflgbits , tmp_mflgbits 
++  INTEGER (KIND=i2), DIMENSION(nxcoadd, nwavel_max, 0:nbits-1) :: flgbits
++  INTEGER (KIND=i2), DIMENSION(nwavel_max)                     :: flgmsks
++  REAL   (KIND= dp)                         :: tmpNinteg
++  INTEGER, DIMENSION (nwavel_max)           :: idxs
++  INTEGER   (KIND=4), DIMENSION (nchannel)  :: nwls
++  INTEGER   (KIND=i2), DIMENSION(nchannel)  :: spos, epos
++  INTEGER, DIMENSION (maxwin)   :: nwbin 
++  REAL (KIND = dp), DIMENSION (nxcoadd, sig_idx, nwavel_max) :: subspec
++  LOGICAL, DIMENSION (maxwin, nxtrack_max)  :: wavcals 
++  REAL (KIND = dp), DIMENSION (maxwin, nxtrack_max, nxcoadd) :: wshis, wsqus 
++  INTEGER :: i,j,k, is, ix,iix, iy,iiy,iw, ch, nwavel,nwl, nx, nbin, ic, nsub, fidx, lidx, ii, error, irefl
++  LOGICAL :: correct_merr = .TRUE.
++  TYPE (gemsl1btype) :: gems_uv
++  ! ------------------------------
++  ! Name of this module/subroutine
++  ! ------------------------------
+   CHARACTER (LEN=23), PARAMETER :: modulename = 'omi_read_radiance_lines'
+ 
+   
+- pge_error_status = pge_errstat_ok 
+-
+-
+- !--------------------------------
+- ! Coadding Y-direction
+- !--------------------------------
+- gems_rad%wavl(:,:,:) = 0.0
+- gems_rad%spec(:,:,:) = 0.0
+- gems_rad%prec(:,:,:) = 0.0
+- gems_rad%qflg(:,:,:) = pge_errstat_ok
+- gems_rad%errstat(1:nxtrack, 1:ny) = pge_errstat_ok
+- gems_rad%line_errstat( 1:ny) = pge_errstat_ok
+- gems_rad%nwav(:,:) = 0
++  pge_error_status = pge_errstat_ok 
++
++
++  !--------------------------------
++  ! Coadding Y-direction
++  !--------------------------------
++  gems_rad%wavl(:,:,:) = 0.0
++  gems_rad%spec(:,:,:) = 0.0
++  gems_rad%prec(:,:,:) = 0.0
++  gems_rad%qflg(:,:,:) = pge_errstat_ok
++  gems_rad%errstat(1:nxtrack, 1:ny) = pge_errstat_ok
++  gems_rad%line_errstat( 1:ny) = pge_errstat_ok
++  gems_rad%nwav(:,:) = 0
+  
+- j = 1  ; nwavel = 0 ;  wavcals = .TRUE.
++  j = 1  ; nwavel = 0 ;  wavcals = .TRUE.
+ 
+- DO is = 1, nchannel
++  DO is = 1, nchannel
+ 
+     ch = chs(is)
+     IF (ch == 1) THEN
+-	gems_uv    = gems_uv1
++	    gems_uv    = gems_uv1
+ 
+     ELSE IF (ch == 2) THEN
+-        gems_uv    = gems_uv2
+-    ENDIF
++      gems_uv    = gems_uv2
+ 
+-     nwls(ch) = gems_uv%nwavel
+-     nx       = gems_uv%nxtrack
+-   
++    ENDIF
++    nwls(ch) = gems_uv%nwavel
++    nx       = gems_uv%nxtrack
+     DO iy = 1, ny
+ 
+-       mflgbits = 0
+-       iiy = (iy-1)*nybin + offline 
+-        Do i = 1,  nybin   
+-           iiy =  iiy +1
++      mflgbits = 0
++      iiy = (iy-1)*nybin + offline 
++      Do i = 1,  nybin   
++        iiy =  iiy +1
+ 
+-           CALL convert_2bytes_to_16bits ( nbits, 1, gems_uv%mqflg(iiy), tmp_mflgbits(0:nbits-1))
+-           mflgbits = mflgbits + tmp_mflgbits(0:nbits-1)
++        CALL convert_2bytes_to_16bits ( nbits, 1, gems_uv%mqflg(iiy), tmp_mflgbits(0:nbits-1))
++        mflgbits = mflgbits + tmp_mflgbits(0:nbits-1)
+ 
+-           IF (correct_merr) THEN
+-               tmpNinteg = 2.d0 / gems_uv%ExposureTime(iiy)
+-           ENDIF      
++        IF (correct_merr) THEN
++          tmpNinteg = 2.d0 / gems_uv%ExposureTime(iiy)
++        ENDIF      
+ 
+-     
+-           nwl = j + nwls(ch) - 1
++        nwl = j + nwls(ch) - 1
+             
+-           gems_rad%spec(j:nwl, 1:nx, iy) = gems_rad%spec(j:nwl, 1:nx, iy)+ gems_uv%spec(1:nwls(ch),1:nx, iiy)
+-	   gems_rad%wavl(j:nwl, 1:nx, iy) = gems_rad%wavl(j:nwl, 1:nx, iy)+ gems_uv%wavl(1:nwls(ch),1:nx, iiy)
+-          ! if (is == 2) write(*,'(1i5, 11f10.5)') iiy, gems_uv%wavl(1:11,14, iiy)
+-           IF (correct_merr) THEN
+-               gems_rad%prec(j:nwl, 1:nx, iy) = gems_rad%prec(j:nwl, 1:nx, iy)+gems_uv%prec(1:nwls(ch),1:nx, iiy) / SQRT( tmpNinteg ) 
+-           ELSE
+-               gems_rad%prec(j:nwl, 1:nx, iy) = gems_rad%prec(j:nwl, 1:nx, iy)+gems_uv%prec(1:nwls(ch),1:nx, iiy)
+-           ENDIF
+-
+-           DO ix = 1, nxtrack
+-              CALL coadd_2bytes_qflgs(nbits, nwls(ch), gems_rad%qflg(j:nwl, ix,iy), gems_uv%qflg(1:nwls(ch), ix,iiy)) 
+-           ENDDO
++        gems_rad%spec(j:nwl, 1:nx, iy) = gems_rad%spec(j:nwl, 1:nx, iy)+ gems_uv%spec(1:nwls(ch),1:nx, iiy)
++        gems_rad%wavl(j:nwl, 1:nx, iy) = gems_rad%wavl(j:nwl, 1:nx, iy)+ gems_uv%wavl(1:nwls(ch),1:nx, iiy)
++        ! if (is == 2) write(*,'(1i5, 11f10.5)') iiy, gems_uv%wavl(1:11,14, iiy)
++
++        IF (correct_merr) THEN
++          gems_rad%prec(j:nwl, 1:nx, iy) = gems_rad%prec(j:nwl, 1:nx, iy) + &
++                                           gems_uv%prec(1:nwls(ch),1:nx, iiy) / SQRT( tmpNinteg ) 
++        ELSE
++          gems_rad%prec(j:nwl, 1:nx, iy) = gems_rad%prec(j:nwl, 1:nx, iy) + &
++                                           gems_uv%prec(1:nwls(ch),1:nx, iiy)
++        ENDIF
++
++        DO ix = 1, nxtrack
++          CALL coadd_2bytes_qflgs(nbits, nwls(ch), gems_rad%qflg(j:nwl, ix,iy), gems_uv%qflg(1:nwls(ch), ix,iiy)) 
++        ENDDO
+ 	   
+-        ENDDO ! End of Y-Coadding
++      ENDDO ! End of Y-Coadding
+             
+-        IF (mflgbits(0) >= 1 .OR. mflgbits(1) >= 1 .OR. mflgbits(3) >= 1 .OR. mflgbits(12) >= 1) THEN
+-            WRITE(*, *) 'All radiances could not be used: line ', iiy, ' Swath ', is
+-            gems_rad%line_errstat(iy) = pge_errstat_error      
+-        ELSE IF (ANY(mflgbits >= 1)) THEN
+-           !WRITE(*, *) 'Warning set on all radiances: line',  blockline, ' Swath ', is
++      IF (mflgbits(0) >= 1 .OR. mflgbits(1) >= 1 .OR. mflgbits(3) >= 1 .OR. mflgbits(12) >= 1) THEN
++        WRITE(*, *) 'All radiances could not be used: line ', iiy, ' Swath ', is
++        gems_rad%line_errstat(iy) = pge_errstat_error      
++      ELSE IF (ANY(mflgbits >= 1)) THEN
++        !WRITE(*, *) 'Warning set on all radiances: line',  blockline, ' Swath ', is
+         IF ( gems_rad%line_errstat(iy) /= pge_errstat_error) &
+              gems_rad%line_errstat(iy) = pge_errstat_warning      
+-           ! Over SAA region
+-            IF (mflgbits(10) >= 1) gems_saa(iy) = 1
+-        ENDIF
++        ! Over SAA region
++        IF (mflgbits(10) >= 1) gems_saa(iy) = 1
++      ENDIF
+ 
+ 	
+-        gems_rad%spec(j:nwl, 1:nx, iy) = gems_rad%spec(j:nwl, 1:nx,iy) / nybin
+-        gems_rad%wavl(j:nwl, 1:nx, iy) = gems_rad%wavl(j:nwl, 1:nx,iy) / nybin     
+-        IF ( correct_merr ) then !jbak
++      gems_rad%spec(j:nwl, 1:nx, iy) = gems_rad%spec(j:nwl, 1:nx,iy) / nybin
++      gems_rad%wavl(j:nwl, 1:nx, iy) = gems_rad%wavl(j:nwl, 1:nx,iy) / nybin     
++     IF ( correct_merr ) then !jbak
+         gems_rad%prec(j:nwl, 1:nx, iy) = gems_rad%prec(j:nwl, 1:nx,iy) / nybin / SQRT(1.0D0 * nybin)
+-        ELSE
++      ELSE
+         gems_rad%prec(j:nwl, 1:nx, iy) = gems_rad%prec(j:nwl, 1:nx,iy) / nybin
+-        ENDIF
++      ENDIF
+     ENDDO ! end iloop
+-      ! Sort data in wavelength increasing order   
+ 
++    ! Sort data in wavelength increasing order   
+     nwavel = nwavel + nwls(ch); spos(ch) = j; j = nwavel + 1; epos(ch) = nwavel
+-     IF (gems_rad%wavl(spos(ch), 1, 1) > gems_rad%wavl(epos(ch), 1, 1)) THEN
+-        idxs(spos(ch):epos(ch)) = (/ (i, i = epos(ch), spos(ch), -1) /)
+-        gems_rad%wavl(spos(ch):epos(ch), 1:nx, 1:ny) = gems_rad%wavl(idxs(spos(ch):epos(ch)), 1:nx, 1:ny)
+-        gems_rad%spec(spos(ch):epos(ch), 1:nx, 1:ny) = gems_rad%spec(idxs(spos(ch):epos(ch)),1:nx, 1:ny)
+-        gems_rad%prec(spos(ch):epos(ch), 1:nx, 1:ny) = gems_rad%prec(idxs(spos(ch):epos(ch)),1:nx, 1:ny)
+-        gems_rad%qflg(spos(ch):epos(ch), 1:nx, 1:ny) = gems_rad%qflg(idxs(spos(ch):epos(ch)), 1:nx, 1:ny)     
+-     ENDIF 
+ 
+- ENDDO ! end  channel loop
++    IF (gems_rad%wavl(spos(ch), 1, 1) > gems_rad%wavl(epos(ch), 1, 1)) THEN
++      idxs(spos(ch):epos(ch)) = (/ (i, i = epos(ch), spos(ch), -1) /)
++      gems_rad%wavl(spos(ch):epos(ch), 1:nx, 1:ny) = gems_rad%wavl(idxs(spos(ch):epos(ch)), 1:nx, 1:ny)
++      gems_rad%spec(spos(ch):epos(ch), 1:nx, 1:ny) = gems_rad%spec(idxs(spos(ch):epos(ch)), 1:nx, 1:ny)
++      gems_rad%prec(spos(ch):epos(ch), 1:nx, 1:ny) = gems_rad%prec(idxs(spos(ch):epos(ch)), 1:nx, 1:ny)
++      gems_rad%qflg(spos(ch):epos(ch), 1:nx, 1:ny) = gems_rad%qflg(idxs(spos(ch):epos(ch)), 1:nx, 1:ny)     
++    ENDIF 
++
++  ENDDO ! end  channel loop
+ 
+ 
+  ! Process for reduced resoution (not included for gems)
+ 
+   IF (nwavel > nwavel_max) THEN
+-     WRITE(*, *) "Need to increase nwavel_max!!!"
+-     pge_error_status = pge_errstat_error; RETURN
++    WRITE(*, *) "Need to increase nwavel_max!!!"
++    pge_error_status = pge_errstat_error; RETURN
+   ENDIF
+ 
+- !--------------------------------
+- ! SubSet & Coadding X-direction
+- !--------------------------------
+-
++  !--------------------------------
++  ! SubSet & Coadding X-direction
++  !--------------------------------
+   ! Determine number of binning for different fitting windows
+   DO iw = 1, numwin
+-     ch = band_selectors(iw)
+-     IF (ch == 1 ) THEN
+-        nwbin(iw) = nxbin
+-     ELSE IF (ch == 2) THEN 
+-        nwbin(iw) = nxbin * ncoadd
+-     ENDIF
++    ch = band_selectors(iw)
++    IF (ch == 1 ) THEN
++      nwbin(iw) = nxbin
++    ELSE IF (ch == 2) THEN 
++      nwbin(iw) = nxbin * ncoadd
++    ENDIF
+   ENDDO
+ 
+   DO iy = 1, ny 
+     IF (gems_rad%line_errstat(iy) == pge_errstat_error) THEN
+-        gems_rad%errstat(first_pix:last_pix, iy) = pge_errstat_error; CYCLE
++      gems_rad%errstat(first_pix:last_pix, iy) = pge_errstat_error; CYCLE
+     ENDIF
+     DO ix = first_pix, last_pix
+-       currpix = ix
+-       IF (gems_sza(ix, iy) > szamax .OR. gems_sza(ix, iy) < 0 ) THEN
+-           gems_rad%errstat(ix, iy) = pge_errstat_error; CYCLE
+-       ENDIF
++      currpix = ix
++      IF (gems_sza(ix, iy) > szamax .OR. gems_sza(ix, iy) < 0 ) THEN
++        gems_rad%errstat(ix, iy) = pge_errstat_error; CYCLE
++      ENDIF
+ 
+-       IF (gems_xflag%rowanomaly(ix, iy) == 1) THEN
+-           print * , 'rowanomaly_flg'
+-           gems_rad%errstat(ix, iy) = pge_errstat_error; CYCLE
+-       ENDIF
++      IF (gems_xflag%rowanomaly(ix, iy) == 1) THEN
++        print * , 'rowanomaly_flg'
++        gems_rad%errstat(ix, iy) = pge_errstat_error; CYCLE
++      ENDIF
+ 
+       ! Get quality flag bits
+       ! Coadd uv-2 flags if necessary to avoid coadding inconsistent # of pixels 
+       flgmsks = 0 
+       DO is = 1, nchannel
+-         ch = chs(is)
+-         IF (ch == 1) THEN 
+-            nbin = nxbin
+-         ELSE IF (ch == 2) THEN
+-            nbin = nxbin*ncoadd           
+-         ENDIF
+-            iix = (ix - 1) * nbin 
++        ch = chs(is)
++        IF (ch == 1) THEN 
++          nbin = nxbin
++        ELSE IF (ch == 2) THEN
++          nbin = nxbin*ncoadd           
++        ENDIF
++        iix = (ix - 1) * nbin 
+       
+-           ! properly align cross track positions to be coadded (should be within one pixel)
++        ! properly align cross track positions to be coadded (should be within one pixel)
+ 
+-              IF (nbin > 2) CALL prespec_align(nwls(ch), nbin, gems_rad%wavl(spos(ch):epos(ch),&
+-                   iix+1:iix+nbin, iy), gems_rad%spec(spos(ch):epos(ch), iix+1:iix+nbin, iy), &
+-                   gems_rad%prec(spos(ch):epos(ch), iix+1:iix+nbin, iy), &       
+-                   gems_rad%qflg(spos(ch):epos(ch), iix+1:iix+nbin, iy))
++        IF (nbin > 2) CALL prespec_align(nwls(ch), nbin,                                       &
++                                         gems_rad%wavl(spos(ch):epos(ch), iix+1:iix+nbin, iy), &
++                                         gems_rad%spec(spos(ch):epos(ch), iix+1:iix+nbin, iy), &
++                                         gems_rad%prec(spos(ch):epos(ch), iix+1:iix+nbin, iy), &       
++                                         gems_rad%qflg(spos(ch):epos(ch), iix+1:iix+nbin, iy))
+               
+-              DO ic = 1, nbin
+-                 CALL convert_2bytes_to_16bits ( nbits, nwls(ch),gems_rad%qflg(spos(ch):epos(ch), &
+-                      iix + ic, iy), flgbits(ic, spos(ch):epos(ch), 0:nbits-1))
+-                 flgmsks(spos(ch):epos(ch)) = flgmsks(spos(ch):epos(ch)) &
+-                      + flgbits(ic, spos(ch):epos(ch), 0)                &   ! Missing
+-                      + flgbits(ic, spos(ch):epos(ch), 1)                &   ! Bad 
+-                      + flgbits(ic, spos(ch):epos(ch), 2)                &   ! Processing error
+-                      + flgbits(ic, spos(ch):epos(ch), 4)                &   ! RTS_Pixel_Warning Flag
+-                      + flgbits(ic, spos(ch):epos(ch), 5)                &   ! Saturation Possibility Flag
+-                      + flgbits(ic, spos(ch):epos(ch), 7)                     ! Dark Current Warning Flag
+-              ENDDO
++        DO ic = 1, nbin
++          CALL convert_2bytes_to_16bits ( nbits, nwls(ch),gems_rad%qflg(spos(ch):epos(ch), &
++                                          iix + ic, iy), flgbits(ic, spos(ch):epos(ch), 0:nbits-1))
++                   flgmsks(spos(ch):epos(ch))                       &
++                 = flgmsks(spos(ch):epos(ch))                       &
++                 + flgbits(ic, spos(ch):epos(ch), 0)                &   ! Missing
++                 + flgbits(ic, spos(ch):epos(ch), 1)                &   ! Bad 
++                 + flgbits(ic, spos(ch):epos(ch), 2)                &   ! Processing error
++                 + flgbits(ic, spos(ch):epos(ch), 4)                &   ! RTS_Pixel_Warning Flag
++                 + flgbits(ic, spos(ch):epos(ch), 5)                &   ! Saturation Possibility Flag
++                 + flgbits(ic, spos(ch):epos(ch), 7)                    ! Dark Current Warning Flag
++        ENDDO
+       ENDDO ! End of nchannel
+            
+       ! Subset valid data
+-       nsub = 0 ; subspec=0.0;fidx=1
++      nsub = 0 ; subspec=0.0  ; fidx=1
+          
+       DO iw = 1, numwin
+-       ch = band_selectors(iw)
+-       gems_rad%npix(iw, ix, iy) = nsub
+-       nbin = nwbin(iw)
+-       iix = (ix - 1) * nbin
+-
+-           !fidx = gems_irrad%winpix(iw, ix, 1) 
+-           !lidx = gems_irrad%winpix(iw, ix, 2) 
+-           lidx = fidx + gems_irrad%npix(iw, ix) - 1
++        ch = band_selectors(iw)
++        gems_rad%npix(iw, ix, iy) = nsub
++        nbin = nwbin(iw)
++        iix = (ix - 1) * nbin
++        !fidx = gems_irrad%winpix(iw, ix, 1) 
++        !lidx = gems_irrad%winpix(iw, ix, 2) 
++        lidx = fidx + gems_irrad%npix(iw, ix) - 1
+         
+-           DO ii = fidx, lidx
+-              i = gems_irrad%wind(ii, ix)
+-              IF (ALL( gems_rad%spec(i, iix+1:iix+nbin, iy) > 0.0) .AND. &
+-                   ALL( gems_rad%spec(i, iix+1:iix+nbin, iy) < 4.0E14) .AND. flgmsks(i) == 0 ) THEN
+-                 nsub = nsub + 1
+-                 subspec(1:nbin, wvl_idx, nsub) =  gems_rad%wavl(i, iix+1:iix+nbin, iy)
+-                 subspec(1:nbin, spc_idx, nsub) =  gems_rad%spec(i, iix+1:iix+nbin, iy)
+-                 subspec(1:nbin, sig_idx, nsub) =  gems_rad%prec(i, iix+1:iix+nbin, iy)
+-                 gems_rad%wind(nsub, ix, iy) = ii
+-                 !print * , i,ii,subspec(1, 1, nsub),subspec(1, sig_idx, nsub)
+-              ENDIF
+-           ENDDO
+-             
+-           fidx = lidx + 1
+-           gems_rad%npix(iw, ix, iy) = nsub - gems_rad%npix(iw, ix, iy)
+-
+-           ! If the # of wavelengths is <= 75% of the # of irradiances, stop processing this pixel
+-           IF (gems_rad%npix(iw, ix, iy) <= gems_irrad%npix(iw, ix) * 0.8 ) THEN !wasp
+-              WRITE(*, '(A,5I5,F9.2)') 'Too fewer radiance points: ', ix, iy, iw, &
+-                    gems_rad%npix(iw, ix, iy), gems_irrad%npix(iw, ix), gems_sza(ix, iy)
+-              gems_rad%errstat(ix, iy) = pge_errstat_error; EXIT
+-           ENDIF
++        DO ii = fidx, lidx
++          i = gems_irrad%wind(ii, ix)
++          IF (ALL( gems_rad%spec(i, iix+1:iix+nbin, iy) > 0.0) .AND. &
++              ALL( gems_rad%spec(i, iix+1:iix+nbin, iy) < 4.0E14) .AND. flgmsks(i) == 0 ) THEN
++            nsub = nsub + 1
++            subspec(1:nbin, wvl_idx, nsub) =  gems_rad%wavl(i, iix+1:iix+nbin, iy)
++            subspec(1:nbin, spc_idx, nsub) =  gems_rad%spec(i, iix+1:iix+nbin, iy)
++            subspec(1:nbin, sig_idx, nsub) =  gems_rad%prec(i, iix+1:iix+nbin, iy)
++            gems_rad%wind(nsub, ix, iy) = ii
++            !print * , i,ii,subspec(1, 1, nsub),subspec(1, sig_idx, nsub)
++          ENDIF
++        ENDDO
++         
++        fidx = lidx + 1
++        gems_rad%npix(iw, ix, iy) = nsub - gems_rad%npix(iw, ix, iy)
++       ! If the # of wavelengths is <= 75% of the # of irradiances, stop processing this pixel
++        IF (gems_rad%npix(iw, ix, iy) <= gems_irrad%npix(iw, ix) * 0.8 ) THEN   !geun  0.9 -> 0.8
++          WRITE(*, '(A,5I5,F9.2)') 'Too fewer radiance points: ', ix, iy, iw, &
++          gems_rad%npix(iw, ix, iy), gems_irrad%npix(iw, ix), gems_sza(ix, iy)
++          gems_rad%errstat(ix, iy) = pge_errstat_error; CYCLE  ! geun modified from EXIT to CYCLE
++        ENDIF
+       ENDDO ! End of numwin
+      
+       IF ( gems_rad%errstat(ix, iy) == pge_errstat_error) CYCLE   ! This pixel will not be processed.     
+@@ -729,55 +731,57 @@ TYPE (gemsl1btype) :: gems_uv
+       ! Perform coadding if UV-2 is selected with UV-1
+       fidx = 1     
+       DO iw = 1, numwin
+-           ch = band_selectors(iw);  nbin = nwbin(iw)
+-           lidx = fidx + gems_rad%npix(iw, ix, iy) - 1 
+-           IF (nbin > 1) THEN
+-              CALL radwavcal_coadd(wcal_bef_coadd, wavcals(iw, ix), iw, ix, gems_rad%npix(iw, ix, iy), nbin, &
+-                   subspec(1:nbin, :, fidx:lidx), wshis(iw, ix, 1:nbin), wsqus(iw, ix, 1:nbin), error)
+-              wavcals(iw, ix) = .FALSE.
+-              IF (error) THEN
+-                 WRITE(*, '(A)') 'No radiance wavelength calibration before coadding!!!'
+-                 pge_error_status = pge_errstat_warning
+-              ENDIF
+-           ENDIF
+-           fidx = lidx + 1
++        ch = band_selectors(iw);  nbin = nwbin(iw)
++        lidx = fidx + gems_rad%npix(iw, ix, iy) - 1 
++        IF (nbin > 1) THEN
++          CALL radwavcal_coadd(wcal_bef_coadd, wavcals(iw, ix), iw, ix, gems_rad%npix(iw, ix, iy), nbin, &
++               subspec(1:nbin, :, fidx:lidx), wshis(iw, ix, 1:nbin), wsqus(iw, ix, 1:nbin), error)
++               wavcals(iw, ix) = .FALSE.
++          IF (error) THEN
++            WRITE(*, '(A)') 'No radiance wavelength calibration before coadding!!!'
++            pge_error_status = pge_errstat_warning
++          ENDIF
++        ENDIF
++        fidx = lidx + 1
+       ENDDO
+ 
+       ! Get data for surface albedo & cloud fraction at 370.2 nm +/- 20 pixels
+       irefl = 0; fidx = gems_refl%solwinpix(ix, 1)
+       nbin = nxbin * ncoadd  
+       iix = (ix - 1) * nbin
+-
+       DO i  = fidx, nwavel
+-         IF ( ALL(gems_rad%spec(i, iix+1:iix+nbin, iy) > 0.0) .AND. &
+-            ALL(gems_rad%spec(i, iix+1:iix+nbin, iy) < 4.0E14) .AND. flgmsks(i) == 0) THEN
+-            irefl = irefl + 1
+-            gems_refl%radwavl(irefl, ix, iy) = SUM(gems_rad%wavl(i, iix+1:iix+nbin, iy)) / nbin
+-            gems_refl%radspec(irefl, ix, iy) = SUM(gems_rad%spec(i, iix+1:iix+nbin, iy)) / nbin
+-          ! write(*,'(3i5,3f10.3)')  irefl, ix, iix+1, gems_refl%radwavl(irefl, ix, iy) ,gems_rad%wavl(i, iix+1:iix+nbin, iy)
+-         ENDIF	
+-       IF (irefl == nrefl) EXIT
+-     ENDDO
+-         
+-     IF (irefl /= nrefl) THEN
++        IF ( ALL(gems_rad%spec(i, iix+1:iix+nbin, iy) > 0.0) .AND. &
++             ALL(gems_rad%spec(i, iix+1:iix+nbin, iy) < 4.0E14) .AND. flgmsks(i) == 0) THEN
++        irefl = irefl + 1
++        gems_refl%radwavl(irefl, ix, iy) = SUM(gems_rad%wavl(i, iix+1:iix+nbin, iy)) / nbin
++        gems_refl%radspec(irefl, ix, iy) = SUM(gems_rad%spec(i, iix+1:iix+nbin, iy)) / nbin
++        !write(*,'(3i5,3f10.3)')  irefl, ix, iix+1, gems_refl%radwavl(irefl, ix, iy) ,gems_rad%wavl(i, iix+1:iix+nbin, iy)
++        ENDIF	
++        IF (irefl == nrefl) EXIT
++      ENDDO
++      IF (irefl /= nrefl) THEN
+         WRITE(*, '(A, 2I5, F9.2)') 'Number of rad/sol points (cloud fraction) do not match: ', &
+-           ix, iy, gems_sza(ix, iy)
++        ix, iy, gems_sza(ix, iy)
+         gems_rad%errstat(ix, iy) = pge_errstat_error  
+-     ENDIF
++      ENDIF
+ 
+   
+-     gems_rad%norm(ix, iy) = SUM (subspec(1, spc_idx, 1:nsub) ) / nsub
+-     !gems_rad%norm(ix,iy) = 1.0E11 
+-     IF ( gems_rad%norm(ix, iy) <= 0.0 ) THEN 
+-         write(*,'(a)') 'gems_rad%normal(ix,iy) <0'
+-         print * , gems_rad%norm(ix, iy) 
+-         pge_error_status = pge_errstat_error; RETURN
+-     ENDIF
+-     gems_rad%wavl(1:nsub, ix, iy) = subspec(1, wvl_idx, 1:nsub)
+-     gems_rad%spec(1:nsub, ix, iy) = subspec(1, spc_idx, 1:nsub) / gems_rad%norm(ix, iy)
+-     gems_rad%prec(1:nsub, ix, iy) = subspec(1, sig_idx, 1:nsub) /gems_rad%norm(ix, iy)       
+-
++      gems_rad%norm(ix, iy) = SUM (subspec(1, spc_idx, 1:nsub) ) / nsub
++      !gems_rad%norm(ix,iy) = 1.0E11 
++      IF ( gems_rad%norm(ix, iy) <= 0.0 ) THEN 
++        write(*,'(a)') 'gems_rad%normal(ix,iy) <0'
++        print * , gems_rad%norm(ix, iy) 
++        pge_error_status = pge_errstat_error; RETURN
++      ENDIF
++      gems_rad%wavl(1:nsub, ix, iy) = subspec(1, wvl_idx, 1:nsub)
++      gems_rad%spec(1:nsub, ix, iy) = subspec(1, spc_idx, 1:nsub) / gems_rad%norm(ix, iy)
++      gems_rad%prec(1:nsub, ix, iy) = subspec(1, sig_idx, 1:nsub) / gems_rad%norm(ix, iy)       
++      !write(*,*) 'hello wasp !  ',nsub !gems_rad%spec(1:nsub,ix,iy)
+     ENDDO ! END of x-direction
+   ENDDO ! End of y-direction
+-
++ !DO i=1,nsub
++  !write(*,*) 'hello wasp !  ',gems_rad%wavl(i,15,245),gems_rad%spec(i,15,245)
++ !ENDDO
++  !write(*,*) 'hello wasp !  ',gems_rad%spec(1:nsub,ix,iy)
++!stop
+  END SUBROUTINE GEMS_O3P_read_l1b_rad
+diff --git a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_share.f90 b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_share.f90
+index 29371b6..0f87a19 100644
+--- a/o3p/v0.4.3/src/gems-pge/GEMS_O3P_share.f90
++++ b/o3p/v0.4.3/src/gems-pge/GEMS_O3P_share.f90
+@@ -144,7 +144,8 @@ ny     = ntimes
+     gems_uv1%prec(1:nw, 1:nx, 1:ny)=  gvf_euv1_prec(1:nw, 1:nx, 1:ny)
+     gems_uv1%qflg(1:nw, 1:nx, 1:ny) = gds_brug%euv1%brug_dfld%PQFlag(1:nw, 1:nx, 1:ny)
+ 
+- nw = nw_uv2 ; nx = nx_uv2
++    nw = nw_uv2 ; nx = nx_uv2
++
+     gems_uv2%nxtrack = nx 
+     gems_uv2%nwavel  = nw    
+     gems_uv2%height(1:nx, 1:ny)     = gds_brug%euv2%brug_gfld%TerrHgt(1:nx, 1:ny)
+@@ -164,7 +165,6 @@ ny     = ntimes
+     gems_uv2%qflg(1:nw, 1:nx, 1:ny) = gds_brug%euv2%brug_dfld%PQFlag(1:nw, 1:nx, 1:ny)
+   
+  CALL GEMS_Share_DeallocMem2
+-
+ RETURN
+ 
+ END SUBROUTINE gems_o3p_share_l1b
+@@ -191,7 +191,7 @@ SUBROUTINE Gems_o3p_share_l2_cld (nx, ny, gems_cfr, gems_ctp, gems_qflag)
+   ! ================
+   ! Local variables
+   ! ================
+-   CHARACTER(LEN=128)    :: ctl_fpath
++   CHARACTER(LEN=LPATH_SZ)    :: ctl_fpath
+    TYPE(CLD_ds)          :: CLDds
+ !  TYPE(L2_cld)          :: L2CLD      ! For GEMS L2 CLD
+    TYPE(OMI_L2CLD)       :: L2CLD       ! For OMI L2 CLD
+diff --git a/o3p/v0.4.3/src/hsrun.sh b/o3p/v0.4.3/src/hsrun.sh
+index 223094c..4962c89 100755
+--- a/o3p/v0.4.3/src/hsrun.sh
++++ b/o3p/v0.4.3/src/hsrun.sh
+@@ -1,19 +1,20 @@
+ #! /bin/bash
+ 
+-type=practice
++type=seafog_spres2
+ 
+ # Initialize
+ orbs[0]=''
+ norb=0
+-nmpi=4
+ rm -f orbs.list
+ 
+-make_on=1 
++nmpi=6
+ ver=3
+ pixset=1    #0: no identification of pixline, 1: with identification of pixline
+ use_qsub=0
+ lidort_make=0
+ 
++make_on=1 
++
+ # 0. Set env
+ source ../run/gems_env.sh
+ 
+@@ -23,15 +24,15 @@ pwd=`pwd`/
+ 
+ 
+ # ' line1, line2, cross pixel 1, cross pixel 2 '
+-pixsel='100 200 15 40' 
+-timesel='2008m0715t03'
++pixsel='414 783 29 30' 
++#pixsel='880 950 1 60' 
++timesel='2008m0502t04'
+ IFS=' ' read -r -a pixline <<< "$pixsel"
+ ((pixline[2]= ( ${pixline[2]} + 1 ) / 2))
+ ((pixline[3]= ( ${pixline[3]} + 1 ) / 2))
+ 
+ echo " pixline = ${pixline[@]}"
+ 
+-
+ #year
+ yr=${timesel:0:4}
+ 
+@@ -58,7 +59,7 @@ clddir=$DATDIR'/2_OML2CLDO2/'$yr'/'
+ soldir=$DATDIR'/1_OML1BIRR/'$yr'/'
+ nmldir=/home/o3p_hs/GEMS/share/conf
+ 
+-lv1_nmlorg=${nmldir}/l1breadmdl_v01.nml
++lv1_nmlorg=${nmldir}/l1breadmdl_v02.nml
+ lv1_nmlfile=${nmldir}/l1breadmdl.nml
+ 
+ lv2_nmlorg=${nmldir}/lv2readmdl_org.nml
+@@ -94,7 +95,7 @@ do
+   
+   solfname=`ls $soldir$solprefix$monday*he4`
+   cldfname=`ls $clddir$cldprefix*o$orb*he5`
+-  logfname=$pwd$logprefix'o'$orb
++  logfname=$pwd$logprefix'o'$orb'_'P${pixline[2]}-${pixline[3]}_L${pixline[0]}-${pixline[1]}'.dat'
+ 
+ 
+   # File name set. 
+@@ -154,7 +155,7 @@ do
+   #echo SOLFNAME $solfname
+   echo L1BFNAME $l1bfname
+   echo CLDFNAME $cldfname
+-  echo LV2LOG $lv2logname
++  echo LOGFNAME $logfname
+ 
+   orbs[$norb]=$orb
+   norb=`expr $norb + 1`
+@@ -171,8 +172,8 @@ do
+   if [ $use_qsub -eq 0 ]
+       then
+       #$PGEHOME/bin/${SAOPGE}_exec  > $lv2dir$type$orb'.dat'
+-      mpirun -np $nmpi $PGEHOME'/bin/GEMS_O3P_exec' > $pwd$type'_'$orb'_mpi'$nmpi'.dat'
+-      #$PGEHOME/bin/${SAOPGE}_exec
++      mpirun -np $nmpi $PGEHOME'/bin/GEMS_O3P_exec' > $logfname 
++      #$PGEHOME/bin/${SAOPGE}_exec > $logfname
+       cd $pwd
+       #cat $type$orb'.dat'
+       #sleep 2
+diff --git a/o3p/v0.4.3/src/hsrunlist.sh b/o3p/v0.4.3/src/hsrunlist.sh
+index 6c12a99..21e16c8 100755
+--- a/o3p/v0.4.3/src/hsrunlist.sh
++++ b/o3p/v0.4.3/src/hsrunlist.sh
+@@ -3,18 +3,19 @@
+ # origin : D. Shin.
+ # updated : hs
+ 
+-type=work
++type=final
+ 
+ make_on=1       # 0: run without make   1: make and run 
+ use_qsub=0      # whether to use qsub or not (1: use qsub,  0: command line, else: just test run without retrievals)
+ ver=3           # sol, cld version
+-nmpi=4          # number of core for computing with mpi
++nmpi=12          # number of core for computing with mpi
+ 
+ # set environment vairables
+ source ../run/gems_env.sh   
+ 
+ # make source code
+ if [ $make_on -eq 1 ] ; then
++  make clean
+   make
+ fi
+ 
+@@ -22,8 +23,9 @@ DATDIR=/home/Data/OMI
+ PGEHOME=/home/o3p_hs/GEMS/o3p/v0.4.3
+ pwd=`pwd`  
+ 
+-FILE=runlist.list
+-#FILE=runlist2.list
++#FILE=runlist_errorcheck.list
++FILE=runlist_final.list
++#FILE=runlist_month3_pak.list
+ 
+ while read line
+ do
+@@ -37,8 +39,6 @@ do
+   spix=$((${spix} * 2 - 1))
+   epix=$((${epix} * 2))
+   pixsel="${sline} ${eline} ${spix} ${epix}"
+-  ##pixsel='198 198 29 30'      
+-  #timesel='2008m0602t03'
+   echo $timesel   $pixsel
+ 
+   IFS=' ' read -r -a pixline <<< "$pixsel"
+@@ -57,7 +57,7 @@ do
+   radprefix=OMI-Aura_L1-OML1BRUG_
+   cldprefix=OMI-Aura_L2-OMCLDO2_
+   nmldir=/home/o3p_hs/GEMS/share/conf
+-  lv1_nmlorg=${nmldir}/l1breadmdl_v01.nml
++  lv1_nmlorg=${nmldir}/l1breadmdl_v02.nml
+   lv1_nmlfile=${nmldir}/l1breadmdl.nml
+   lv2_nmlorg=${nmldir}/lv2readmdl_org.nml
+   lv2_nmlfile=${nmldir}/lv2readmdl.nml
+@@ -66,9 +66,9 @@ do
+ 
+   # initialized the orbits to be arrays
+   # note the index starts from zero
+-  #orbs[0]=''
+-  #norb=0
+-  #rm -f orbs.list
++  orbs[0]=''
++  norb=0
++  rm -f orbs.list
+ 
+   for radfname in `ls $raddb$radprefix$timesel*he4`
+   do
+@@ -89,7 +89,7 @@ do
+ 
+      #solfname=`ls $soldir$solprefix$monday*he4`
+       cldfname=`ls $clddir$cldprefix*o$orb*he5`
+-      lv2logname=$lv2dir$lv2logprefix'o'$orb
++      lv2logname=$lv2dir$lv2logprefix'o'$orb'.dat'
+       lv2fname=GEM_TEST_L2_O3P_${monday}_o${orb}_P${pixline[2]}-${pixline[3]}_L${pixline[0]}-${pixline[1]}_mpi${nmpi}.h5
+       #lv2fname=GEM_TEST_L2_O3P_${monday}_o${orb}_mpi${nmpi}.h5
+ 
+@@ -158,8 +158,8 @@ do
+ 
+       if [ $use_qsub -eq 0 ] 
+           then            
+-          #$PGEHOME/bin/${SAOPGE}_exec  > $lv2dir$type$orb'.dat' 
+-          mpirun -np $nmpi $PGEHOME/bin/${SAOPGE}_exec  > $lv2dir$type$orb'_mpi'$nmpi'.dat' </dev/null
++          #$PGEHOME/bin/${SAOPGE}_exec  > $lv2logname
++          mpirun -np $nmpi $PGEHOME/bin/${SAOPGE}_exec  > $lv2logname </dev/null
+           #$PGEHOME/bin/${SAOPGE}_exec 
+           cd $pwd
+           #cat $type$orb'.dat'
+diff --git a/o3p/v0.4.3/src/mod/GEMS_O3P_MOD_L2wr.f90 b/o3p/v0.4.3/src/mod/GEMS_O3P_MOD_L2wr.f90
+index 4ac922f..b316826 100755
+--- a/o3p/v0.4.3/src/mod/GEMS_O3P_MOD_L2wr.f90
++++ b/o3p/v0.4.3/src/mod/GEMS_O3P_MOD_L2wr.f90
+@@ -89,7 +89,7 @@ SUBROUTINE GEMS_O3P_L2wr(L2O3P_WR, retCode)
+       )
+   
+     CALL GEMS_Share_GetLv2FileName("TEST", "O3P", Lv2FileName)
+-    Lv2FileName = trim(gds_O3pL2Env%out_lv2_fname)    ! wasp
++    !Lv2FileName = trim(gds_O3pL2Env%out_lv2_fname)    ! geun
+     wr_file_path  = trim(gds_O3pL2Env%out_lv2_fpath) // trim(Lv2FileName)
+     !wr_file_path  = trim(gds_O3pL2Env%out_lv2_fpath) //'MPINO_YBIN01'//trim(Lv2FileName)
+     !wr_file_path=trim(adjustl(l2_filename))
+diff --git a/o3p/v0.4.3/src/mod/GEMS_O3P_MOD_Sub2Input.f90 b/o3p/v0.4.3/src/mod/GEMS_O3P_MOD_Sub2Input.f90
+index ec8b49b..77a5b20 100644
+--- a/o3p/v0.4.3/src/mod/GEMS_O3P_MOD_Sub2Input.f90
++++ b/o3p/v0.4.3/src/mod/GEMS_O3P_MOD_Sub2Input.f90
+@@ -54,6 +54,8 @@ SUBROUTINE GEMS_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
+     print*, " "
+ 
+     WRITE(*,'(A)') ' => Reading control option'
++    !WRITE(*,*) fit_ctrl_file   ! wasp : GEMS_O3P.inp
++    
+     CALL gems_o3p_read_ctr_file (fcunit,fit_ctrl_file, pge_error_status )
+     IF ( pge_error_status >= pge_errstat_error ) THEN
+          WRITE(*,'(A)') ' => Error in Reading fitting control file'
+@@ -78,7 +80,7 @@ SUBROUTINE GEMS_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
+          WRITE(*,'(A)') ' => Error in gems_o3p_share_l1b'
+          RETURN
+     END IF
+-    
++
+     !------------------------------------------------------------------------
+     ! check pixnum_lim & linenum_lim
+     !--------------------------------------------------------------------------
+@@ -137,7 +139,7 @@ SUBROUTINE GEMS_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
+     nxcoadd    = ncoadd*nxbin            ! Need just for OMI
+     gems_nx    = nxtrack/nxcoadd         ! N of total x-pixels after coadding
+     gems_ny    = INT ( ntimes*1.0/nybin) ! N of total y-pixels after coadding
+-    !gems_ny = 10 !wasp
++    !gems_ny = 10    !geun
+     
+     call allocate_o3p_var(ntimes,  pge_error_status)
+  
+@@ -145,16 +147,15 @@ SUBROUTINE GEMS_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
+     ! Read Irradiance
+     !------------------------------
+     WRITE(*,'(A,i2,"-",i2)') ' => Reading GEMS irradiance for ', 1, gems_nx
++    
+     CALL gems_o3p_read_l1b_irrad ( nxcoadd, 1, gems_nx, pge_error_status)
+     If (pge_error_status >= pge_errstat_error) THEN
+          RETURN
+     END IF
+-
+    
+     RETURN
+ 
+ END SUBROUTINE GEMS_O3P_SUB2_Proc_Input
+ 
+ 
+-
+ END MODULE O3P_MOD_Input
+diff --git a/o3p/v0.4.3/src/mod/GEMS_O3P_MOD_Sub5Output.f90 b/o3p/v0.4.3/src/mod/GEMS_O3P_MOD_Sub5Output.f90
+index 715bd1f..1a2a4b5 100644
+--- a/o3p/v0.4.3/src/mod/GEMS_O3P_MOD_Sub5Output.f90
++++ b/o3p/v0.4.3/src/mod/GEMS_O3P_MOD_Sub5Output.f90
+@@ -149,6 +149,8 @@ ENDIF
+     gds_L2O3P%o3p_gfld%ViewZenAng(the_x,the_y)  =  gems_vza  (currpix, currloop)
+     gds_L2O3P%o3p_gfld%RelAziAng(the_x,the_y)   =  gems_aza  (currpix, currloop)
+     gds_L2O3P%o3p_gfld%Time(the_y)              =  gems_time (currloop)
++    gds_L2O3P%o3p_gfld%Pix(the_x,the_y)     =  the_x    ! geun
++    gds_L2O3P%o3p_gfld%Line(the_x,the_y)    =  the_y    ! geun
+ 
+     if (exval <= -9) RETURN
+ 
+diff --git a/o3p/v0.4.3/src/o3prof/get_initial_albedo.f90 b/o3p/v0.4.3/src/o3prof/get_initial_albedo.f90
+index efca822..6e9acd4 100644
+--- a/o3p/v0.4.3/src/o3prof/get_initial_albedo.f90
++++ b/o3p/v0.4.3/src/o3prof/get_initial_albedo.f90
+@@ -109,7 +109,10 @@ SUBROUTINE get_initial_albedo (noalb, albedo, pge_error_status)
+  
+  IF (noalb) RETURN
+  
+- albedo = calc_albedo(measref, ps0, the_sza_atm, the_vza_atm, the_aza_atm)
++
++ !albedo = calc_albedo(measref, ps0, the_sza_atm, the_vza_atm, the_aza_atm) !wasp
++ pge_error_status=pge_errstat_error                                         !wasp
++
+ ! WRITE(*, '(A, d12.4)') ' The initial albedo is: ', albedo
+ 
+  IF (albedo <= -0.1 .OR. albedo >= 1.2) THEN
+diff --git a/o3p/v0.4.3/src/o3prof/lidort_prof_env.f90 b/o3p/v0.4.3/src/o3prof/lidort_prof_env.f90
+index f59d039..39ebb1d 100644
+--- a/o3p/v0.4.3/src/o3prof/lidort_prof_env.f90
++++ b/o3p/v0.4.3/src/o3prof/lidort_prof_env.f90
+@@ -192,7 +192,7 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
+   ENDIF
+  
+   ! ============= Overridden some control and atmospheric variables ============== 
+-   IF (num_iter == 0 ) THEN
++  IF (num_iter == 0 ) THEN
+      n_szangles = 1; szangles(1) = sza 
+      IF (sza >= 90.0 .OR. sza < 0) THEN
+         WRITE(*, *) modulename, ' : SZA is >= 90 or < 0 !!!'
+@@ -222,7 +222,6 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
+ 
+      IF (nz > maxlayers) THEN
+         WRITE(*, *) modulename, ' : # of layers exceeded allowed !!!',nz, maxlayers
+-
+         errstat = pge_errstat_error; RETURN
+      ENDIF
+      IF (nl > nlayers) THEN
+@@ -273,13 +272,13 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
+         ENDIF
+         ts(1:nz) = (ts(1:nz) + ts(0:nz-1)) / 2.0
+      ENDIF
+- ELSE
+-    ozs(1:nz) = ozprof(1:nl);    varyprof(1:nz) = ozvary(1:nl)
+- ENDIF
++  ELSE
++     ozs(1:nz) = ozprof(1:nl);    varyprof(1:nz) = ozvary(1:nl)
++  ENDIF
+  
+- nz1 = nfsfc - 1 
+- ! Update aerosol fields: first AOD
+- IF (do_taodwf .AND. num_iter > 0) THEN
++  nz1 = nfsfc - 1 
++  ! Update aerosol fields: first AOD
++  IF (do_taodwf .AND. num_iter > 0) THEN
+     aodscl = fitvar_rad(taodind) / tropaod(actawin)
+     tropaod(1:actawin) = tropaod(1:actawin) * aodscl
+     gaext(1:actawin, nup2p(ntp)+1:nz1) = gaext(1:actawin, nup2p(ntp)+1:nz1) * aodscl
+@@ -843,7 +842,7 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
+      
+      IF (.NOT. do_radcals(iw) ) CYCLE   ! Radiances and weighting functions will be interpolated 
+      lamda = waves(iw) 
+-     
++
+      IF (nwfc > 0) the_cfrac = wfcs(iw)
+       
+      ! NSTOKES = 4 when
+@@ -980,6 +979,7 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
+         
+         radclrcld = 0.0
+         DO ic = 1, 2               ! for clear and cloud
++           !print*,ic,nlayers,nctp,nz1  !  wasp!
+ 
+            IF (ic == 1) THEN
+               do_clouds = .FALSE.; frac = 1.0 - the_cfrac
+@@ -1020,6 +1020,8 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
+            ELSE                 ! lambertian clouds
+               nlayers = nctp-1  ! from cloud top to TOA
+               nz1 = nlayers;    do_clouds = .FALSE.
++              !print*,ic,nlayers,nctp,nz1  !  wasp!
++              !stop
+               
+               IF (the_cfrac == 1.0 .AND. nw /= 1) THEN
+                  lambertian_albedo = albs(iw); lambcld_refl = lambertian_albedo
+@@ -1074,14 +1076,13 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
+            ! Pixel-independent approximation
+            radclrcld(ic, 1:nostk) = stokes(1, 1, 1:nostk, 1) * polerr(iw, ic, 1:nostk)
+            rad(iw, 1:nostk)       = rad(iw, 1:nostk) + radclrcld(ic, 1:nostk) * frac
+-           
+            IF (do_linearization ) THEN
+               
+               ! weighting function per Dobson Unit
+               IF ( do_ozwf ) THEN
+                  DO istk = 1, nostk
+                     fozwf(iw, 1:nfsfc-1, istk) = fozwf(iw, 1:nfsfc-1, istk) + profilewf(ozwfidx, 1:nfsfc-1, 1, 1, istk, 1) &
+-                         / ozs(1:nfsfc-1)  * polerr(iw, ic, istk) * frac 
++                         / ozs(1:nfsfc-1) * polerr(iw, ic, istk) * frac 
+                  ENDDO
+               ENDIF
+               
+@@ -1339,9 +1340,8 @@ SUBROUTINE LIDORT_PROF_ENV (do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary, &
+              allcrs(i, 1, 1:nz1), allcrs(i, 3, nz1)*refspec_norm(9)
+      ENDDO
+      
+-     STOP
++     !STOP
+   ENDIF
+- 
+   RETURN
+ END SUBROUTINE LIDORT_PROF_ENV
+ 
+diff --git a/o3p/v0.4.3/src/o3prof/lidort_prof_utilities.f90 b/o3p/v0.4.3/src/o3prof/lidort_prof_utilities.f90
+index 2ca5fd0..638f7d7 100644
+--- a/o3p/v0.4.3/src/o3prof/lidort_prof_utilities.f90
++++ b/o3p/v0.4.3/src/o3prof/lidort_prof_utilities.f90
+@@ -1401,7 +1401,7 @@ SUBROUTINE hres_radwf_inter_convol(nw, nz, nctp, ncbp, nsprs, faerlvl,  &
+      IF (do_faerwf) faerwf(1:now, faerlvl:nz) = haerwf(1:now, faerlvl:nz)
+      IF (do_faerwf) faerswf(1:now, faerlvl:nz) = haerswf(1:now, faerlvl:nz)
+      IF (do_codwf) fcodwf(1:now, nctp:ncbp) = hcodwf(1:now, nctp:ncbp)
+-     IF (do_sprswf) fsprswf(1:now, nsprs:nz) = fsprswf(1:now, nsprs:nz) !wasp
++     IF (do_sprswf) fsprswf(1:now, nsprs:nz) = hsprswf(1:now, nsprs:nz)   ; ! hcodwf -> hsprswf       !geun 
+      IF (do_o3shi) dads(1:now, 1:nz) = dads1(1:now, 1:nz)
+      IF (do_tmpwf) dadt(1:now, 1:nz) = dadt1(1:now, 1:nz)
+      IF (do_tracewf) THEN
+diff --git a/o3p/v0.4.3/src/o3prof/make_atm.f90 b/o3p/v0.4.3/src/o3prof/make_atm.f90
+index ab82fcc..a21c94a 100644
+--- a/o3p/v0.4.3/src/o3prof/make_atm.f90
++++ b/o3p/v0.4.3/src/o3prof/make_atm.f90
+@@ -32,7 +32,7 @@
+ !  a larger number, and may also need to increase nref to a larger number.
+ 
+ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,                       &
+-     ctp, numk, toz, spres, tpres, atmosprof, ozprof, nup2p, sacldscl, errstat)
++     ctp, numk, toz, spres, tpres, atmosprof, ozprof, nup2p, sacldscl, nbatm, nold, errstat)  ! nbatm, nold added : geun
+   
+   USE OMSAO_precision_module
+   USE OMSAO_parameters_module, ONLY: p0, boltz, xmair, accgrav, ugc, avo, rearth, du2mol
+@@ -47,7 +47,8 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,
+        ngas, the_cld_flg, tracegas, maxlay, use_reg_presgrid, presgrid_fname,                 &
+        adjust_trop_layer, fixed_ptrop, ntp0, pst0, nsfc, nfsfc, use_tropopause,               &
+        scaled_aod, scale_aod, ngksec,  maxgksec, do_simu, radcalwrt, which_toz, norm_tropo3,  &
+-       so2zind, so2vprofn1p1, so2valts, atmos_unit, ozone_above60km, pv811, trpz
++       so2zind, so2vprofn1p1, so2valts, atmos_unit, ozone_above60km, pv811, trpz,             &    !geun
++       which_tprof, which_sfct   
+ 
+   USE OMSAO_errstat_module
+   IMPLICIT NONE
+@@ -55,10 +56,10 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,
+   ! xliu:, 03/08/2011
+   ! Switch from using 17 2.5x2 NCEP Reanalysis temperture to 26 level 1x1 NCEP FNL data
+   !INTEGER, PARAMETER :: nv8=11, nold=28, nlecm=22, nref=71, nmpref=61, nmipas=121
+-  INTEGER, PARAMETER :: nv8=11, nlfnl=26, nlecm=31, nold=nlecm+6, nref=71, nmpref=61, nmipas=121
++  INTEGER, PARAMETER :: nv8=11, nlecm=31, nref=71, nmpref=61, nmipas=121 ! remove nlfnl, nold : geun
+   
+   ! Input variables
+-  INTEGER, INTENT(IN)          :: year, month, day, ndiv, numk
++  INTEGER, INTENT(IN)          :: year, month, day, ndiv, numk, nbatm, nold ! nbatm, nold added : geun 
+   INTEGER, INTENT(OUT)         :: errstat
+   REAL (KIND=dp), INTENT(INOUT)   :: tauc, cfrac
+   REAL (KIND=dp), INTENT(INOUT):: ctp, toz, spres, tpres
+@@ -86,13 +87,14 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,
+ !  REAL (KIND=dp), DIMENSION (0:nold), PARAMETER :: told0 = (/288.2, 287.5, 283.3, 278.7, &
+ !       268.6, 261., 252., 241.4, 228.6, 223.1, 220.5, 216.5, 216.6, 216.6, 216.6, 220.5,  &
+ !       223.1, 227.7, 232.4, 239.3, 249.5, 257.9, 271.3, 270.7, 260.8, 250., 247.0, 242., 236.0/)
+-  REAL (KIND=dp), DIMENSION (0:nold), PARAMETER :: pold0 = (/1013.25, 1000., 975., 950., 925., 900., 850., &
+-       800., 750., 700., 650., 600., 550., 500., 450., 400., 350., 300., 250., 200., 150., 100., 70., 50., &
+-       30., 20., 10., 7., 5., 3., 2., 1., 0.70, 0.35, 0.25, 0.175, 0.125, 0.0874604/)
+-  REAL (KIND=dp), DIMENSION (0:nold), PARAMETER :: told0 = (/288.2, 287.5, 286.1, 284.7, 283.2, 281.8, &
+-       278.7, 275.5, 272.2, 268.6, 264.8, 260.8, 256.6, 251.9, 246.9, 241.4, 235.4, 228.6, 220.5, &
+-       216.5, 216.7, 216.7, 216.7, 217.2, 220.5, 223.1, 227.7, 232.4, 239.3, 249.5, 257.9, 271.3, &
+-       269.3, 256.8, 249.7, 242.5, 235.9, 229.1/)
++  !REAL (KIND=dp), DIMENSION (0:nold), PARAMETER :: pold0 = (/1013.25, 1000., 975., 950., 925., 900., 850., &
++       !800., 750., 700., 650., 600., 550., 500., 450., 400., 350., 300., 250., 200., 150., 100., 70., 50., &
++       !30., 20., 10., 7., 5., 3., 2., 1., 0.70, 0.35, 0.25, 0.175, 0.125, 0.0874604/)
++  !REAL (KIND=dp), DIMENSION (0:nold), PARAMETER :: told0 = (/288.2, 287.5, 286.1, 284.7, 283.2, 281.8, &
++       !278.7, 275.5, 272.2, 268.6, 264.8, 260.8, 256.6, 251.9, 246.9, 241.4, 235.4, 228.6, 220.5, &
++       !216.5, 216.7, 216.7, 216.7, 217.2, 220.5, 223.1, 227.7, 232.4, 239.3, 249.5, 257.9, 271.3, &
++       !269.3, 256.8, 249.7, 242.5, 235.9, 229.1/)
++  REAL (KIND=dp), DIMENSION (0:nold)         :: told0, pold0 ! geun
+ 
+   REAL (KIND=dp), DIMENSION (0:nold)         :: pold, told, zold
+   REAL (KIND=dp), DIMENSION (1:nmipas)       :: mipasp, mipast, mipaso3
+@@ -110,6 +112,9 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,
+   REAL (KIND=dp), DIMENSION (0:nv8), SAVE    :: pv80
+   REAL (KIND=dp), DIMENSION (0:maxlay), SAVE :: umkp0, umkz0
+ 
++  INTEGER :: nlat_atm, nlon_atm, nl_atm  !geun
++  REAL (KIND=dp) :: longrid_atm, latgrid_atm !geun
++
+   LOGICAL :: use_input_spres = .TRUE., fixed_temp = .FALSE.
+ 
+   !xliu, 09/23/05, indicator for a layer if it is above a cloud or not
+@@ -123,6 +128,23 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,
+ 
+   errstat = pge_errstat_ok
+   
++  IF (which_tprof == 0 .OR. which_tprof == 1) THEN  !geun 
++    pold0 = (/1013.25, 1000., 975., 950., 925., 900., 850., &
++              800., 750., 700., 650., 600., 550., 500., 450., 400., 350., 300., 250., 200., 150., 100., 70., 50., &
++              30., 20., 10., 7., 5., 3., 2., 1., 0.70, 0.35, 0.25, 0.175, 0.125, 0.0874604/)
++    told0 = (/288.2, 287.5, 286.1, 284.7, 283.2, 281.8, &
++              278.7, 275.5, 272.2, 268.6, 264.8, 260.8, 256.6, 251.9, 246.9, 241.4, 235.4, 228.6, 220.5, &
++              216.5, 216.7, 216.7, 216.7, 217.2, 220.5, 223.1, 227.7, 232.4, 239.3, 249.5, 257.9, 271.3, &
++              269.3, 256.8, 249.7, 242.5, 235.9, 229.1/)
++  ELSEIF (which_tprof == 2) THEN
++    pold0 = (/1013.25, 1000., 950., 925., 850., &
++              700., 600., 500., 400., 300., 250., 200., 150., 100., 70., 50., &
++              30., 20., 10., 7., 5., 3., 2., 1., 0.50, 0.40, 0.25, 0.175, 0.125, 0.0874604/)
++    told0 = (/288.2, 287.5, 284.7, 283.2, 278.7,   &
++              268.6, 260.8, 251.9, 241.4, 228.6, 220.5, 216.5, 216.7, 216.7, 216.7, 217.2, &
++              220.5, 223.1, 227.7, 232.4, 239.3, 249.5, 257.9, 271.3, 269.3, 256.8, 249.7, 242.5, 235.9, 229.1/)
++  ENDIF !geun
++
+   ! pressure grid for temperature profile
+   pold = pold0; pold(nold) = p0 * 2.0D0 ** (-13.5D0) 
+  
+@@ -134,27 +156,52 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,
+   ! Get temperature profiles
+ ! CALL GET_NCEPT(year, month, day, the_lon, the_lat, told(1:nlecm))
+  
+-  CALL GET_NCEPFNLT(year, month, day, the_lon, the_lat, told(1:nlfnl))
+-  CALL GET_ECMWFAVGT(month, day, the_lon, the_lat, told(nlfnl+1:nlecm))
++  IF (which_tprof == 0 .OR. which_tprof == 1) THEN  ! geun
++    nlat_atm = 180  ;  nlon_atm = 360   ; nl_atm = 26
++    longrid_atm = 1.0  ;  latgrid_atm = 1.0
++  ELSE IF (which_tprof == 2) THEN
++    nlat_atm = 769  ;  nlon_atm = 1024  ; nl_atm = 25
++    longrid_atm = 0.351562  ;  latgrid_atm = 0.234375
++  ENDIF  ! geun
++
++  CALL GET_NCEPFNLT(year, month, day, the_lon, the_lat, told(1:nbatm), nlon_atm, nlat_atm, nl_atm, longrid_atm, latgrid_atm)
++  IF (which_tprof == 0 .OR. which_tprof == 1) CALL GET_ECMWFAVGT(month, day, the_lon, the_lat, told(nbatm+1:nlecm))  !geun
+ 
+   IF (ALL(told(1:nlecm) == 0.0)) told = told0
+  
+   ! Use TOMS V8 temperature climatology for 0.70, 0.35 mb 
+-  CALL GET_V8TEMP(month, day, the_lat, v8temp)
+-  told(nlecm+1) = v8temp(10); told(nlecm+2) = v8temp(11)
++  
++  IF (which_tprof == 0 .OR. which_tprof == 1 ) THEN !geun
++    CALL GET_V8TEMP(month, day, the_lat, v8temp)
++    told(nlecm+1) = v8temp(10); told(nlecm+2) = v8temp(11)
++
++    ! Use MIPAS Temperature cimatology for the upper 4 layers)
++    CALL GET_MIPASIG2T(month, day, the_lat, mipasp, mipast)
++    mipasp = LOG(mipasp); ptemp = LOG(pold(nlecm+3:nlecm+6))
++    CALL BSPLINE(mipasp, mipast, nmipas, ptemp, told(nlecm+3:nlecm+6), 4, errstat)
++  ELSEIF (which_tprof == 2) THEN
++    ! Use MIPAS Temperature cimatology for the upper 4 layers)
++    CALL GET_MIPASIG2T(month, day, the_lat, mipasp, mipast)
++    mipasp = LOG(mipasp); ptemp = LOG(pold(nbatm+1:nbatm+4))
++    CALL BSPLINE(mipasp, mipast, nmipas, ptemp, told(nbatm+1:nbatm+4), 4, errstat)
++  ENDIF ! geun
+ 
+-  ! Use MIPAS Temperature cimatology for the upper 4 layers)
+-  CALL GET_MIPASIG2T(month, day, the_lat, mipasp, mipast)
+-  mipasp = LOG(mipasp); ptemp = LOG(pold(nlecm+3:nlecm+6))
+-  CALL BSPLINE(mipasp, mipast, nmipas, ptemp, told(nlecm+3:nlecm+6), 4, errstat)
+   IF (errstat < 0) THEN
+      WRITE(*, *) modulename, ': BSPLINE error, errstat = ', errstat
+      errstat = pge_errstat_error; RETURN
+   ENDIF
+   if (fixed_temp) told = told0
+ 
++  IF (which_sfct == 0 .OR. which_sfct == 1) THEN  ! geun
++    nlat_atm = 180  ;  nlon_atm = 360  
++    longrid_atm = 1.0  ;  latgrid_atm = 1.0
++  ELSE IF (which_sfct == 2) THEN
++    nlat_atm = 769  ;  nlon_atm = 1024 
++    longrid_atm = 0.351562  ;  latgrid_atm = 0.234375
++  ENDIF  ! geun
++
+   ! xliu, 03/09/11, get surface temperature
+-  CALL GET_SFCT(year, month, day, the_lon, the_lat, sfct)
++  CALL GET_SFCT(year, month, day, the_lon, the_lat, sfct, nlon_atm, nlat_atm, longrid_atm, latgrid_atm)
+ 
+   ! xliu (12/05/2006): Change from 7 K / 90 mb to 5.65 K / 100 mb (~6.5 K / km)
+   !told(0) = told(1) + (pold(0) - pold(1)) / 100.0 * 5.65
+@@ -346,7 +393,9 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,
+      ! mark number of layers below surface pressure
+      umkp(nsfc) = LOG(spres)
+   ENDIF
+-  
++
++
++ 
+   !=================================================================================!
+   !  GET ozone profile in retrieval grid
+   !=================================================================================!
+@@ -483,15 +532,15 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,
+   !       1. change 200 m (20 hpa) to 30 m (3 hpa) if the given CTP is below surface
+   !       2. change from 15 per 100 hPa to 20 Per 100 hPa (i.e., 6.6 to 5)
+   has_clouds = .FALSE.; nctp = 0; ncbp = 0; cbp =0.0
++  !ctp = 900 !wasp
+   IF (cloud .AND. ctp > 0.0) THEN 
+      fps = EXP(fps)
+      has_clouds = .TRUE.
+ 
+      IF ( do_lambcld ) THEN            ! Lambertian clouds (not need for cbp)
+         IF (ctp >= spres  ) THEN
+-           CALL GET_TOMSV8_CTP(month, day, the_lon, the_lat, ctp, errstat)
++           CALL GET_TOMSV8_CTP(month, day, the_lon, the_lat, ctp, errstat) !wasp
+            cfrac = 0.5  ! will be updated anyway at longer wavelength
+-           
+            IF (errstat == pge_errstat_error) THEN
+               WRITE(*, *) modulename, ': Error in getting OMI Cloud Climatology ', errstat
+               RETURN
+@@ -641,7 +690,8 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,
+   frhos(np) = frhos(np) * EXP(fps(np-1)) / (EXP(fps(np-1))-EXP(fps(np)))
+   
+   umkt = fts(nup2p); umkz = fzs(nup2p)     !  T and Z grid for ozone retrieval layers
+-  
++
++ 
+   ! ======================== Interpolate Ozone to LIDORT Grid ======================
+   CALL BSPLINE(refp, ozref, nref+1, fps(0:np), oznref(0:np), np+1, errstat)
+   IF (errstat < 0) THEN
+diff --git a/o3p/v0.4.3/src/o3prof/oe_inversion.f90 b/o3p/v0.4.3/src/o3prof/oe_inversion.f90
+index cfcf6b8..c59cdd3 100644
+--- a/o3p/v0.4.3/src/o3prof/oe_inversion.f90
++++ b/o3p/v0.4.3/src/o3prof/oe_inversion.f90
+@@ -101,8 +101,8 @@ SUBROUTINE oe_inversion (do_sa_diagonal, do_oe_output, file_unit, delta_chi_min,
+  DO i = 1, nx
+     xastd(i) = SQRT(Sa (i, i))
+  ENDDO
+-
+- IF (do_sa_diagonal) THEN      ! Diagonal Apriori    
++!write(*,*) 'hello wasp! ', y
++ IF (do_sa_diagonal) THEN      ! Diagonal Apriori   ! - wasp : F 
+     ! Construct rK_tilde = Sy^(-1/2)*K*Sa^(1/2) (u=Ktil for dsvdcmp) 
+     DO j = 1, nx           
+        rK_tilde (:, j) = xastd(j) * rK (:, j) / dy 
+@@ -183,6 +183,8 @@ SUBROUTINE oe_inversion (do_sa_diagonal, do_oe_output, file_unit, delta_chi_min,
+     tmpw2 = w ** 2;    tmpw2p1 = tmpw2 + 1.0d0; tmpratio = tmpw2 / tmpw2p1
+     
+     ! Construct y_prime=UT*Sy^(-1/2)*y:                                     
++!write(*,*) 'hello wasp! oe_inversion u here!',u(:,i)
++!write(*,*) 'hello wasp! oe_inversion dy here!',dy
+     DO i = 1, nx 
+        y_prime (i) = SUM (u (:, i) * y / dy) 
+     ENDDO
+@@ -196,9 +198,15 @@ SUBROUTINE oe_inversion (do_sa_diagonal, do_oe_output, file_unit, delta_chi_min,
+     ENDDO
+     
+     ! ACTUAL RETRIEVAL: Calculate x_prime = (WT*W+I)^(-1)(W*y_prime + xa_prime)
++!write(*,*) 'hello wasp! oe_inversion w here!',w
++!write(*,*) 'hello wasp! oe_inversion xa_prime here!',xa_prime
++!write(*,*) 'hello wasp! oe_inversion tmpw2p1 here!',tmpw2p1
+     x_prime = (w * y_prime + xa_prime ) / tmpw2p1   
+     
+     ! Construct x=Sa^(1/2)*V*x_prime:                                                                                   
++!write(*,*) 'hello wasp! oe_inversion sasqp here!',sasqp(i,:)
++!write(*,*) 'hello wasp! oe_inversion v here!',v(:,j)
++!write(*,*) 'hello wasp! oe_inversion tmp here!',tmp(i,:)
+     DO i = 1, nx 
+        DO j = 1, nx 
+           tmp (i, j) = SUM(sasqp(i, :) * v (:, j)) 
+diff --git a/o3p/v0.4.3/src/o3prof/ozprof_data_module.f90 b/o3p/v0.4.3/src/o3prof/ozprof_data_module.f90
+index a1865b4..db2fbc3 100644
+--- a/o3p/v0.4.3/src/o3prof/ozprof_data_module.f90
++++ b/o3p/v0.4.3/src/o3prof/ozprof_data_module.f90
+@@ -434,5 +434,11 @@ MODULE ozprof_data_module
+   REAL(KIND=dp)  :: mzt ! mean tropopause height in Km.
+ 
+   REAL(KIND=dp)  ::which_tpres ! option for tropopause height data (Ncep or AIRS)
++
++  ! adding variables by geun (03/17/17)
++  REAL(KIND=dp)  ::which_spres ! option for surface pressure data (fnl_daily or fnl_monthly)
++  REAL(KIND=dp)  ::which_sfct  ! option for surface temperature data (fnl_daily or fnl_monthly)
++  REAL(KIND=dp)  ::which_tprof ! option for temperature profile data (fnl_daily or fnl_monthly)
++  CHARACTER (LEN=130)  :: ncep_fname ! option for temperature profile data
+  
+ END MODULE ozprof_data_module
+diff --git a/o3p/v0.4.3/src/o3prof/ozprof_inverse.f90 b/o3p/v0.4.3/src/o3prof/ozprof_inverse.f90
+index 837182b..870396f 100644
+--- a/o3p/v0.4.3/src/o3prof/ozprof_inverse.f90
++++ b/o3p/v0.4.3/src/o3prof/ozprof_inverse.f90
+@@ -182,7 +182,7 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
+         exval = -4; RETURN
+      ENDIF
+   ENDIF
+-  
++    
+   IF (ozwrtint) WRITE(ozwrtint_unit, '(A,I5,A10,I5, A10, I5)')  'Line = ', &
+        currline, ' XPix = ', currpix, ' Loop = ', currloop
+ 
+@@ -197,10 +197,16 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
+      ENDIF
+      IF (num_iter == cmerr_niter .AND. correct_merr) fitweights(1:ns) = &
+           fitweights(1:ns) / SQRT(1.0d0 * the_nspc) * readout_noise
+-      
++!write(*,*) 'hello wasp! is it zero?' ,fitspec ! wasp : yes
++!write(*,*) 'hello wasp! ozprof_inverse gspec here!' ,gspec
+     CALL pseudo_model(num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gspec, &
+           fitres, fitspec, nchisq, nradrms, errstat)
+-    
++!stop
++!write(*,*) 'hello wasp! is it zero?' ,fitspec ! wasp : no
++!write(*,*) 'hello wasp! pseudo model done!'
++!stop
++!write(*,*) 'hello wasp! fitvar here ozprof_inverse! ',fitvar
++
+      IF (errstat == pge_errstat_error) THEN
+         proceed = .FALSE.; exval = -5; CYCLE
+      ENDIF
+@@ -235,11 +241,13 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
+ 
+      DO 
+         last_iter = .TRUE.
+-        IF (.NOT. do_twostep) THEN 
++        IF (.NOT. do_twostep) THEN  ! wasp : if(T)
+            CALL oe_inversion (do_sa_diagonal, ozwrtint, ozwrtint_unit, epsrel,        &
+                 last_iter, num_iter, ns, nf, gspec, sig, dyda, xap, xold, sa, &
+                 varname, ffidx, flidx, delta_x, covar(1:nf, 1:nf), ncovar(1:nf, 1:nf),&
+                 conv, avg_kernel(1:nf, 1:nf), contri(1:nf, 1:ns), ozdfs, ozinfo, lchisq, gspec_new)
++        !write(*,*) 'hello wasp! oe_inversion done!'
++        !stop
+         ELSE
+            CALL twostep_inversion (do_sa_diagonal, ozwrtint, ozwrtint_unit, epsrel,        &
+                 last_iter, num_iter, ns, nf, gspec, sig, dyda, xap, xold, lowbnd, upbnd, sa, &
+@@ -265,7 +273,12 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
+            exval = 0; RETURN
+         ENDIF
+         
++        !write(*,*) 'hello wasp! ozprof_inverse fitvar here! ', fitvar(ffidx:flidx)
++        !write(*,*) 'hello wasp! ozprof_inverse xold here! ', xold
++        !write(*,*) 'hello wasp! ozprof_inverse delta_x here! ', delta_x
+         fitvar = delta_x + xold
++        !write(*,*) 'hello wasp! ozprof_inverse fitvar here! ', fitvar(ffidx:flidx)
++!stop
+         IF (IEOR(IBCLR(TRANSFER(lchisq, NAN), DPSB), NAN) == 0) THEN  ! check for NAN
+            proceed = .FALSE.; exval = -6; EXIT
+         ENDIF
+@@ -294,7 +307,6 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
+         xold(ffidx:flidx) = EXP(xold(ffidx:flidx)) 
+         delta_x(ffidx:flidx) = fitvar(ffidx:flidx) - xold(ffidx:flidx)
+      ENDIF
+-     
+      !WRITE(*, '(I3,1X,A6,3d14.6)') ((i, varname(i), xold(i), &
+      !     delta_x(i), fitvar(i)), i=1, nf) 
+      !WRITE(*, *) SUM(xold(ffidx:flidx)), SUM(fitvar(ffidx:flidx)), SUM(xap(ffidx:flidx))
+@@ -316,6 +328,9 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
+      !WRITE(*, '(I3,1X,A6,3d14.6)') ((i, varname(i), xold(i), &
+      !     delta_x(i), fitvar(i)), i=1, nf) 
+      !WRITE(*, *) SUM(xold(ffidx:flidx)), SUM(fitvar(ffidx:flidx)), SUM(xap(ffidx:flidx))
++     !write(*,*) 'hello wasp! ozprof_inverse fitvar here! ', fitvar(ffidx:flidx)
++     !write(*,*) 'hello wasp! ozprof_inverse fitvar here! ', lowbnd(ffidx:flidx)
++     !write(*,*) 'hello wasp! ozprof_inverse fitvar here! ', upbnd(ffidx:flidx) 
+ 
+      IF (ANY (fitvar(ffidx:flidx) <= lowbnd(ffidx:flidx)) .OR. &
+           ANY (fitvar(ffidx:flidx) >= upbnd(ffidx:flidx))) THEN                             
+@@ -498,6 +513,7 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
+ 
+      IF (ANY (fitvar(ffidx:flidx) <= lowbnd(ffidx:flidx)) .OR. &
+           ANY (fitvar(ffidx:flidx) >= upbnd(ffidx:flidx))) THEN
++
+         WRITE(*, *) modulename, ': Retrieved ozone values out of bounds!!!'
+         exval = -3
+      ELSE       
+@@ -602,6 +618,7 @@ SUBROUTINE ozprof_inverse (nf, varname, fitvar, fitvarap, lowbnd, upbnd,  &
+      IF (negval) exval = exval + 100 
+   ENDIF
+ 
++
+   RETURN
+ 
+ END SUBROUTINE ozprof_inverse
+diff --git a/o3p/v0.4.3/src/o3prof/prepare_atmosphere.f90 b/o3p/v0.4.3/src/o3prof/prepare_atmosphere.f90
+index 2f2a502..8f8c776 100644
+--- a/o3p/v0.4.3/src/o3prof/prepare_atmosphere.f90
++++ b/o3p/v0.4.3/src/o3prof/prepare_atmosphere.f90
+@@ -155,8 +155,8 @@ SUBROUTINE get_tb(ozref,std,which_tb)
+ ! ** load oz profiles ** !
+   IF (first) THEN
+           
+-        apfname = '../../ATMOS/tbclima/TB14L-5.vs' ! jbak
+-
++        !apfname = '../../ATMOS/tbclima/TB14L-5.vs' ! jbak
++        apfname = TRIM(ADJUSTL(atmdbdir)) //'tbclima/TB14L-5.vs' ! geun
+         OPEN (UNIT = atmos_unit, file=apfname, status = 'unknown')
+         READ (atmos_unit, '(A)') ;  READ(atmos_unit, '(A)')             
+         DO i = 1, nmon
+@@ -167,7 +167,9 @@ SUBROUTINE get_tb(ozref,std,which_tb)
+         ENDDO
+         CLOSE(atmos_unit)
+ 
+-        apfname = '../../ATMOS/tbclima/TB14H-5.vs' ! jbak
++
++        apfname = TRIM(ADJUSTL(atmdbdir)) //'tbclima/TB14H-5.vs' ! geun
++        !apfname = '../../ATMOS/tbclima/TB14H-5.vs' ! jbak
+ 
+         OPEN (UNIT = atmos_unit, file=apfname, status = 'unknown')
+         READ (atmos_unit, '(A)') ;  READ(atmos_unit, '(A)')             
+@@ -873,26 +875,29 @@ END SUBROUTINE get_geoschem_o3std
+ !    pressure from all years
+ ! xliu: 03/08/11, switch from NCEP to 1x1 NCEP FNL (archived at NCAR)
+ ! ==================================================================
+-SUBROUTINE get_spres(year, month, day, lon, lat, spres)
++SUBROUTINE get_spres(year, month, day, lon, lat, spres, nlon, nlat, longrid, latgrid)
+ 
+   USE OMSAO_precision_module 
+   USE OMSAO_variables_module, ONLY: atmdbdir
+-  USE ozprof_data_module,     ONLY: atmos_unit
++  USE ozprof_data_module,     ONLY: atmos_unit, which_spres
+   IMPLICIT NONE
+ 
+   ! ======================
+   ! Input/Output variables
+   ! ======================
+   INTEGER, INTENT(IN)           :: month, year, day
++  INTEGER, INTENT(INOUT)           :: nlon, nlat ! geun
+   REAL (KIND=dp), INTENT(IN)    :: lon, lat
++  REAL (KIND=dp), INTENT(INOUT)    :: longrid, latgrid !geun
+   REAL (KIND=dp), INTENT(OUT)   :: spres
+ 
+   ! ======================
+   ! Local variables
+   ! ======================
+   !INTEGER, PARAMETER             :: nlat=72, nlon=144 !REAL (KIND=dp), PARAMETER      :: longrid = 2.5, latgrid = 2.5, lon0=-180.0, lat0=-90.0
+-  INTEGER, PARAMETER             :: nlat=180, nlon=360
+-  REAL (KIND=dp), PARAMETER      :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
++  !INTEGER, PARAMETER             :: nlat=180, nlon=360
++  !REAL (KIND=dp), PARAMETER      :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
++  REAL (KIND=dp), PARAMETER      :: lon0=-180.0, lat0=-90.0
+   INTEGER                        :: i, j,  nblat, nblon
+   LOGICAL                        :: file_exist
+   CHARACTER (LEN=2)              :: monc, dayc
+@@ -901,27 +906,46 @@ SUBROUTINE get_spres(year, month, day, lon, lat, spres)
+   INTEGER, DIMENSION(2)          :: latin, lonin
+   REAL (KIND=dp), DIMENSION(2)   :: latfrac, lonfrac
+ 
+-  INTEGER, SAVE, DIMENSION(nlon, nlat) :: glbspres
++  INTEGER, SAVE, ALLOCATABLE, DIMENSION(:,:)  :: glbspres
+   LOGICAL, SAVE                        :: first = .TRUE.
+ 
+   IF (first) THEN
+-     WRITE(monc, '(I2.2)') month          ! from 9 to '09' 
+-	 WRITE(dayc, '(I2.2)') day ; WRITE(yrc,  '(I4.4)') year
+-     
+-     !spres_fname =TRIM(ADJUSTL(atmdbdir)) // 'nspres/spres' // yrc // monc // dayc // '.dat'
+-     spres_fname =TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlsp/fnlsp_' // yrc // monc // dayc // '.dat'
+-   
+-     ! Determine if file exists or not
+-     INQUIRE (FILE= spres_fname, EXIST= file_exist)
+-     IF (.NOT. file_exist) THEN
+-        WRITE(*, *) 'Warning: no surface pressure file found, use monthly mean!!!'
+-        !spres_fname = TRIM(ADJUSTL(atmdbdir)) // 'nspres/spresavg' // monc // '.dat'
+-        spres_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlsp/fnlspavg' // monc // '.dat'
+-     ENDIF
+-     
++
++    WRITE(monc, '(I2.2)') month          ! from 9 to '09' 
++    WRITE(dayc, '(I2.2)') day ; WRITE(yrc,  '(I4.4)') year
++       
++    IF ( which_spres == 0 ) THEN
++      !spres_fname =TRIM(ADJUSTL(atmdbdir)) // 'nspres/spres' // yrc // monc // dayc // '.dat'
++      spres_fname =TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlsp/fnlsp_' // yrc // monc // dayc // '.dat'
++      print *, 'SPRES is taken from FNL daily'
++    ELSE IF (which_spres == 1 ) THEN  ! added by geun
++      spres_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlsp/fnlspavg' // monc // '.dat'
++      print *, 'SPRES is taken from FNL monthly'
++    ELSE IF (which_spres == 2 ) THEN  ! added by geun
++      spres_fname = TRIM(ADJUSTL(atmdbdir)) // 'umatmos/umsp/umsp_' // yrc // monc // dayc // '.dat'
++      print *, 'SPRES is taken from UM daily'
++    ENDIF
++
++    ! Determine if file exists or not
++    INQUIRE (FILE= spres_fname, EXIST= file_exist)
++    IF (.NOT. file_exist) THEN
++      WRITE(*, *) 'Warning: no surface pressure file found, use monthly mean!!!'
++      !spres_fname = TRIM(ADJUSTL(atmdbdir)) // 'nspres/spresavg' // monc // '.dat'
++      spres_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlsp/fnlspavg' // monc // '.dat'
++      nlat = 180 ; nlon = 360
++      longrid = 1.0; latgrid = 1.0
++      which_spres = 1
++    ENDIF
++
++    IF ( ALLOCATED(glbspres) == .FALSE. ) ALLOCATE( glbspres(nlon,nlat) )
++
+      OPEN (UNIT = atmos_unit, file = spres_fname, status = 'unknown')
+      !READ (atmos_unit, '(144I4)') ((glbspres(i, j), i=1, nlon), j=1, nlat)
+-     READ (atmos_unit, '(360I4)') ((glbspres(i, j), i=1, nlon), j=1, nlat)
++     IF ( which_spres == 0 .OR. which_spres == 1) THEN  ! geun
++       READ (atmos_unit, '(360I4)') ((glbspres(i, j), i=1, nlon), j=1, nlat)
++     ELSE IF (which_spres == 2 ) THEN
++       READ (atmos_unit, '(1024I4)') ((glbspres(i, j), i=1, nlon), j=1, nlat)
++     ENDIF  ! geun
+      CLOSE (atmos_unit)
+      first = .FALSE.
+   ENDIF
+@@ -934,29 +958,33 @@ SUBROUTINE get_spres(year, month, day, lon, lat, spres)
+         spres = spres + glbspres(lonin(i), latin(j)) * lonfrac(i) * latfrac(j)
+      ENDDO
+   ENDDO
+-      
++
++  !DEALLOCATE(glbspres)      
+   RETURN
+ END SUBROUTINE get_spres
+ 
+-SUBROUTINE get_sfct(year, month, day, lon, lat, sfct)
++SUBROUTINE get_sfct(year, month, day, lon, lat, sfct, nlon, nlat, longrid, latgrid)
+ 
+   USE OMSAO_precision_module 
+   USE OMSAO_variables_module, ONLY: atmdbdir
+-  USE ozprof_data_module,     ONLY: atmos_unit
++  USE ozprof_data_module,     ONLY: atmos_unit, which_sfct
+   IMPLICIT NONE
+ 
+   ! ======================
+   ! Input/Output variables
+   ! ======================
+   INTEGER, INTENT(IN)           :: month, year, day
++  INTEGER, INTENT(INOUT)           :: nlon, nlat  ! geun
+   REAL (KIND=dp), INTENT(IN)    :: lon, lat
++  REAL (KIND=dp), INTENT(INOUT)    :: longrid, latgrid  ! geun
+   REAL (KIND=dp), INTENT(OUT)   :: sfct
+ 
+   ! ======================
+   ! Local variables
+   ! ======================
+-  INTEGER, PARAMETER             :: nlat=180, nlon=360
+-  REAL (KIND=dp), PARAMETER      :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
++  !INTEGER, PARAMETER             :: nlat=180, nlon=360
++  !REAL (KIND=dp), PARAMETER      :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0   ! geun
++  REAL (KIND=dp), PARAMETER      :: lon0=-180.0, lat0=-90.0       !geun
+   INTEGER                        :: i, j,  nblat, nblon
+   LOGICAL                        :: file_exist
+   CHARACTER (LEN=2)              :: monc, dayc
+@@ -965,7 +993,7 @@ SUBROUTINE get_sfct(year, month, day, lon, lat, sfct)
+   INTEGER, DIMENSION(2)          :: latin, lonin
+   REAL (KIND=dp), DIMENSION(2)   :: latfrac, lonfrac
+ 
+-  INTEGER, SAVE, DIMENSION(nlon, nlat) :: glbsfct
++  INTEGER, SAVE, ALLOCATABLE, DIMENSION(:,:) :: glbsfct  ! geun
+   LOGICAL, SAVE                        :: first = .TRUE.
+ 
+   IF (first) THEN
+@@ -973,17 +1001,35 @@ SUBROUTINE get_sfct(year, month, day, lon, lat, sfct)
+      WRITE(dayc, '(I2.2)') day            ! from 9 to '09'     
+      WRITE(yrc,  '(I4.4)') year
+      
+-     sfct_fname =TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlst/fnlst_' // yrc // monc // dayc // '.dat'
++     IF ( which_sfct == 0 ) THEN ! geun
++        sfct_fname =TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlst/fnlst_' // yrc // monc // dayc // '.dat'
++        print *, 'SFCT is taken from FNL daily'
++     ELSE IF (which_sfct == 1 ) THEN      ! geun added
++        sfct_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlst/fnlstavg' // monc // '.dat'
++        print *, 'SFCT is taken from FNL monthly'
++     ELSE IF (which_sfct == 2 ) THEN      ! geun added
++        sfct_fname =TRIM(ADJUSTL(atmdbdir)) // 'umatmos/umst/umst_' // yrc // monc // dayc // '.dat'
++        print *, 'SFCT is taken from UM daily'
++     ENDIF  ! geun
+     
+      ! Determine if file exists or not
+      INQUIRE (FILE= sfct_fname, EXIST= file_exist)
+      IF (.NOT. file_exist) THEN
+         WRITE(*, *) 'Warning: no surface temperature file found, use monthly mean!!!'
+         sfct_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnlst/fnlstavg' // monc // '.dat'
++        nlat = 180 ; nlon = 360
++        longrid = 1.0; latgrid = 1.0
++        which_sfct = 1
+      ENDIF
+     
++     IF ( ALLOCATED(glbsfct) == .FALSE. ) ALLOCATE( glbsfct(nlon,nlat) )  ! geun
++
+      OPEN (UNIT = atmos_unit, file = sfct_fname, status = 'unknown')
+-     READ (atmos_unit, '(360I3)') ((glbsfct(i, j), i=1, nlon), j=1, nlat)
++     IF ( which_sfct == 0 .OR. which_sfct == 1) THEN  ! geun
++       READ (atmos_unit, '(360I3)') ((glbsfct(i, j), i=1, nlon), j=1, nlat)
++     ELSE IF (which_sfct == 2 ) THEN     
++       READ (atmos_unit, '(1024I3)') ((glbsfct(i, j), i=1, nlon), j=1, nlat)
++     ENDIF  ! geun
+      CLOSE (atmos_unit)
+      first = .FALSE.
+   ENDIF
+@@ -1007,18 +1053,20 @@ END SUBROUTINE get_sfct
+ !    pressure from all years
+ ! xliu: 03/08/11, switch from NCEP to 1x1 NCEP FNL (archived at NCAR)
+  ! =================================================================
+-SUBROUTINE get_tpres(year, month, day, lon, lat, tpres)
++SUBROUTINE get_tpres(year, month, day, lon, lat, tpres, nlon, nlat, longrid, latgrid)
+ 
+   USE OMSAO_precision_module 
+   USE OMSAO_variables_module, ONLY: atmdbdir
+-  USE ozprof_data_module,     ONLY: atmos_unit
++  USE ozprof_data_module,     ONLY: atmos_unit, which_tpres
+   IMPLICIT NONE
+ 
+   ! ======================
+   ! Input/Output variables
+   ! ======================
+   INTEGER, INTENT(IN)           :: month, year, day
++  INTEGER, INTENT(INOUT)           :: nlon, nlat ! geun
+   REAL (KIND=dp), INTENT(IN)    :: lon, lat
++  REAL (KIND=dp), INTENT(INOUT)    :: longrid, latgrid ! geun
+   REAL (KIND=dp), INTENT(OUT)   :: tpres
+ 
+   ! ======================
+@@ -1026,8 +1074,9 @@ SUBROUTINE get_tpres(year, month, day, lon, lat, tpres)
+   ! ======================
+   !INTEGER, PARAMETER            :: nlat=72, nlon=144
+   !REAL (KIND=dp), PARAMETER     :: longrid = 2.5, latgrid = 2.5, lon0=-180.0, lat0=-90.0
+-  INTEGER, PARAMETER             :: nlat=180, nlon=360
+-  REAL (KIND=dp), PARAMETER      :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
++  !INTEGER, PARAMETER             :: nlat=180, nlon=360
++  !REAL (KIND=dp), PARAMETER      :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
++  REAL (KIND=dp), PARAMETER      :: lon0=-180.0, lat0=-90.0
+   INTEGER                        :: i, j,  nblat, nblon
+   LOGICAL                        :: file_exist
+   CHARACTER (LEN=2)              :: monc, dayc
+@@ -1037,7 +1086,7 @@ SUBROUTINE get_tpres(year, month, day, lon, lat, tpres)
+   REAL (KIND=dp), DIMENSION(2)   :: latfrac, lonfrac
+ 
+ 
+-  INTEGER, SAVE, DIMENSION(nlon, nlat) :: glbtpres
++  INTEGER, SAVE, ALLOCATABLE, DIMENSION(:,:)  :: glbtpres
+   LOGICAL, SAVE                        :: first = .TRUE.
+ 
+   IF (first) THEN
+@@ -1045,8 +1094,20 @@ SUBROUTINE get_tpres(year, month, day, lon, lat, tpres)
+      WRITE(dayc, '(I2.2)') day            ! from 9 to '09'     
+      WRITE(yrc,  '(I4.4)') year 
+      
+-     !tpres_fname =TRIM(ADJUSTL(atmdbdir)) // 'ntpres/tpres' // yrc // monc // dayc // '.dat'
+-     tpres_fname =TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltp/fnltp_' // yrc // monc // dayc // '.dat'
++     IF ( which_tpres == 0 ) THEN  ! geun
++        !tpres_fname =TRIM(ADJUSTL(atmdbdir)) // 'ntpres/tpres' // yrc // monc // dayc // '.dat'
++        tpres_fname =TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltp/fnltp_' // yrc // monc // dayc // '.dat'
++        print *, 'TP is taken from FNL daily'
++     ELSE IF (which_tpres == 1 ) THEN
++        tpres_fname = '/data/gumbo/jbak/ATMOS/tpres/AIRS/airstp_'//yrc//monc//dayc//'.dat'
++        print *, 'TP is taken from AIRS'
++     ELSE IF (which_tpres == 2 ) THEN   ! added by geun
++        tpres_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp//fnltempavg' // monc // '.dat'
++        print *, 'TPROF is taken from FNL monthly'
++     ELSE IF (which_tpres == 3 ) THEN     ! added tpres option by geun
++        tpres_fname =TRIM(ADJUSTL(atmdbdir)) // 'umatmos/umtp/umtp_' // yrc // monc // dayc // '.dat'
++        print *, 'TP is taken from UM daily'
++     ENDIF  ! geun
+ 
+      ! Determine if file exists or not
+      INQUIRE (FILE= tpres_fname, EXIST= file_exist)
+@@ -1054,11 +1115,20 @@ SUBROUTINE get_tpres(year, month, day, lon, lat, tpres)
+         WRITE(*, *) 'Warning: no tropopause pressure file found, use monthly mean!!!'
+         !tpres_fname = TRIM(ADJUSTL(atmdbdir)) // 'ntpres/tpresavg' // monc // '.dat'
+         tpres_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltp/fnltpavg' // monc // '.dat'
++        nlat = 180 ; nlon = 360
++        longrid = 1.0; latgrid = 1.0
++        which_tpres = 2
+      ENDIF
+-     
++
++
++     IF ( ALLOCATED(glbtpres) == .FALSE. ) ALLOCATE( glbtpres(nlon,nlat) )
++
+      OPEN (UNIT = atmos_unit, file = tpres_fname, status = 'unknown')
+-     !READ (atmos_unit, '(144I3)') ((glbtpres(i, j), i=1, nlon), j=1, nlat)
+-     READ (atmos_unit, '(360I3)') ((glbtpres(i, j), i=1, nlon), j=1, nlat)
++     IF ( which_tpres == 0 .OR. which_tpres == 1 .OR. which_tpres == 2) THEN  ! geun
++       READ (atmos_unit, '(360I3)') ((glbtpres(i, j), i=1, nlon), j=1, nlat)
++     ELSE IF (which_tpres == 3 ) THEN
++       READ (atmos_unit, '(1024I3)') ((glbtpres(i, j), i=1, nlon), j=1, nlat)
++     ENDIF  ! geun
+      CLOSE (atmos_unit)
+      first = .FALSE.
+   ENDIF
+@@ -1367,54 +1437,73 @@ SUBROUTINE get_ecmwfavgt(month, day, lon, lat, ecmwft)
+   RETURN
+ END SUBROUTINE get_ecmwfavgt
+ 
+-SUBROUTINE get_ncepfnlt(year, month, day, lon, lat, ncept)
++SUBROUTINE get_ncepfnlt(year, month, day, lon, lat, ncept, nlon, nlat, nl, longrid, latgrid)
+ 
+   USE OMSAO_precision_module
+   USE OMSAO_variables_module, ONLY: atmdbdir
+-  USE ozprof_data_module,     ONLY: atmos_unit
++  USE ozprof_data_module,     ONLY: atmos_unit, which_tprof, ncep_fname
+   IMPLICIT NONE
+ 
+   ! ======================
+   ! Input/Output variables
+   ! ======================
+-  INTEGER, PARAMETER                            :: nl=26
++  !INTEGER, PARAMETER                            :: nl=26  ! geun closed
+   INTEGER, INTENT(IN)                           :: month, year, day
++  INTEGER, INTENT(INOUT)                           :: nlon, nlat, nl        ! geun
+   REAL (KIND=dp), INTENT(IN)                    :: lon, lat
++  REAL (KIND=dp), INTENT(INOUT)                    :: longrid, latgrid  ! geun
+   REAL (KIND=dp), DIMENSION(nl), INTENT(OUT)    :: ncept
+ 
+   ! ======================
+   ! Local variables
+   ! ======================
+-  INTEGER, PARAMETER              :: nlat=180, nlon=360
+-  REAL (KIND=dp), PARAMETER       :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
++  !INTEGER, PARAMETER              :: nlat=180, nlon=360
++  !REAL (KIND=dp), PARAMETER       :: longrid = 1.0, latgrid = 1.0, lon0=-180.0, lat0=-90.0
++  REAL (KIND=dp), PARAMETER       :: lon0=-180.0, lat0=-90.0  ! geun 
+   CHARACTER (LEN=2)               :: monc, dayc
+   CHARACTER (LEN=4)               :: yrc
+-  CHARACTER (LEN=130)             :: ncep_fname
++  !CHARACTER (LEN=130)             :: ncep_fname
+   INTEGER                         :: i, j, k, nblat, nblon
+   INTEGER, DIMENSION(2)           :: latin, lonin
+   REAL (KIND=dp), DIMENSION(2)    :: latfrac, lonfrac
+-  LOGICAL                         :: file_exist
++  !LOGICAL                         :: file_exist
+ 
+-  INTEGER, SAVE, DIMENSION(nlon, nlat, nl) :: glbncept
++  INTEGER, SAVE, ALLOCATABLE, DIMENSION(:,:,:)  :: glbncept  ! geun
+   LOGICAL, SAVE                            :: first = .TRUE.
+ 
+   IF (first) THEN
+-     WRITE(monc, '(I2.2)') month          ! from 9 to '09' 
+-     WRITE(dayc, '(I2.2)') day            ! from 9 to '09'     
+-     WRITE(yrc,  '(I4.4)') year           
++     !WRITE(monc, '(I2.2)') month          ! from 9 to '09' 
++     !WRITE(dayc, '(I2.2)') day            ! from 9 to '09'     
++     !WRITE(yrc,  '(I4.4)') year           
+  
+-     ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp/fnltemp_' // yrc // monc // dayc // '.dat'      
++     !IF ( which_tprof == 0 ) THEN  ! geun
++        !ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp/fnltemp_' // yrc // monc // dayc // '.dat'
++        !print *, 'TPROF is taken from FNL daily'
++     !ELSE IF (which_tprof == 1 ) THEN   ! added by geun
++        !ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp//fnltempavg' // monc // '.dat'
++        !print *, 'TPROF is taken from FNL monthly'
++     !ELSE IF (which_tprof == 2 ) THEN   ! added by geun
++        !ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'umatmos/umtemp/umtemp_' // yrc // monc // dayc // '.dat'
++        !print *, 'TPROF is taken from UM daily'
++     !ENDIF  ! geun
+       
+      ! Determine if file exists or not
+-     INQUIRE (FILE= ncep_fname, EXIST= file_exist)
+-     IF (.NOT. file_exist) THEN
+-        WRITE(*, *) 'Warning: no T profile file found, use monthly mean!!!'
+-        ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp//fnltempavg' // monc // '.dat'
+-     ENDIF
++     !INQUIRE (FILE= ncep_fname, EXIST= file_exist)
++     !IF (.NOT. file_exist) THEN
++        !WRITE(*, *) 'Warning: no T profile file found, use monthly mean!!!'
++        !ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp//fnltempavg' // monc // '.dat'
++     !ENDIF
++
++     IF ( ALLOCATED(glbncept) == .FALSE. ) ALLOCATE( glbncept(nlon,nlat,nl) )
+ 
+      ! NCEP FNL: 26 layers (top down from 10 to 1000 mb), but data will be bottom up after being read     
+      OPEN (UNIT = atmos_unit, file = ncep_fname, status = 'unknown')
+-     READ(atmos_unit, '(360I3)') (((glbncept(i, j, k), i = 1, nlon), j = 1, nlat), k = nl, 1, -1)
++     !READ(atmos_unit, '(360I3)') (((glbncept(i, j, k), i = 1, nlon), j = 1, nlat), k = nl, 1, -1)
++     IF ( which_tprof == 0 .OR. which_tprof == 1) THEN  ! geun
++       READ (atmos_unit, '(360I3)') (((glbncept(i, j, k), i=1, nlon), j=1, nlat), k= nl, 1, -1)
++     ELSE IF (which_tprof == 2 ) THEN
++       READ (atmos_unit, '(1024I3)') (((glbncept(i, j, k), i=1, nlon), j=1, nlat), k = nl, 1, -1)
++     ENDIF  ! geun
+ 
+      first = .FALSE.
+   ENDIF
+diff --git a/o3p/v0.4.3/src/o3prof/pseudo_model.f90 b/o3p/v0.4.3/src/o3prof/pseudo_model.f90
+index ad36b46..f5488c1 100644
+--- a/o3p/v0.4.3/src/o3prof/pseudo_model.f90
++++ b/o3p/v0.4.3/src/o3prof/pseudo_model.f90
+@@ -69,7 +69,7 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+   REAL (KIND=dp), DIMENSION(maxalb)        :: albarr 
+   REAL (KIND=dp), DIMENSION(maxwfc)        :: wfcarr 
+   REAL (KIND=dp), DIMENSION (ns)           :: delpos, waves, meas1, meas2, &
+-       simrad, simrad1, fitspec1, diff, temporwf
++       simrad, simrad1, fitspec1, diff, temporwf, fitcheck
+   REAL (KIND=dp), DIMENSION(ns,nlay,MSTKS) :: ozwf, tmpwf
+   REAL (KIND=dp), DIMENSION(ns, 4)         :: albothwf, wfcothwf
+   REAL (KIND=dp), DIMENSION(ns, MSTKS)     :: o3shiwf, cfracwf, albwf, fsimrad, &
+@@ -102,6 +102,9 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+   LOGICAL, SAVE             :: first = .TRUE.
+ 
+   errstat = pge_errstat_ok
++!write(*,*) 'hello wasp in pseudo_model fitspec here!',fitspec(1:ns)
++!write(*,*) 'hello wasp in pseudo_model fsimrad here!',fsimrad
++  fitcheck(:)=0.
+ 
+   IF (first .AND. .NOT. use_effcrs) THEN
+      CALL get_hres_radcal_waves(errstat)
+@@ -176,20 +179,21 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+      ENDIF
+   ENDDO
+ 
+- DO k = 1, ngas
++  DO k = 1, ngas
+     i = fgasidxs(k)
+     IF (i > 0) THEN
+        j = mask_fitvar_rad(i)
+        tracegas(k, 4) = fitvar_rad(j) !/ refspec_norm(gasidxs(k)) ! trace gas column in molecules cm-2
+     ENDIF
++
+    
+- ENDDO
+- waves = fitwavs(1:ns)
+- 
+- vary_sfcalb = .FALSE. !.TRUE.
+- n0alb = 0
++  ENDDO
++  waves = fitwavs(1:ns)
+  
+- DO i = 1, nalb
++  vary_sfcalb = .FALSE. !.TRUE.
++  n0alb = 0
++
++  DO i = 1, nalb
+      j = albidx - 1 + i
+ !xliu, 02/08/2012, add albord and **albord
+      READ(fitvar_rad_str(j)(4:4), '(I1)') albord
+@@ -222,8 +226,10 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+         wfcpmax(n0wfc) = wfclpix(i); wfcpmin(n0wfc) = wfcfpix(i)
+      ENDIF      
+   ENDDO
+-  
++
++ 
+   IF (do_subfit) THEN
++
+      DO i = 1, maxoth
+         o3shi(1:numwin, i) = fitvar_rad(osind(1:numwin, i))
+      ENDDO
+@@ -231,43 +237,44 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+      o3shi(1, 1:maxoth)    = fitvar_rad(osind(1, 1:maxoth))
+   ENDIF
+      
+- !Iraddaince/radiance shift is done when interpolating solar reference to wavelength grid, not here
+- !IF (nsh > 0) THEN
+- !   IF (do_subfit) THEN
+- !      fidx = 1
+- !      DO j = 1, numwin
+- !         lidx = fidx + nradpix(j) - 1
+- !         delpos(fidx:lidx) =  waves(fidx:lidx) - (waves(fidx) + waves(lidx)) / 2.0
+- !         IF (shfind(j, 1) > 0)  waves(fidx:lidx) = waves(fidx:lidx) + fitvar_rad(shind(j, 1)) 
+- !
+- !         DO i = 2, nsh            
+- !            IF (shfind(j, i) > 0)  waves(fidx:lidx) = waves(fidx:lidx) + &
+- !                 fitvar_rad(shind(j, i)) * (delpos(fidx:lidx) ** (i-1))
+- !         ENDDO
+- !         fidx = lidx + 1
+- !      ENDDO
+- !   ELSE
+- !      IF (shwins(1, 1) == 1) THEN
+- !         fidx = 1
+- !      ELSE
+- !         fidx = SUM(nradpix(1: shwins(1, 1)-1)) + 1
+- !      ENDIF
+- !      lidx = SUM(nradpix(1: shwins(1, 2)))
+- !      delpos(fidx:lidx) =  waves(fidx:lidx) - (waves(fidx) + waves(lidx)) / 2.0
+- !      IF (shfind(1, 1) > 0) waves(fidx:lidx)  = waves(fidx:lidx) + fitvar_rad(shind(1, 1))
+- !
+- !      DO i = 2, nsh  
+- !         IF (shfind(1, i) > 0) THEN
+- !            waves(fidx:lidx)  = waves(fidx:lidx) + fitvar_rad(shind(1, i)) * (delpos(fidx:lidx) ** (i-1))
+- !         ENDIF
+- !      ENDDO
+- !   ENDIF
+- !ENDIF
+-
++  !Iraddaince/radiance shift is done when interpolating solar reference to wavelength grid, not here
++  !IF (nsh > 0) THEN
++  !   IF (do_subfit) THEN
++  !      fidx = 1
++  !      DO j = 1, numwin
++  !         lidx = fidx + nradpix(j) - 1
++  !         delpos(fidx:lidx) =  waves(fidx:lidx) - (waves(fidx) + waves(lidx)) / 2.0
++  !         IF (shfind(j, 1) > 0)  waves(fidx:lidx) = waves(fidx:lidx) + fitvar_rad(shind(j, 1)) 
++  !
++  !         DO i = 2, nsh            
++  !            IF (shfind(j, i) > 0)  waves(fidx:lidx) = waves(fidx:lidx) + &
++  !                 fitvar_rad(shind(j, i)) * (delpos(fidx:lidx) ** (i-1))
++  !         ENDDO
++  !         fidx = lidx + 1
++  !      ENDDO
++  !   ELSE
++  !      IF (shwins(1, 1) == 1) THEN
++  !         fidx = 1
++  !      ELSE
++  !         fidx = SUM(nradpix(1: shwins(1, 1)-1)) + 1
++  !      ENDIF
++  !      lidx = SUM(nradpix(1: shwins(1, 2)))
++  !      delpos(fidx:lidx) =  waves(fidx:lidx) - (waves(fidx) + waves(lidx)) / 2.0
++  !      IF (shfind(1, 1) > 0) waves(fidx:lidx)  = waves(fidx:lidx) + fitvar_rad(shind(1, 1))
++  !
++  !      DO i = 2, nsh  
++  !         IF (shfind(1, i) > 0) THEN
++  !            waves(fidx:lidx)  = waves(fidx:lidx) + fitvar_rad(shind(1, i)) * (delpos(fidx:lidx) ** (i-1))
++  !         ENDIF
++  !      ENDDO
++  !   ENDIF
++  !ENDIF
++  
+   ! === Call LIDORT, polarization correction, and additional wf calc =====
+   !the_cfrac = 0.
+   nostk = 1
+ 
++!write(*,*) 'hello wasp in pseudo_model fitweights1 here!',fitweights(1:ns)
+   IF (use_effcrs) THEN
+      CALL LIDORT_PROF_ENV(do_ozwf, do_albwf, do_tmpwf, do_o3shi, ozvary,       &
+           do_taodwf, do_twaewf, do_saodwf, do_cfracwf, do_ctpwf, do_codwf, do_sprswf, do_so2zwf, &
+@@ -300,16 +307,17 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+           WRITE(*, *) modulename, ': Errors in calling HRES_RADCALC_ENV!!!'
+   ENDIF
+   IF (errstat == pge_errstat_error) RETURN
+- 
++
+ 
+   !xliu (02/01/2007): correct radiances based on ozone weighting function to deal with negative ozone values
+-  IF (negval) THEN
++  IF (negval) THEN !wasp : F
+      DO i = 1, nlay 
+         IF (ozadj(i) > 0) THEN
+            fsimrad(1:ns, 1:nostk) = fsimrad(1:ns, 1:nostk) - ozadj(i) * ozwf(1:ns, i, 1:nostk) 
+         ENDIF
+      ENDDO
+   ENDIF
++  !write(*,*)'hello wasp! at pseudo model fsimrad', fsimrad(1:10,1)
+   simrad = fsimrad(1:ns, 1)
+ 
+   !IF (radcalwrt .AND. do_simu) THEN
+@@ -338,7 +346,7 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+ !!$  enddo
+ 
+   ! get dlnI/dx
+-  IF (use_lograd) THEN
++  IF (use_lograd) THEN ! wasp : T
+      IF (do_albwf)   albwf(1:ns, 1)   = albwf(1:ns, 1)   / simrad     
+      IF (do_o3shi)   o3shiwf(1:ns, 1) = o3shiwf(1:ns, 1) / simrad
+      IF (do_codwf)   codwf(1:ns, 1)   = codwf(1:ns, 1)   / simrad
+@@ -359,6 +367,7 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+ 
+      simrad = LOG(simrad)           ! get dlnI     
+   END IF
++  !write(*,*)'hello wasp! at pseudo model get dlnI/dx! ',simrad(1:10)
+  
+   !WRITE(77, *) 'Ozone weighting function D(lnI)/D(lnx)'
+   !DO i = 1, ns
+@@ -378,10 +387,10 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+      !albothwf(fidx:lidx,albord) = albwf(fidx:lidx, 1)*(waves(fidx:lidx) / wavavg)**albord
+      albothwf(fidx:lidx,albord) = albwf(fidx:lidx, 1)*(waves(fidx:lidx) - wavavg)**albord ! much better than above
+      IF (.NOT. vary_sfcalb) simrad(fidx:lidx) = simrad(fidx:lidx) +  albothwf(fidx:lidx, albord) * fitvar_rad(j)         
+-     
++  !write(*,*)'hello wasp! at pseudo model alb correction! ',simrad(1:10)
+   ENDDO
+          
+-  IF (nwfc > 0) THEN
++  IF (nwfc > 0) THEN ! wasp : F
+      wfcothwf = 0.0
+      DO i = 1, nwfc
+         j = wfcidx + i - 1
+@@ -395,8 +404,7 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+         simrad(fidx:lidx) = simrad(fidx:lidx) +  wfcothwf(fidx:lidx, wfcord) * fitvar_rad(j)        
+      ENDDO
+   ENDIF
+-
+-  IF (radcalwrt .AND. do_simu .AND. .NOT. do_simu_rmring) THEN
++  IF (radcalwrt .AND. do_simu .AND. .NOT. do_simu_rmring) THEN ! wasp : F
+      fitspec = actspec_rad(1:ns)
+      IF ( use_lograd ) fitspec = LOG( fitspec )
+      fitres = fitspec - simrad
+@@ -411,15 +419,27 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+   ELSE
+      do_shiwf = .FALSE.
+   ENDIF
++!write(*,*)'hello wasp! is it zero?', fitspec ! wasp : yes in first loop, no other loops
+   CALL spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
++  fitcheck=fitspec
++!write(*,*)'hello wasp! is it zero?', fitspec ! wasp : no 
++!write(*,*)'hello wasp!',num_iter 
++!stop
+   IF (errstat == pge_errstat_error) THEN
+      WRITE(*, *) modulename, ': Errors in spectra_reflectance!!!'; RETURN
+   ENDIF
++
+   IF (num_iter == 0) THEN
+-     CALL UV1_SPIKE_DETECT(ns, fitspec, simrad, nsaa_spike)
++  !write(*,*) 'hello wasp in pseudo_model nsaa_spike here!',nsaa_spike
++  !write(*,*) 'hello wasp in pseudo_model fitweights2 here!',fitweights(1:ns)
++     !CALL UV1_SPIKE_DETECT(ns, fitspec, simrad, nsaa_spike) ! wasp : ignore this.
++  !write(*,*) 'hello wasp in pseudo_model fitweights3 here!',fitweights(1:ns)
+   ENDIF
+            
+   ! get residual between measured and simulated reflectance
++  !write(*,*)'hello wasp! at pseudo model simrad',simrad(1:10)
++  !write(*,*) 'hello wasp in pseudo_model fitweights here!',fitweights(1:ns)
++  !write(*,*)'hello wasp! this is fitspec!',fitspec(1:10)
+   fitres = fitspec - simrad
+ 
+   ! compute chi-square difference
+@@ -427,7 +447,6 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+   rms =    SQRT(chisq  / REAL(ns, KIND=dp))
+   relrms = 100.D0 * SQRT(SUM(ABS((simrad-fitspec) / fitspec)**2.0) &
+           / REAL(ns, KIND=dp))
+-
+   IF (scnwrt) THEN
+      fidx = 1
+      DO i = 1, numwin
+@@ -485,9 +504,10 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+        band_selectors(1) == 1 .AND. saa_flag  ) THEN 
+      CALL spike_detect_correct(nradpix(1)+10, fitspec(1:nradpix(1)+10), simrad(1:nradpix(1)+10))  
+   ENDIF
++  !write(*,*)'hello wasp! at pseudo model simrad',simrad(1:ns)!10) !wasp : same with simrad
+   fitres = fitspec - simrad
+-    
+-  IF (.NOT. refl_only) THEN 
++  !write(*,*)'hello wasp! at pseudo model fitres',fitres
++  IF (.NOT. refl_only) THEN ! IF ( True ) - wasp!
+      dyda = 0.0
+     
+      ! albedo weighting function
+@@ -511,11 +531,12 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+         
+         ENDIF
+      ENDDO  
++
+      ! wavelength-dependent cloud fraction weighting function
+      DO i = 1, nfwfc
+         j = wfcfidx + i - 1
+         k = mask_fitvar_rad(j) 
+-        fidx = wfcfpix(k -wfcidx + 1); lidx=wfclpix(k - wfcidx + 1)
++        fidx = wfcfpix(k - wfcidx + 1); lidx=wfclpix(k - wfcidx + 1)
+ 
+         READ(fitvar_rad_str(k)(4:4), '(I1)') wfcord
+ 
+@@ -760,9 +781,12 @@ SUBROUTINE pseudo_model (num_iter, refl_only, ns, nf, fitvar, fitvarap, dyda, gs
+         dyda(:, i) = dyda(:, i) / fitweights(1:ns)
+      END DO
+      
+-     ! finnally obtain the new spectrum to be fitted in the GSVD
++     ! finally obtain the new spectrum to be fitted in the GSVD
+      gspec(1:ns) = fitres(1:ns) / fitweights(1:ns)
+-     
++!write(*,*) 'hello wasp! in pseudo_model gspec here!', gspec(1:ns)
++!write(*,*) 'hello wasp! in pseudo_model fitres here!', fitres(1:ns)
++!write(*,*) 'hello wasp! in pseudo_model fitweights here!', fitweights(1:ns)
++
+      ! Restore the unperturbated fitting variables
+      fitvar(1:nf) = fitvar_saved(1:nf)
+      fitvar_rad(mask_fitvar_rad(1:nf)) = fitvar(1:nf)  
+diff --git a/o3p/v0.4.3/src/o3prof/read_ozprof_input.f90 b/o3p/v0.4.3/src/o3prof/read_ozprof_input.f90
+index 9d9a3c8..a70b7ef 100644
+--- a/o3p/v0.4.3/src/o3prof/read_ozprof_input.f90
++++ b/o3p/v0.4.3/src/o3prof/read_ozprof_input.f90
+@@ -37,7 +37,8 @@ SUBROUTINE read_ozprof_input (fit_ctrl_unit, fit_ctrl_file, pge_error_status )
+        wfcidx, wfcfidx, so2zind, so2zfind, do_bothstep, do_twostep, &
+        use_large_so2_aperr, use_effcrs, radc_msegsr, radc_nsegsr, radc_samprate,&
+        radc_lambnd, hres_samprate, thealbidx, thewfcidx, do_simu_rmring,        &
+-       update_o3, update_sao3
++       update_o3, update_sao3,                                                 &
++       which_tpres, which_spres, which_sfct, which_tprof    ! added atm option by geun
+        
+   USE OMSAO_parameters_module,   ONLY: maxlay,  maxchlen, maxwin         
+   USE OMSAO_indices_module,      ONLY: max_rs_idx,  max_calfit_idx, mxs_idx,   &
+@@ -217,6 +218,31 @@ SUBROUTINE read_ozprof_input (fit_ctrl_unit, fit_ctrl_file, pge_error_status )
+      pge_error_status = pge_errstat_error; RETURN
+   ENDIF
+ 
++! geun added --------------------------------------------
++  READ(fit_ctrl_unit, *) which_tpres
++  IF (which_tpres > 3) then                          ! added tpres data option by geun
++    WRITE(*,*) modulename, 'No such tpres option !!!'
++    pge_error_status = pge_errstat_error; return
++  ENDIF
++
++  READ(fit_ctrl_unit, *) which_spres
++  IF (which_spres > 2) then
++    WRITE(*,*) modulename, 'No such spres option !!!'
++    pge_error_status = pge_errstat_error; return
++  ENDIF
++
++  READ(fit_ctrl_unit, *) which_sfct
++  IF (which_sfct > 2) then
++    WRITE(*,*) modulename, 'No such sfct option !!!'
++    pge_error_status = pge_errstat_error; return
++  ENDIF
++
++  READ(fit_ctrl_unit, *) which_tprof
++  IF (which_tprof > 2) then
++    WRITE(*,*) modulename, 'No such tprof option !!!'
++    pge_error_status = pge_errstat_error; return
++  ENDIF
++! ------------------------------------------- geun added
+  
+   READ (fit_ctrl_unit, *) aerosol, strat_aerosol
+   IF( aerosol ) print *,'aerosol is considered !!!' 
+diff --git a/o3p/v0.4.3/src/o3prof/specfit_ozprof.f90 b/o3p/v0.4.3/src/o3prof/specfit_ozprof.f90
+index 164bb3f..29c668b 100644
+--- a/o3p/v0.4.3/src/o3prof/specfit_ozprof.f90
++++ b/o3p/v0.4.3/src/o3prof/specfit_ozprof.f90
+@@ -22,7 +22,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+   USE OMSAO_indices_module,      ONLY: n_max_fitpars, wvl_idx, spc_idx,         &
+        sig_idx, maxalb, no2_t1_idx, so2_idx, so2v_idx, bro_idx, hcho_idx, us1_idx,        &
+        us2_idx, max_calfit_idx, max_rs_idx, mxs_idx, maxoth, shift_offset, maxwfc, &
+-       comvidx, cm1vidx, comfidx, cm1fidx, bro2_idx, o2o2_idx
++       comvidx, cm1vidx, comfidx, cm1fidx, bro2_idx, o2o2_idx, solar_idx ! wasp
+   USE OMSAO_variables_module,    ONLY: curr_rad_spec, rad_wav_avg, fitwavs,     &
+        currspec, fitweights, fitvar_rad, fitvar_rad_apriori, fitvar_rad_saved,  &
+        fitvar_rad_init, fitvar_rad_str, lo_radbnd, up_radbnd, n_fitvar_rad, &
+@@ -32,7 +32,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+        fitvar_rad_nstd, numwin, nradpix, refspec_norm, scnwrt, ozabs_convl, the_surfalt, &
+        fitvar_rad_init_saved, the_lons, the_lats, the_surfalt, nloc, fitvar_rad_aperror, &
+        the_sza_atm, currline, refwvl, n_refwvl, reduce_resolution,curr_sol_spec,n_irrad_wvl,&
+-       database, database_shiwf, the_sza_atm, the_vza_atm, the_aza_atm  
++       database, database_shiwf, the_sza_atm, the_vza_atm, the_aza_atm, atmdbdir ! atmdbdir added : geun  
+   USE ozprof_data_module,        ONLY: ozprof_start_index, ozprof_end_index,    &
+        ozfit_start_index, ozfit_end_index, covar, ozprof_std, ozprof_ap,& 
+        which_clima, ncovar, ozprof_apstd, ozprof_init, ozprof, start_layer,     &
+@@ -50,7 +50,8 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+        twaefind, saodind, glintprob, which_toz, sprsind, sprsfind, wfcidx, wfcfidx,  &
+        nwfc, nfwfc, eff_wfc, eff_wfc_init, so2zind, so2zfind, fit_atanring, &
+        use_large_so2_aperr, ozwrtcontri, ozwrtwf, weight_function, contri, &
+-       trace_profwf, trace_contri, trace_prof, trace_avgk , sacldscl0
++       trace_profwf, trace_contri, trace_prof, trace_avgk , sacldscl0, &
++       which_spres, which_sfct, which_tprof, ncep_fname,div_sun,div_rad ! geun wasp
+   
+   USE OMSAO_errstat_module
+ 
+@@ -69,7 +70,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+   ! Local variables
+   ! ===============
+   INTEGER  :: i, j, nump, errstat, k1, npoints, k, u1idx, u2idx, nsub, nord, is, fidx, lidx
+-  REAL (KIND=dp) :: asum, ssum, chisq, tmpsa, aodscl, waerscl, salbedo, ncepreso_z0, omi_z0
++  REAL (KIND=dp) :: asum, ssum, chisq, tmpsa, aodscl, waerscl, salbedo, ncepreso_z0, omi_z0, fdum ! wasp
+   REAL (KIND=dp), DIMENSION(n_max_fitpars, n_max_fitpars)    :: bb, sa
+   REAL (KIND=dp), DIMENSION(nlay, nlay)                   :: sao3
+   REAL (KIND=dp), DIMENSION (n_max_fitpars)               :: lowbond, upbond, fitvar, &
+@@ -87,14 +88,23 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+   LOGICAL, SAVE :: first = .TRUE.
+   INTEGER, SAVE :: ozp_fidx,  ozp_lidx, ozf_fidx, ozf_lidx, nf
+   
++  INTEGER :: nold, nbatm, dum,e  ! geun,wasp
++  CHARACTER (LEN=2)               :: monc, dayc   ! geun
++  CHARACTER (LEN=4)               :: yrc          ! geun
++  LOGICAL                         :: file_exist   ! geun
++
+   !xliu: 09/03/05, add sacldscal, scaling factor for scaling a priori covariance below clouds
+   REAL (KIND=dp), DIMENSION(nlay)           :: sacldscl
+   INTEGER :: idx_jbak1, idx_jbak2
++  INTEGER :: nlat_atm, nlon_atm  !geun 
++  REAL (KIND=dp) :: longrid_atm, latgrid_atm !geun
++
+   ! ==============================
+   ! Name of this module/subroutine
+   ! ==============================
++
+   CHARACTER (LEN=14), PARAMETER :: modulename = 'specfit_ozprof'
+-  
++
+   ! Initialize variables for convenience
+   IF (first) THEN  ! only need to be initialized once
+      nf = n_fitvar_rad;   fitvar_rad = 0.0
+@@ -107,12 +117,54 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+      fitvar = 0.0 ; lowbond = 0.0 ; upbond = 0.0 
+      varname(1:nf) = fitvar_rad_str(mask_fitvar_rad(1:nf))
+ 
++  ! tprof files check -----------------------------------------------------------------------------------------
++     WRITE(monc, '(I2.2)') the_month          ! from 9 to '09'
++     WRITE(dayc, '(I2.2)') the_day            ! from 9 to '09'
++     WRITE(yrc,  '(I4.4)') the_year
++
++     IF ( which_tprof == 0 ) THEN  ! geun
++        ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp/fnltemp_' // yrc // monc // dayc // '.dat'
++        print *, 'TPROF is taken from FNL daily'
++     ELSE IF (which_tprof == 1 ) THEN   ! added by geun
++        ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp/fnltempavg' // monc // '.dat'
++        print *, 'TPROF is taken from FNL monthly'
++     ELSE IF (which_tprof == 2 ) THEN   ! added by geun
++        ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'umatmos/umtemp/umtemp_' // yrc // monc // dayc // '.dat'
++        print *, 'TPROF is taken from UM daily'
++     ENDIF  ! geun
++
++     ! Determine if file exists or not
++     INQUIRE (FILE= ncep_fname, EXIST= file_exist)
++     IF (.NOT. file_exist) THEN
++        WRITE(*, *) 'Warning: no T profile file found, use monthly mean!!!'
++        ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp/fnltempavg' // monc // '.dat'
++        which_tprof = 1
++     ENDIF
++  ! -----------------------------------------------------------------------------------------------------------
++
+      first = .FALSE.
+   ENDIF
+ 
++!+---------------------------------------------------------------------------+
++! Check radiation input 
++!+---------------------------------------------------------------------------+
++  !print*, n_irrad_wvl, n_rad_wvl
++  !do i=1, n_rad_wvl
++    !write(*,'(1x,f13.8,1x,f10.7,1x,f13.8,1x,f13.8)'),curr_rad_spec(wvl_idx,i),checkspec(i),curr_rad_spec(spc_idx,i),&
++                                                    !(checkspec(i) - curr_rad_spec(spc_idx,i))/curr_rad_spec(spc_idx,i)
++    !print*,curr_rad_spec(wvl_idx,i),curr_rad_spec(spc_idx,i)
++  !enddo
++
++  !do i=1,n_irrad_wvl
++    !print*,curr_sol_spec(wvl_idx,i),curr_sol_spec(spc_idx,i)
++    !print*, curr_sol_spec(wvl_idx,i)/curr_rad_spec(wvl_idx,i),curr_sol_spec(spc_idx,i)/curr_rad_spec(spc_idx,i)
++  !enddo
++  !stop
++!+---------------------------------------------------------------------------+
++
+   ! Initialize variables
+   errstat = pge_errstat_ok
+-  npoints = n_rad_wvl
++  npoints = n_rad_wvl 
+ 
+   ! use previous fitting results except T, albedo, cloud will be updated
+   ! use previous ozone will speed the convergence (could even double)
+@@ -121,15 +173,18 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+   ! ===================================================================
+   !	         Set up measurement vector and measurement error
+   ! ===================================================================
++
++
+   fitwavs   (1:npoints) = curr_rad_spec(wvl_idx,1:npoints)
+   currspec  (1:npoints) = curr_rad_spec(spc_idx,1:npoints)
+   fitweights(1:npoints) = curr_rad_spec(sig_idx,1:npoints)
+-  ! print * , npoints
+-  !write(*,'(20f10.3)') fitwavs(1:10)
+-  !write(*,'(20f10.9)') currspec(1:10)
+-  !write(*,'(20f10.9)') fitweights(1:10)
+-  IF (ozabs_convl) THEN
++  !print * , npoints !wasp : 204
++!do i=1,npoints
++  !write(*,*) fitwavs(i),currspec(i) ! wasp: 270~330, normalized, 1e-2~1e0
++!enddo
++!stop
+ 
++  IF (ozabs_convl) THEN
+      ! For aerosol properties
+      actawin = numwin + 2
+      IF (actawin > maxawin) STOP 'Need to increase maxawin!!!'
+@@ -145,7 +200,8 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+      aerwavs(i+1) = pos_alb 
+      
+      ! calculate approximate average wavelength for the window
+-     IF ( weight_rad ) THEN
++    
++     IF ( weight_rad ) THEN !wasp : F
+         asum = SUM ( fitwavs(1:n_rad_wvl) / fitweights(1:n_rad_wvl)**2 )
+         ssum = SUM ( 1.D0 / fitweights(1:n_rad_wvl)**2 )
+         rad_wav_avg = asum / ssum
+@@ -153,8 +209,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+         rad_wav_avg = (fitwavs(n_rad_wvl) + fitwavs(1)) / 2.0
+      END IF
+   ENDIF
+-  
+-  ! =======================================================================
++  ! ======================================================================
+   !       Set up atmospheric cloud properties, albedo and atmosphere
+   ! ======================================================================
+   ! Spres is provided at NCEP resolution: 2.5 x 2.5
+@@ -163,19 +218,35 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+   ! 2. get z0 at ncep/ncar reso
+   ! 3. get z0 at omi spatial resolution
+   ! 4. get spres at omi spatial resolution
+-  CALL GET_SPRES(the_year, the_month, the_day, the_lon, the_lat, ps0)
++  IF (which_spres == 0 .OR. which_spres == 1) THEN  ! geun
++    nlat_atm = 180  ;  nlon_atm = 360 
++    longrid_atm = 1.0  ;  latgrid_atm = 1.0 
++  ELSE IF (which_spres == 2) THEN
++    nlat_atm = 769  ;  nlon_atm = 1024 
++    longrid_atm = 0.351562  ;  latgrid_atm = 0.234375 
++  ENDIF  ! geun
++
++  CALL GET_SPRES(the_year, the_month, the_day, the_lon, the_lat, ps0, nlon_atm, nlat_atm, longrid_atm, latgrid_atm)
+   CALL get_ncepreso_surfalt(the_lon, the_lat, ncepreso_z0)
+   DO i = 1, nloc
+      CALL get_finereso_surfalt(the_lons(i), the_lats(i), fine_z0(i))
+   ENDDO
++
+   omi_z0 = (SUM(fine_z0(1:4)) + fine_z0(5) * 4.) / 8.
+- 
++
+   ! Adjust surface pressure ! dpres (p_omi-p_ncep) = dz(z_omi - z_ncep)
+        
+   ps0 = ps0 + 1013.25 * (10.**(-omi_z0/16.) - 10.**(-ncepreso_z0/16.))
+   the_surfalt = omi_z0
+   IF (use_tropopause) THEN 
+-     CALL GET_TPRES(the_year, the_month, the_day, the_lon, the_lat, pst)
++     IF (which_spres == 0 .OR. which_spres == 1) THEN  ! geun
++       nlat_atm = 180  ;  nlon_atm = 360 
++       longrid_atm = 1.0  ;  latgrid_atm = 1.0 
++     ELSE IF (which_spres == 2) THEN
++       nlat_atm = 769  ;  nlon_atm = 1024 
++       longrid_atm = 0.351562  ;  latgrid_atm = 0.234375 
++     ENDIF  ! geun
++     CALL GET_TPRES(the_year, the_month, the_day, the_lon, the_lat, pst, nlon_atm, nlat_atm, longrid_atm, latgrid_atm)
+   ELSE
+      pst = pst0
+   ENDIF
+@@ -215,10 +286,17 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+   !the_cfrac = 1.0
+   !the_ctp  = the_ctp + 50 
+  
+-
++   IF (which_tprof == 0 .OR. which_tprof == 1) THEN ! geun
++     nbatm=26 ! nlfnl
++     nold=37  ! nlecm(31)+6
++   ELSE IF (which_tprof == 2) THEN 
++     nbatm=25 ! nlum
++     nold=29 ! nlum+4
++   ENDIF  !geun
++   
+    CALL make_atm(the_year, the_month, the_day, ndiv, &
+        the_cod, the_cfrac, the_ctp, nlay, toz, ps0, pst, atmosprof(:,0:nlay),    &
+-       ozprof(1:nlay), nup2p(0:nlay), sacldscl, errstat)  
++       ozprof(1:nlay), nup2p(0:nlay), sacldscl, nbatm, nold, errstat) ! nbatm, nold added : geun 
+   IF (errstat == pge_errstat_error)  THEN
+      exval = -2; RETURN
+   ENDIF
+@@ -238,9 +316,9 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+   ! For BrO:      a prioir from model fields but with 1.0E-14 error globally (enough information)
+   ! For SO2:      a priori from model fields but with dynamic a priori error 
+   !               to deal with volcanic eruption (implemented in ozone_reverse.f90)
+-  IF (initval == 0 .OR. ANY(fitvar_rad_init(ozp_fidx:ozp_lidx) <= 0.0))  THEN
++  IF (initval == 0 .OR. ANY(fitvar_rad_init(ozp_fidx:ozp_lidx) <= 0.0))  THEN  !geun  off -> fix
+      fitvar_rad_init(ozp_fidx:ozp_lidx) = ozprof(1:nlay)  
+-  ENDIF
++  ENDIF !geun
+   IF (nsfc < nlay) fitvar_rad_init(ozp_lidx + 1 - nlay + nsfc : ozp_lidx) = ozprof(nsfc+1:nlay)
+   fitvar_rad_apriori(ozp_fidx:ozp_lidx) = ozprof(1:nlay)
+   
+@@ -264,6 +342,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+   IF (errstat == pge_errstat_error)  THEN
+      exval = -1; RETURN
+   ENDIF
++
+   ! For clouds, initial ctp, cod is based on assumed input (e.g., 20/10) or from other products, 
+   ! which maybe re-adjusted using longer wavelengths
+   fitvar_rad_init(ecfrind) = the_cfrac; fitvar_rad_apriori(ecfrind) = the_cfrac
+@@ -322,7 +401,10 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+   DO i = albidx, albidx + nalb - 1
+      IF (fitvar_rad_str(i)(4:4) /= '0') fitvar_rad_init(i) = 0.D0
+   ENDDO
+-  fitvar_rad_init(irind(1, 1))  = -1.0E-5    ! non zero
++  fitvar_rad_init(irind(1, 1))    = -1.0E-5    ! non zero
++  !fitvar_rad_init(irind(1, 1)+1) = 1.0e-7    !geun  on : in0 uv2 fix
++  !fitvar_rad_init(rnind(1, 1))   = -1.87    !geun  on ring fix
++  !fitvar_rad_init(rnind(1, 1)+1) = -1.87    !geun  on ring fix
+  
+   IF (do_subfit) THEN
+      nsub = numwin
+@@ -372,6 +454,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+   ! Set up a priori state vector and covariance matrix
+   ! use a priori for O3, T, 0th albedo, trace gas, Ring effect
+   ! Zero for others
++
+      fitvar_rad_apriori(ozp_fidx:ozp_lidx) = ozprof(1:nlay)
+      fitvar_rad_apriori(t_fidx:t_lidx)     = fitvar_rad(t_fidx:t_lidx)
+      DO i = albidx, albidx + nalb - 1
+@@ -480,10 +563,14 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+      ! need to update o3 a priori covariance matrix for each retrieval
+      sa(ozf_fidx:ozf_lidx, ozf_fidx:ozf_lidx) = &
+           sao3(start_layer:end_layer,start_layer:end_layer) 
+-
++!print*, nfalb >0 .OR. nfwfc >0 .OR. ecfrfind > 0
+      IF (nfalb > 0 .OR. nfwfc > 0 .OR. ecfrfind > 0) THEN
++!print*, albfc_aperr
+         albfc_aperr = 0.05**2.0
+-        IF (tropaod(1) >= 0.25 .AND. taodfind == 0 .AND. twaefind == 0) THEN
++!print*, albfc_aperr
++!print*, tropaod(1) >= 0.25 .AND. taodfind == 0 .AND. twaefind == 0
++!print*, has_glint
++       IF (tropaod(1) >= 0.25 .AND. taodfind == 0 .AND. twaefind == 0) THEN
+            albfc_aperr1 = albfc_aperr * (1.0 + 8.0 * tropaod(1) - 2.0) 
+         ELSE IF (has_glint) THEN  ! Assume a priori error of 0.2 instead of 0.05 for 100% sun glint
+            albfc_aperr1 = albfc_aperr * ( 1.0 + 15.0 * glintprob) 
+@@ -491,6 +578,8 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+            albfc_aperr1 = albfc_aperr 
+         ENDIF
+         albfc_aperr2    = albfc_aperr * (1.0 + 15.0 * salbedo)
++!print*, albfc_aperr1,albfc_aperr2,salbedo
++!print*,'end check'
+         albfc_aperr     = MAX(albfc_aperr1, albfc_aperr2)
+      ENDIF
+ 
+@@ -560,7 +649,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+     
+   ! Create a condensed array of fitting variables that are varied. 
+   ! This considerably reduces the execution time of the fitting routine.
+-  IF (radcalwrt .AND. do_simu) fitvar_rad = fitvar_rad_apriori
++  IF (radcalwrt .AND. do_simu) fitvar_rad = fitvar_rad_apriori ! F - wasp!
+   fitvar(1:nf)    = fitvar_rad(mask_fitvar_rad(1:nf))
+   fitvarap(1:nf)  = fitvar_rad_apriori(mask_fitvar_rad(1:nf))
+   lowbond(1:nf)   = lo_radbnd(mask_fitvar_rad(1:nf))
+@@ -578,18 +667,9 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+    enddo 
+   ENDIF 
+ 
+-!  do k = 1, nf 
+-!   print *, k, fitvar(k), fitvarap(k), fitvar_rad_str(mask_fitvar_rad(k))
+-!  enddo 
+-        
+-!     write(*,'(a10,100f10.5)') 'fitwavs',fitwavs(1:5), fitwavs(npoints-5:npoints)
+-!     write(*,'(a10,100f10.5)') 'refwvl', refwvl(1:5), refwvl(n_refwvl-5:n_refwvl) 
+-!     write(*,'(a10,100f10.5)') 'curr_sol_spec',curr_sol_spec(1,1:5)
+-
+   CALL ozprof_inverse (nf, varname(1:nf), fitvar(1:nf), fitvarap(1:nf), &
+        lowbond(1:nf), upbond(1:nf), npoints, nump, sa(1:nf,1:nf), bb(1:nf,1:nf), &
+        chisq, fitspec_rad(1:npoints), fitres_rad(1:npoints), exval)
+-      
+   fitvar_rad(mask_fitvar_rad(1:nf)) = fitvar(1:nf)  ! for safe 
+   fitvar_rad_apriori(mask_fitvar_rad(1:nf)) = fitvarap(1:nf)  ! Some a priori values can be changed
+   DO i = 1, nf
+@@ -636,6 +716,19 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
+   DO i = 1, nf
+      stderr(i) = SQRT(covar(i, i)); stderr1(i) = SQRT(ncovar(i, i))
+   END DO
++
++
++!print*,ecfrfind,ecfrind,n_max_fitpars,nf !,sa(ecfrfind,ecfrfind),albfc_aperr
++!print*,'fitvar_rad(ecfrind),fitvar_rad_init(ecfrind),fitvar_rad_apriori(ecfrind)'
++!print*,fitvar_rad(ecfrind),fitvar_rad_init(ecfrind),fitvar_rad_apriori(ecfrind)
++!print*,'sa(ecfrfind,ecfrfind),albfc_aperr'
++!print*,sa(ecfrfind,ecfrfind),albfc_aperr
++!print*,'stderr(1:nf)'
++!print*,stderr(1:nf)
++!print*,'stderr1(1:nf)'
++!print*,stderr1(1:nf)
++ !stop 
++
+   fitvar_rad_std(mask_fitvar_rad(1:nf))  = stderr(1:nf)
+   fitvar_rad_nstd(mask_fitvar_rad(1:nf)) = stderr1(1:nf)
+   
+@@ -822,12 +915,13 @@ IF ( twaefind > 0 ) THEN
+  ENDIF
+ 
+  IF ( ecfrfind > 0) THEN
+-    the_cfrac = fitvar_rad(ecfrind )
++    the_cfrac = fitvar_rad(ecfrind)
+  ENDIF
+ 
+  IF (sprsfind > 0) THEN
+     atmosprof(1, nsfc) = fitvar_rad(sprsind)
+  ENDIF
+ 
++
+  RETURN
+ END SUBROUTINE specfit_ozprof
+diff --git a/o3p/v0.4.3/src/o3prof/spectra_reflectance.f90 b/o3p/v0.4.3/src/o3prof/spectra_reflectance.f90
+index e6f6904..4db69f5 100644
+--- a/o3p/v0.4.3/src/o3prof/spectra_reflectance.f90
++++ b/o3p/v0.4.3/src/o3prof/spectra_reflectance.f90
+@@ -62,7 +62,6 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
+ 
+   ! Obtain the uncondensed array of variables
+   fitvar_rad(mask_fitvar_rad(1:nf)) = fitvar(1:nf)
+-
+   sunpos_ss(1:n_refwvl) =  refwvl(1:n_refwvl)
+   IF (nsh > 0) THEN
+      nextra = 2 * refnhextra
+@@ -190,6 +189,7 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
+      sunspec_ss = sunspec_ss * EXP (corr)
+   ENDIF
+   !WRITE(91, '(F10.4, D14.6)') ((fitwavs(i), sunspec_ss(i)), i = 1, ns)
++  !WRITE(*, '(F10.4, D14.6)') ((fitwavs(i), sunspec_ss(i)), i = 1, ns) ! wasp : 0.1~0.9D+01
+ 
+   ! Internal Scattering in Irradiance
+   IF ( nis > 0 ) THEN
+@@ -230,7 +230,7 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
+      ENDIF
+   ENDIF
+   corrected_irrad = sunspec_ss 
+-
++  !WRITE(*, '(F10.4, D14.6)') ((fitwavs(i), corrected_irrad(i)), i = 1, ns) !wasp : didn't changed
+ !  ! Internal Scattering in Irradiance (use stray-light spectra)
+ !  IF ( nis > 0 ) THEN
+ !     IF (do_subfit) THEN
+@@ -293,24 +293,25 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
+      corrected_irrad(1:ns) = corrected_irrad(1:ns) + fitvar_rad(i) * locdbs(1:ns)
+   END DO
+   !DO i = 1, ns
+-  !   WRITE(*, '(F10.4,D14.7)') fitwavs(i), corrected_irrad(i) * div_sun
++    !!WRITE(*, '(F10.4,D14.7)') fitwavs(i), corrected_irrad(i) * div_sun
++    !WRITE(*, '(F10.4,D14.7)') fitwavs(i), corrected_irrad(i)
+   !ENDDO
+   !STOP
+ 
+   ! Internal Scattering in Radiance
+   corrected_rad = currspec(1:ns)
+-  IF ( nir > 0 ) THEN
+-     IF (do_subfit) THEN
++  IF ( nir > 0 ) THEN !wasp : nir = 1
++     IF (do_subfit) THEN !wasp : do_subfit=T
+         fidx = 1
+-        DO i = 1, numwin
+-           lidx =  fidx + nradpix(i) - 1
++        DO i = 1, numwin !numwin=2
++           lidx =  fidx + nradpix(i) - 1 !nradpix(1)=102
+ 
+-           wavg = (fitwavs(fidx) + fitwavs(lidx)) * 0.5
++           wavg = (fitwavs(fidx) + fitwavs(lidx)) * 0.5 
+            del(fidx:lidx) = fitwavs(fidx:lidx) - wavg
+            tempsum(fidx:lidx) = SUM(corrected_rad(fidx:lidx)) / wavg * fitwavs(fidx:lidx)
+            !tempsum(fidx:lidx) = 1.0
+ 
+-           IF (irfind(i, 1) > 0) corrected_rad(fidx:lidx) = corrected_rad(fidx:lidx) &
++           IF (irfind(i, 1) > 0) corrected_rad(fidx:lidx) = corrected_rad(fidx:lidx) & !irfind(1,1)=36
+                    + fitvar_rad(irind(i, 1)) * tempsum(fidx:lidx)
+            DO j = 2, nir
+               IF (irfind(i, j) > 0) corrected_rad(fidx:lidx) = corrected_rad(fidx:lidx) &
+@@ -332,14 +333,31 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
+         IF (irfind(1, 1) > 0) corrected_rad(fidx:lidx) = corrected_rad(fidx:lidx) &
+                    + fitvar_rad(irind(1, 1)) * tempsum(fidx:lidx) 
+         
+-        DO j = 2, nir
++        DO j = 2, nir !wasp : don't loop
+            IF (irfind(1, j) > 0) corrected_rad(fidx:lidx) = corrected_rad(fidx:lidx) &
+                 + fitvar_rad(irind(1, j)) * tempsum(fidx:lidx) * del(fidx:lidx) ** (j-1)
+         ENDDO
+      ENDIF
+   ENDIF
++
++!write(*,*)'hello wasp! fitvar_rad!', fitvar_rad(1),fitvar_rad(2) !wasp : it's 0!
++!write(*,*)'hello wasp! spectra_reflectance!', corrected_rad(1:10)
++!write(*,*)'hello wasp! spectra_reflectance!', corrected_irrad(1:10)
++!write(*,*)'hello wasp! spectra_reflectance!', div_rad
++!write(*,*)'hello wasp! spectra_reflectance!', div_sun
++!write(*,*)'hello wasp! fitwavs!',fitwavs
++
+   fitspec = corrected_rad / corrected_irrad * div_rad / div_sun 
+ 
++  OPEN(UNIT=2992,FILE='/home/o3p_hs/data/gems_spectra5.dat',STATUS='unknown')
++  DO i=1,ns
++    WRITE(2992,'(2X,F8.4,2X,D16.10,2X,D16.10)')fitwavs(i),corrected_irrad(i),corrected_rad(i)
++  ENDDO
++  CLOSE(2992)
++
++!write(*,*)'hello wasp! spectra_reflectance!', fitspec(1:10)
++!stop
++
+ ! ! Internal Scattering in Radiance  (fit straylight spectrum)
+ !  corrected_rad = currspec(1:ns)
+ !  IF ( nir > 0 ) THEN
+@@ -410,52 +428,69 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
+   !   ENDIF
+   !END DO
+ 
++
+   ! Ring effect (using Beer-law contribution)
+-  IF (.NOT. fit_atanring) THEN
+-     IF ( nrn > 0 ) THEN
+-        corr = 0.0
++  IF (.NOT. fit_atanring) THEN ! wasp: if(T)
++    IF ( nrn > 0 ) THEN  ! wasp: nrn=1
++      corr = 0.0
+         
+-        IF (do_subfit) THEN
+-           fidx = 1
+-           DO i = 1, numwin
+-              lidx =  fidx + nradpix(i) - 1
++      IF (do_subfit) THEN
++        fidx = 1
++        DO i = 1, numwin
++          lidx =  fidx + nradpix(i) - 1
+               
+-              del(fidx:lidx) = fitwavs(fidx:lidx) - ( (fitwavs(fidx) + fitwavs(lidx)) * 0.5)
++          del(fidx:lidx) = fitwavs(fidx:lidx) - ( (fitwavs(fidx) + fitwavs(lidx)) * 0.5)
+               
+-              IF (rnfind(i, 1) > 0) corr(fidx:lidx) = corr(fidx:lidx) + fitvar_rad(rnind(i, 1))
++          IF (rnfind(i, 1) > 0) corr(fidx:lidx) = corr(fidx:lidx) + fitvar_rad(rnind(i, 1))
+               
+-              DO j = 2, nrn
+-                 IF (rnfind(i, j) > 0) corr(fidx:lidx) = corr(fidx:lidx) + &
+-                      fitvar_rad(rnind(i, j)) * del(fidx:lidx) ** (j-1)
+-              ENDDO
++          DO j = 2, nrn
++            IF (rnfind(i, j) > 0) corr(fidx:lidx) = corr(fidx:lidx) + &
++                                  fitvar_rad(rnind(i, j)) * del(fidx:lidx) ** (j-1)
++          ENDDO
+               
+-              fidx = lidx + 1
+-           ENDDO
++          fidx = lidx + 1
++
++        ENDDO
++           
++      ELSE
++        IF (rnwins(1, 1) == 1) THEN
++
++          fidx = 1
++
+         ELSE
+-           IF (rnwins(1, 1) == 1) THEN
+-              fidx = 1
+-           ELSE
+-              fidx = SUM(nradpix(1: rnwins(1, 1)-1)) + 1 
+-           ENDIF
+-           lidx = SUM(nradpix(1: rnwins(1, 2))) 
++
++          fidx = SUM(nradpix(1: rnwins(1, 1)-1)) + 1 
++
++        ENDIF
++
++        lidx = SUM(nradpix(1: rnwins(1, 2))) 
+            
+-           del(fidx:lidx)   = fitwavs(fidx:lidx) - (fitwavs(fidx) + fitwavs(lidx)) * 0.5
++        del(fidx:lidx)   = fitwavs(fidx:lidx) - (fitwavs(fidx) + fitwavs(lidx)) * 0.5
+            
+-           IF (rnfind(1, 1) > 0) corr(fidx:lidx) = corr(fidx:lidx) + fitvar_rad(rnind(1, 1))
++        IF (rnfind(1, 1) > 0) corr(fidx:lidx) = corr(fidx:lidx) + fitvar_rad(rnind(1, 1))
+            
+-           DO j = 2, nrn
+-              IF (rnfind(1, j) > 0) corr(fidx:lidx) = corr(fidx:lidx) + &
+-                   fitvar_rad(rnind(1, j)) * del(fidx:lidx) ** (j-1)
+-           ENDDO
+-        ENDIF
+-        
+-        fitspec = fitspec * EXP(database(ring_idx, refidx(1:ns)) * corr)
+-     ENDIF
++        DO j = 2, nrn
++
++          IF (rnfind(1, j) > 0) corr(fidx:lidx) = corr(fidx:lidx) + &
++                                fitvar_rad(rnind(1, j)) * del(fidx:lidx) ** (j-1)
++        ENDDO
++
++      ENDIF        
++
++      fitspec = fitspec * EXP(database(ring_idx, refidx(1:ns)) * corr)
++
++    ENDIF
++
+   ELSE
++
+      ! Fitting Ring effect using y = -[a0 * [atan((x-a1)/a2) + 1.54223] + 1]
++
+      corr = atan( (fitwavs - fitvar_rad(rnind(1, 2))) / fitvar_rad(rnind(1, 3)) )
++
+      corr = -(fitvar_rad(rnind(1, 1)) * (corr - corr(1)) + 1.0)
++
+      fitspec = fitspec * EXP(database(ring_idx, refidx(1:ns)) * corr)
++
+   ENDIF
+ 
+   ! Second add-on contributions: add to the Sun-normalized radiance 
+@@ -487,9 +522,7 @@ SUBROUTINE spectra_reflectance (ns, nf, fitvar, do_shiwf, fitspec, errstat)
+         fitspec(1:ns) = fitspec(1:ns)  + fitvar_rad(i) * locdbs(1:ns)
+      END IF
+   ENDDO
+-
+-  ! Use logarithmic of the reflectance 
+-  IF (use_lograd)  fitspec(1:ns) = LOG(fitspec(1:ns))
+-
++  ! Use logarithmic of the reflectance wasp : True 
++ IF (use_lograd)  fitspec(1:ns) = LOG(fitspec(1:ns))
+   RETURN
+ END SUBROUTINE spectra_reflectance
