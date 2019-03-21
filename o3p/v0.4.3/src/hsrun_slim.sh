@@ -1,5 +1,26 @@
 #! /bin/bash
 
+## GEMS Environment Setting
+#export GEMS_HOME=$HOME/GEMS
+#export O3P_HOME=$GEMS_HOME/o3p
+#export O3P_VER=v0.4.3
+#export GEMS_SHARE_HOME=$GEMS_HOME/share
+#export LD_LIBRARY_PATH=/usr/local/intel/composer_xe_2013_sp1.0.080/compiler/lib/intel64
+##export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GEMS_SHARE_HOME/extlib/lib:$GEMS_SHARE_HOME/extlib/hdf5/lib
+##wasp : /share/extlib/lib <- maybe truncated.
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GEMS_SHARE_HOME/extlib/hdf5/lib
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GEMS_SHARE_HOME/lib:$GEMS_SHARE_HOME/lib/gems_hdf:/usr/lib
+#export PATH=$PATH:$O3P_HOME/$O3P_VER/run
+#export PATH=$PATH:/opt/hdf/h4h5tools-2.2.2-linux-static/bin:$O3P_HOME/$O3P_VER/bin:.
+
+## GEMS Logging Environment Setting
+#export GEMS_LOG_PATH=$O3P_HOME/log
+#export GEMS_LOG_FILE=gemslog
+#export GEMS_LOG_LEVEL=9
+## for the inclement of stack memory size
+##ulimit -s 102400
+#ulimit -s unlimited
+
 type=SLIM
 
 # Initialize
