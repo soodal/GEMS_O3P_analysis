@@ -1,8 +1,8 @@
 
-PROGRAM GEMS_O3P_Main
+PROGRAM SYNT_O3P_Main
 !--------------------------------------------------------------
 !+Description :
-!     GEMS Standard Main Program
+!     GEMS Standard Main Program  -> synthetic data
 !     
 ! Method:
 !     Algorithm description file - 5 page
@@ -89,13 +89,12 @@ PROGRAM GEMS_O3P_Main
 ! -------------------------
 ! Name of module/subroutine
 ! -------------------------
- CHARACTER (LEN=13), PARAMETER :: modulename = 'GEMS_O3P_Main'
+ CHARACTER (LEN=13), PARAMETER :: modulename = 'SYNT_O3P_Main'
 
 
  !************************************************
  !******** O3P MAIN PROGRAM Start   ************ 
  !************************************************
-
  !-------------------------------------------------------------------------
  !-------- . MPI Start
  !-------------------------------------------------------------------------
@@ -104,7 +103,6 @@ PROGRAM GEMS_O3P_Main
       str_attr = 'MPI Start Error!!!' ; GOTO 2999
   ENDIF
 
-   print*, 'WASp!', myrank,nprocs,errCode
  !-------------------------------------------------------------------------
  !-------- O3P MAIN PROGRAM Start                            ------------ 
  !-------------------------------------------------------------------------
@@ -132,11 +130,11 @@ PROGRAM GEMS_O3P_Main
     !-------- 1. Global Variable Declaration                      ------------ 
     !-------------------------------------------------------------------------
     ! 공통 모듈 사용을 위한 초기화 작업
-    CALL GEMS_O3P_SUB1_Declaration(errCode)
-    IF( errCode /= 0 ) THEN
-        str_attr = "Program Declaration Error!!!"
-        GOTO 2999
-    ENDIF
+    !CALL GEMS_O3P_SUB1_Declaration(errCode)
+    !IF( errCode /= 0 ) THEN
+        !str_attr = "Program Declaration Error!!!"
+        !GOTO 2999
+    !ENDIF
     !-------------------------------------------------------------------------
     !-------- 2. Input Processing                                 ------------ 
     !-------------------------------------------------------------------------
@@ -145,9 +143,8 @@ PROGRAM GEMS_O3P_Main
     !3. 공통모듈로부터 위성자료 읽음
     !4. o3p 알고리즘 변수 할당
     !5. irradiance 자료처리 (valid subset for o3 fitting window, coadding process)
-    CALL GEMS_O3P_SUB2_Proc_Input(fit_ctrl_file, errCode)
+    CALL SYNT_O3P_SUB2_Proc_Input(fit_ctrl_file, errCode)
     IF ( errCode /= 0 ) GOTO 1999
-
     !-------------------------------------------------------------------------
     !-------- 3. Irrad_Cross_Calibrate
     !-------------------------------------------------------------------------
@@ -202,7 +199,6 @@ PROGRAM GEMS_O3P_Main
         print*, "O3 Fitting Error !!! "
         GOTO 1999  
     ENDIF
-    print*,'GEMS O3 fitting process done.'
     !-------------------------------------------------------------------------
     !-------- . MPI Processing
     !-------------------------------------------------------------------------
@@ -313,7 +309,7 @@ PROGRAM GEMS_O3P_Main
      STOP
 
 
-END PROGRAM GEMS_O3P_Main
+END PROGRAM SYNT_O3P_Main
 
 
 !
@@ -707,30 +703,30 @@ SUBROUTINE GEMS_Share_MOD_MPI_DataSumProcess(myrank, mpi_pix, mpi_line, L2O3P_wr
         retCode = errCode
         RETURN  
     ENDIF
-
+   
     ! geun added PIX output
     CALL GEMS_Share_MOD_MPI_Process(myrank,                        &
-                                    gds_L2O3P%o3p_gfld%Pix,       &
-                                    L2O3P_wr%o3p_gfld%Pix,        &
+                                    gds_L2O3P%o3p_gfld%Pix_tmp,       &
+                                    L2O3P_wr%o3p_gfld%Pix_tmp,        &
                                     mpi_pix, mpi_line, errCode)
     IF ( errCode /= 0 ) THEN
         PRINT*, "[Pix] MPI Processing Error !!!"
         retCode = errCode
-        RETURN
+        RETURN  
     ENDIF
 
 
     ! geun added Line output
     CALL GEMS_Share_MOD_MPI_Process(myrank,                        &
-                                    gds_L2O3P%o3p_gfld%Line,       &
-                                    L2O3P_wr%o3p_gfld%Line,        &
+                                    gds_L2O3P%o3p_gfld%Line_tmp,       &
+                                    L2O3P_wr%o3p_gfld%Line_tmp,        &
                                     mpi_pix, mpi_line, errCode)
     IF ( errCode /= 0 ) THEN
         PRINT*, "[Line] MPI Processing Error !!!"
         retCode = errCode
-        RETURN
+        RETURN  
     ENDIF
-   
+
     retCode = errCode
     RETURN    
 

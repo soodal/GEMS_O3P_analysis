@@ -4,7 +4,7 @@ o3p/share/
 o3p/v0.4.1/
 o3p/v0.4.2/
 o3p/v0.4.3_*
-o3p/v0.4.3.0/
+o3p/v0.4.3.3_*
 
 o3p/v0.4.3/bin/
 o3p/v0.4.3/make/
@@ -36,6 +36,37 @@ o3p/v0.4.3/src/run_gems_list.sh
 o3p/v0.4.3/src/run_geun.sh
 o3p/v0.4.3/src/runlist_coltest.listbu
 
+o3p/v0.4.4/bin/
+o3p/v0.4.4/make/
+o3p/v0.4.4/msg/
+o3p/v0.4.4/obj/
+o3p/v0.4.4/run/conf/GEMS_O3P.pcf
+o3p/v0.4.4/run/conf/INP/SOMIPROF.inp.org
+o3p/v0.4.4/run/conf/INP/idl.ps
+o3p/v0.4.4/run/conf/INP/ozprof.inp~
+o3p/v0.4.4/run/conf/INP/read_xwcorr.pro
+o3p/v0.4.4/run/conf/INP/temp.pro
+o3p/v0.4.4/run/conf/SOMIPROF.pcf
+o3p/v0.4.4/run/run_base.sh
+o3p/v0.4.4/src/check_diff.sh
+o3p/v0.4.4/src/fort.25
+o3p/v0.4.4/src/mod/GEMS_O3P_MOD_Sub4Fitting_process.f90_save
+o3p/v0.4.4/src/o3prof/tmp/
+o3p/v0.4.4/src/o3prof_lidort_error
+o3p/v0.4.4/src/omi-pge/
+o3p/v0.4.4/src/run.sh
+o3p/v0.4.4/src/run_gems_bu.sh
+o3p/v0.4.4/src/run_list.sh
+o3p/v0.4.4/src/runlist.list
+o3p/v0.4.4/tmp/
+o3p/v0.4.4/src/geun/
+o3p/v0.4.4/src/hslog/
+o3p/v0.4.4/src/run_gems_geun.sh
+o3p/v0.4.4/src/run_gems_list.sh
+o3p/v0.4.4/src/run_geun.sh
+o3p/v0.4.4/src/runlist_coltest.listbu
+
+
 share/
 *.list
 *.swp
@@ -53,3 +84,5 @@ share/
 *.um2
 *src.all*
 *tmp.test*
+*.mod
+*.o

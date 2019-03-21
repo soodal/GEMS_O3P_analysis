@@ -7,7 +7,7 @@ orbs[0]=''
 norb=0
 rm -f orbs.list
 
-nmpi=1
+nmpi=2
 ver=3
 pixset=1    #0: no identification of pixline, 1: with identification of pixline
 use_qsub=0
@@ -19,12 +19,12 @@ make_on=1
 source ../run/gems_env.sh
 
 DATDIR=/home/Data/OMI
-PGEHOME=/home/o3p_hs/GEMS/o3p/v0.4.3
+PGEHOME=/home/o3p_hs/GEMS/o3p/v0.4.4
 pwd=`pwd`/
 
 
 # ' line1, line2, cross pixel 1, cross pixel 2 '
-pixsel='871 871 29 30'
+pixsel='871 872 29 30'
 #'1147 1 58' 
 #pixsel='880 950 1 60' 
 timesel='2006m0613t03'
@@ -172,9 +172,9 @@ do
 
   #then
   #$PGEHOME/bin/${SAOPGE}_exec  > $lv2dir$type$orb'.dat'
-  #mpirun -np $nmpi $PGEHOME'/bin/GEMS_O3P_exec' > $logfname 
+  mpirun -np $nmpi $PGEHOME'/bin/GEMS_O3P_exec' > $logfname 
 
-  $PGEHOME/bin/${SAOPGE}_exec > $logfname
+  #$PGEHOME/bin/${SAOPGE}_exec > $logfname
   cd $pwd
 
   #cat $type$orb'.dat'
