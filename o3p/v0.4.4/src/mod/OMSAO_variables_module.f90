@@ -338,7 +338,7 @@ MODULE OMSAO_variables_module
   ! ---------------------
   INTEGER :: l2_hdf_flag
   CHARACTER (LEN=maxchlen) :: l1b_rad_filename, l1b_irrad_filename, l2_filename, &
-       l2_cld_filename, l2_swathname
+       l2_cld_filename, l2_swathname, geo_nc_filename
 
   ! -----------------------------------------------------------------
   ! Generic dimension variables (initialized from either GOME or OMI)
@@ -359,5 +359,7 @@ MODULE OMSAO_variables_module
                     saa_minlat = -50.0, saa_maxlat = -5.00, &
                     saa_minlon1= 0.00 , saa_maxlon1= 30.0, &
                     saa_minlat1= -35.0, saa_maxlat1= -15.0
+
+  integer :: curr_x, curr_y
 
 END MODULE OMSAO_variables_module

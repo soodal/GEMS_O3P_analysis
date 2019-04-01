@@ -49,13 +49,18 @@ PGEBINDIR  = $(PGEHOME)/bin
 PGEOUTDIR  = $(PGEIODIR)
 PGEOBJDIR  = $(PGEHOME)/obj
 
+$(PGEHOME=$(PGEHOME))
 
-OMSAOLIB   = GEMS_O3P
-MAINDIR    = gems-pge
+OMSAOLIB   = SYNT_O3P
+MAINDIR    = synt-pge
 MAIN       = $(OMSAOLIB)_Main
-TARGET     = ../bin/GEMS_O3P_exec
-EXECUTABLE = $(TARGET) 
+$(MAIN=$(MAIN))
 
+TARGET     = ../bin/$(SAOPGE)_exec
+$(TARGET=$(TARGET))
+
+EXECUTABLE = $(TARGET) 
+$(EXECUTABLE=$(EXECUTABLE))
 
 include ../make/make.flags
 
@@ -67,15 +72,19 @@ include ../make/make.flags
 # =============================================================
 LOCALLIB = $(PGETMPDIR)/lib$(OMSAOLIB).a
 VPATH = ./$(PGEBINDIR):$(PGETMPDIR):$(PGEHOME)/src:$(PGEHOME)/src/mod:\
-	$(PGEHOME)/src/omi-pge:$(PGEHOME)/src/o3prof:$(PGEHOME)/src/gems-pge:$(PGEHOME)/src/mod:$(GEMS_SHARE_HOME)/src/mall/fglrm
+	$(PGEHOME)/src/omi-pge:$(PGEHOME)/src/o3prof:$(PGEHOME)/src/gems-pge:\
+	$(PGEHOME)/src/synt-share:$(PGEHOME)/src/synt-pge
 
 # ================================================
 # All sources are "sourced out" to an include file
 # ================================================
+include ../make/make.synt_share_sources
 include ../make/make.mod_sources
+include ../make/make.synt_mod_sources
 include ../make/make.sources
 include ../make/make.o3prof_sources
 include ../make/make.gems_sources
+include ../make/make.synt_sources
 
 GEMS_LIB += -I/usr/local/mpi/include -L/usr/local/mpi/lib -lmpi -lmpi_mpifh
 GEMS_LIB += -L$(LAPACK_PATH_LIB) -llapack -lblas
@@ -92,7 +101,7 @@ all : envcheck dirs messages mainlink $(EXECUTABLE)
 #  Here's how the111133.executable is made from the
 #  archive (LOCALLIB) and the various Modules
 # ============================================
-$(EXECUTABLE) : $(LOCALLIB) $(MAIN).f90  $(F90MODSOURCES) $(F90SOURCES)   $(F90GEMSSOURCES) $(OZSOURCES) \
+$(EXECUTABLE) : $(LOCALLIB) $(MAIN).f90  $(F90MODSOURCES) $(F90SOURCES) $(F90GEMSSOURCES) $(F90SYNTSOURCES) $(OZSOURCES) \
                 $(LIDORTPATH)/$(LIDORTLIBFILE) 
 	$(FC) $(MAIN).f90 -o $(TARGET) $(LNFLAGS) $(FFLAGS) $(IFLAGS) $(LFLAGS) $(LIBS) $(GEMS_LIB) -I/usr/local/mpi/include -L/usr/local/mpi/lib -lmpi -lmpi_mpifh
 
@@ -101,8 +110,8 @@ $(EXECUTABLE) : $(LOCALLIB) $(MAIN).f90  $(F90MODSOURCES) $(F90SOURCES)   $(F90G
 # ======================================
 #  The SAO_OMOCLO object library archive
 # ======================================
-$(LOCALLIB):$(MODOBJECTS)  $(OBJECTS)  $(GEMSOBJECTS) $(OZOBJECTS)
-
+$(LOCALLIB):$(MODOBJECTS) $(OBJECTS) $(GEMSOBJECTS) $(OZOBJECTS) $(SYNTOBJECTS)
+$(SYNTOBJECTS=$(SYNTOBJECTS))
 
 # =============================================================
 # A list of directories that are empty at CVS checkin, and are
@@ -120,7 +129,7 @@ install: all
 	$(MAKE) cleanlog cleanoutput
 	cp -p $(EXECUTABLE) $(PGEOUTDIR)/
 	mv 	*.mod $(PGETMPDIR)
-
+$(PGEOUTDIR=$(PRGEOUTDIR))
 
 test: all
 	$(MAKE) install
@@ -136,10 +145,13 @@ run:
 	cd $(PGEOUTDIR); $(PGEOUTDIR)/$(EXECUTABLE)
 
 include ../make/make.targets
+include ../make/make.synt_share_patterns
 include ../make/make.mod_patterns
+include ../make/make.synt_mod_patterns
 include ../make/make.patterns
 include ../make/make.o3prof_patterns
 include ../make/make.gems_patterns
+include ../make/make.synt_patterns
 # =================
 #  End of Makefile
 # =================

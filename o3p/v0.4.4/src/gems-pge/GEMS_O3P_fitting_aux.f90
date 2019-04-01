@@ -242,7 +242,6 @@ SUBROUTINE gems_o3p_adj_earthshine_data (theline, nlines_max, pge_error_status)
 
   curr_rad_spec(wvl_idx, 1:n_rad_wvl) = gems_rad%wavl(1:n_rad_wvl, currpix, currloop) 
   curr_rad_spec(spc_idx, 1:n_rad_wvl) = gems_rad%spec(1:n_rad_wvl, currpix, currloop)   
-
   IF (use_meas_sig) THEN
     curr_rad_spec(sig_idx, 1:n_rad_wvl) = gems_rad%prec(1:n_rad_wvl, currpix, currloop)
   ELSE

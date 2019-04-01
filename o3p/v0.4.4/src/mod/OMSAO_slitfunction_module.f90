@@ -1,7 +1,7 @@
 MODULE OMSAO_slitfunction_module
 
   USE OMSAO_precision_module
-  USE OMSAO_variables_module,     ONLY: refdbdir, coadd_uv2, currpix, band_selectors, numwin, winlim
+  USE OMSAO_variables_module,     ONLY: refdbdir, currpix, band_selectors, numwin, winlim
   USE GEMS_O3P_gemsdata_module,   ONLY: nxtrack_max, nfxtrack, nxbin, ncoadd
   USE ozprof_data_module,         ONLY: calunit
   USE OMSAO_errstat_module
@@ -62,18 +62,6 @@ CONTAINS
 !    wave(:) = (/((j * 0.01 - 2. + lamda), j = 0, 400)/)
 !    CALL compute_slitprofile (ch, xpix, lamda, wave, nw, slit)
 
-    ! Binning UV-2/VIS slit parameters
-    IF (coadd_uv2) THEN
-       DO ix = 1, nfxtrack
-          i = (ix - 1) * ncoadd + 1
-          omi_slitpars(2:3, ix, :, :) = omi_slitpars(2:3, i, :, :) 
-          
-          DO j = 1, ncoadd-1      
-             omi_slitpars(2:3, ix, :, :) = omi_slitpars(2:3, ix, :, :) + omi_slitpars(2:3, i + j, :, :)
-          ENDDO
-          omi_slitpars(2:3, ix, :, :) = omi_slitpars(2:3, ix, :, :) / ncoadd
-       ENDDO
-    ENDIF
 
     ! furthur binning across the track position
     IF (nxbin > 1) THEN

@@ -13,114 +13,112 @@
 
 SUBROUTINE get_initial_albedo (noalb, albedo, pge_error_status)
   
- USE OMSAO_precision_module
- USE OMSAO_variables_module, ONLY : the_sza_atm, the_vza_atm, &
-                                    the_aza_atm, reduce_resolution, use_redfixwav
- USE ozprof_data_module,     ONLY : pos_alb, toms_fwhm, rad_posr, rad_specr, &
-      sun_posr, sun_specr, ps0, measref, nrefl
- USE OMSAO_errstat_module
+  USE OMSAO_precision_module
+  USE OMSAO_variables_module, ONLY : the_sza_atm, the_vza_atm, &
+                                     the_aza_atm, reduce_resolution, use_redfixwav
+  USE ozprof_data_module,     ONLY : pos_alb, toms_fwhm, rad_posr, rad_specr, &
+                                     sun_posr, sun_specr, ps0, measref, nrefl
+  USE OMSAO_errstat_module
 
- IMPLICIT NONE
+  IMPLICIT NONE
  
- ! =================
- ! Output variables
- ! =================
- LOGICAL, INTENT (IN)        :: noalb
- REAL (KIND=dp), INTENT(OUT) :: albedo
- INTEGER, INTENT (OUT)       :: pge_error_status
+  ! =================
+  ! Output variables
+  ! =================
+  LOGICAL, INTENT (IN)        :: noalb
+  REAL (KIND=dp), INTENT(OUT) :: albedo
+  INTEGER, INTENT (OUT)       :: pge_error_status
  
- ! ===============
- ! Local variables
- ! ===============
- INTEGER, PARAMETER            :: nw = 45, midin = 23    ! 45 * 0.05 nm ~ 2.25 nm
- REAL (KIND=dp), DIMENSION(nw) :: wave_arr, rad_arr, irrad_arr, weight
- INTEGER                       :: i, errstat, naw
- REAL (KIND=dp)                :: calc_albedo, wav_interval
+  ! ===============
+  ! Local variables
+  ! ===============
+  INTEGER, PARAMETER            :: nw = 45, midin = 23    ! 45 * 0.05 nm ~ 2.25 nm
+  REAL (KIND=dp), DIMENSION(nw) :: wave_arr, rad_arr, irrad_arr, weight
+  INTEGER                       :: i, errstat, naw
+  REAL (KIND=dp)                :: calc_albedo, wav_interval
  
- ! ------------------------------
- ! Name of this subroutine/module
- ! ------------------------------
- CHARACTER (LEN=18), PARAMETER    :: modulename = 'get_initial_albedo'
+  ! ------------------------------
+  ! Name of this subroutine/module
+  ! ------------------------------
+  CHARACTER (LEN=18), PARAMETER    :: modulename = 'get_initial_albedo'
  
- pge_error_status = pge_errstat_ok
+  pge_error_status = pge_errstat_ok
  
- wav_interval = toms_fwhm * 2 / (nw - 1)
+  wav_interval = toms_fwhm * 2 / (nw - 1)
 
- IF (.NOT. reduce_resolution) THEN 
+  IF (.NOT. reduce_resolution) THEN 
     ! check if the provided wavelength range is enough
 
-     !    print * ,nrefl, rad_posr(1:nrefl)
+    !    print * ,nrefl, rad_posr(1:nrefl)
 
     IF ( (rad_posr(nrefl) <= pos_alb + toms_fwhm) .OR. &
          (rad_posr(1) >= pos_alb - toms_fwhm)) THEN
-       WRITE(*, *) modulename, ' : Raidance does not cover: ', pos_alb, ' nm'
-       pge_error_status = pge_errstat_error; RETURN
+      WRITE(*, *) modulename, ' : Raidance does not cover: ', pos_alb, ' nm'
+      pge_error_status = pge_errstat_error; RETURN
     END IF
     
     IF ((sun_posr(nrefl) <= pos_alb + toms_fwhm) .OR. &
          (sun_posr(1) >= pos_alb - toms_fwhm)) THEN
-       WRITE(*, *) modulename, ': Solar does not cover: ', pos_alb, ' nm'
-       pge_error_status = pge_errstat_error; RETURN
+      WRITE(*, *) modulename, ': Solar does not cover: ', pos_alb, ' nm'
+      pge_error_status = pge_errstat_error; RETURN
     END IF
 
     ! get wavelength positions
     DO i = 1, nw
-       wave_arr(i) = pos_alb + REAL(i - midin, KIND=dp) * wav_interval
+      wave_arr(i) = pos_alb + REAL(i - midin, KIND=dp) * wav_interval
     END DO
     weight(1:nw) = 1.0 - ABS(wave_arr(1:nw) - pos_alb) / toms_fwhm
     naw = nw
- ELSE
+  ELSE
     ! check if the provided wavelength range is enough
     IF ( rad_posr(nrefl) < pos_alb .OR. rad_posr(1) > pos_alb) THEN
-       WRITE(*, *) modulename, ' : Raidance does not cover: ', pos_alb, ' nm'
-       pge_error_status = pge_errstat_error; RETURN
+      WRITE(*, *) modulename, ' : Raidance does not cover: ', pos_alb, ' nm'
+      pge_error_status = pge_errstat_error; RETURN
     END IF
     
     IF (sun_posr(nrefl) < pos_alb .OR. sun_posr(1) > pos_alb ) THEN
-       WRITE(*, *) modulename, ': Solar does not cover: ', pos_alb, ' nm'
-       pge_error_status = pge_errstat_error; RETURN
+      WRITE(*, *) modulename, ': Solar does not cover: ', pos_alb, ' nm'
+      pge_error_status = pge_errstat_error; RETURN
     END IF
     
     naw = 1; wave_arr(1) = pos_alb; weight(1) = 1.0
-
- ENDIF
-    ! wave_r ~ 346nm
+  
+  ENDIF
+  ! wave_r ~ 346nm
    
- IF ( use_redfixwav .AND. nrefl == 1) THEN
+  IF ( use_redfixwav .AND. nrefl == 1) THEN
     measref = rad_specr(1) / sun_specr(1)
- ELSE
+  ELSE
     ! interpolate solar and radiance spectra to get spectra at the above positions
     CALL BSPLINE(rad_posr(1:nrefl), rad_specr(1:nrefl), nrefl, &
          wave_arr(1:naw), rad_arr(1:naw), naw, errstat)
     IF (errstat < 0) THEN
-       WRITE(*, *) modulename, ': BSPLINE error, errstat = ', errstat; STOP
+      WRITE(*, *) modulename, ': BSPLINE error, errstat = ', errstat; STOP
     ENDIF
     
     CALL BSPLINE(sun_posr(1:nrefl), sun_specr(1:nrefl), nrefl,  wave_arr(1:naw), &
          irrad_arr(1:naw), naw, errstat)
     IF (errstat < 0) THEN
-       WRITE(*, *) modulename, ': BSPLINE error, errstat = ', errstat; STOP
+      WRITE(*, *) modulename, ': BSPLINE error, errstat = ', errstat; STOP
     ENDIF
     
     ! compute the reflectance and calculate albedo
     measref = SUM(rad_arr(1:naw) / irrad_arr(1:naw) * weight(1:naw)) / SUM (weight(1:naw)) 
- ENDIF
+  ENDIF
+  
   ! noalb is TRUE' 
- 
- IF (noalb) RETURN
- 
+  
+  IF (noalb) RETURN
+  
+  albedo = calc_albedo(measref, ps0, the_sza_atm, the_vza_atm, the_aza_atm)
+  ! WRITE(*, '(A, d12.4)') ' The initial albedo is: ', albedo
 
- !albedo = calc_albedo(measref, ps0, the_sza_atm, the_vza_atm, the_aza_atm) !wasp
- pge_error_status=pge_errstat_error                                         !wasp
-
-! WRITE(*, '(A, d12.4)') ' The initial albedo is: ', albedo
-
- IF (albedo <= -0.1 .OR. albedo >= 1.2) THEN
+  IF (albedo <= -0.1 .OR. albedo >= 1.2) THEN
     WRITE(*, *) modulename, ' : Surface albedo out of bounds!!!'
     pge_error_status = pge_errstat_error; RETURN
- END IF
+  END IF
   
- RETURN
+  RETURN
   
 END SUBROUTINE get_initial_albedo
 
@@ -1111,3 +1109,85 @@ SUBROUTINE get_omler_alb(month, day, elons, elats, albedo)
 
   RETURN
 END SUBROUTINE get_omler_alb
+
+
+
+! ========================================================================
+! Read synthetic surface albedo
+! ========================================================================
+SUBROUTINE get_synt_alb(albedo)
+
+  USE OMSAO_precision_module
+  USE OMSAO_parameters_module, ONLY: maxchlen
+  USE OMSAO_variables_module, ONLY: atmdbdir, currpix, currline
+  USE ozprof_data_module,     ONLY: pos_alb
+  USE SYNT_read_l1b,          ONLY: read_synt_alb, synt_db, synt_date, synt_rad_wavl, nwavel, &
+                                    nxtrack, nytrack, synt_num
+  IMPLICIT NONE
+
+  !! ======================
+  !! Input/Output variables
+  !! ======================
+  REAL (KIND=dp), INTENT(OUT) :: albedo
+
+  !! ======================
+  !! Local variables
+  !! ======================
+  REAL (KIND=4), DIMENSION(nwavel)  :: wvls
+  CHARACTER (LEN=maxchlen)             :: alb_fname
+  INTEGER, DIMENSION(2)           :: wavin
+  INTEGER                         :: i, nw  !, j, k, ialb, latin, lonin,  npix, nact, nm, nw
+  REAL (KIND=dp), DIMENSION(2)    :: wavfrac
+  REAL                            :: alb
+  LOGICAL                         :: file_exist
+  REAL (KIND=dp)                  :: frac
+  REAL , DIMENSION(nxtrack, nytrack, nwavel)  :: synt_alb
+  LOGICAL, SAVE                   :: first = .TRUE.
+
+  INTEGER :: status !alb_fid, grid_id
+
+  !alb_fname = TRIM(ADJUSTL(synt_db)) // TRIM(synt_date) // '_00UTC/GEMS_20130715_surface_albedo.nc3'
+  !alb_fname = TRIM(ADJUSTL(synt_db))//'aux/'//'GEMS_'//synt_date //'_albedoPresInfo.nc'  ! total data
+  alb_fname = TRIM(ADJUSTL(synt_db))//'aux/'//'GEMS_'//synt_date //'_albedoPresInfo_'//synt_num//'.nc'  ! sliced data
+
+! Read albedo database
+  IF (first) THEN
+
+! Determine if file exists or not
+    INQUIRE (FILE = TRIM(alb_fname), EXIST = file_exist)
+    IF (.NOT. file_exist) THEN
+      WRITE(*, *) 'GET_OMLER_ALB: albedo file does not exist!!!'; STOP
+    ENDIF
+    CALL read_synt_alb (alb_fname, synt_alb, status)
+    wvls = synt_rad_wavl (:, currpix, currline)
+    DO i = 1, nwavel
+      IF (wvls(i) >= pos_alb) EXIT
+    ENDDO
+
+    IF (i == 1) THEN
+      nw = 1; wavin(1) = 1; wavfrac(1) = 1.0
+    ELSE IF ( i == nwavel .AND. pos_alb >= wvls(nwavel) ) THEN
+      nw = 1; wavin(1) = nwavel; wavfrac(1) = 1.0
+    ELSE
+      nw = 2; wavin(1) = i - 1; wavin(2) = i
+      wavfrac(2) = (pos_alb - wvls(i-1)) / (wvls(i)-wvls(i-1))
+      wavfrac(1) = 1.0 - wavfrac(2)
+    ENDIF
+
+    alb = 0.0
+    DO i = 1, nw
+      frac = wavfrac(i)
+      alb = alb + synt_alb(currpix, currline, wavin(i)) * frac
+    ENDDO
+
+    first = .FALSE.
+  ENDIF
+
+  IF (alb >= 0.0) THEN
+    albedo = alb
+  ELSE
+    albedo = 0.10
+  ENDIF
+
+  RETURN
+END SUBROUTINE get_synt_alb

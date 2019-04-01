@@ -47,23 +47,23 @@ MODULE SYNT_data_module
 
   CHARACTER (LEN=maxchlen)            :: synt_db
   CHARACTER (LEN=3)                   :: synt_num
-  CHARACTER (LEN=10)                   :: synt_date
+  CHARACTER (LEN=10)                  :: synt_date
 
   !REAL :: omps_sunearth
 
 !!-----------------------
 !! Array for processed geolocation dataset
 !!-----------------------
- TYPE geo_group
- REAL (KIND=r8), DIMENSION (:)  , POINTER    :: time
- REAL (KIND=r8), DIMENSION (:,:), POINTER    :: lon, lat, ctp, height
- REAL (KIND=r8), DIMENSION (:,:), POINTER    :: sza, vza, aza,sca
- REAL (KIND=r8), DIMENSION (:,:), POINTER    :: saz, vaz
- REAL (KIND=r8), DIMENSION (:,:), POINTER    :: clat,clon
- REAL (KIND=r8), DIMENSION (:,:), POINTER    :: elat,elon
- REAL (KIND=r8), DIMENSION (:,:), POINTER    :: groundqflg
- END TYPE geo_group
- TYPE (geo_group) :: synt_geo
+  TYPE geo_group
+  REAL (KIND=r8), DIMENSION (:)  , POINTER    :: time
+  REAL (KIND=r8), DIMENSION (:,:), POINTER    :: lon, lat, ctp, height
+  REAL (KIND=r8), DIMENSION (:,:), POINTER    :: sza, vza, aza,sca
+  REAL (KIND=r8), DIMENSION (:,:), POINTER    :: saz, vaz
+  REAL (KIND=r8), DIMENSION (:,:), POINTER    :: clat,clon
+  REAL (KIND=r8), DIMENSION (:,:), POINTER    :: elat,elon
+  REAL (KIND=r8), DIMENSION (:,:), POINTER    :: groundqflg
+  END TYPE geo_group
+  TYPE (geo_group) :: synt_geo
 
 
   !! ------------------------------------------------------------
@@ -81,25 +81,25 @@ MODULE SYNT_data_module
   !TYPE (IRRAD_GROUP) :: omps_irrad
 
   TYPE RAD_GROUP
-     !INTEGER :: nxtrack, nwavel
-     !INTEGER (KIND=2), POINTER, DIMENSION (:)        :: mqflg
-     !INTEGER, DIMENSION(nxtrack_max, nytrack_max) :: nwav,errstat
-     !INTEGER, DIMENSION(max_fit_pts, 10, nytrack_max) :: qflg
-     !INTEGER (KINd=2), DIMENSION(max_fit_pts,10,nytrack_max) :: wind
-     !INTEGER, DIMENSION (maxwin, nxtrack_max,nytrack_max) :: npix
-     !REAL (KIND=8), DIMENSION(nxtrack_max, nytrack_max) :: norm
-     !REAL (KIND=8), DIMENSION(maxwin, nxtrack_max,nytrack_max,2) :: winpix
-     !REAL,    DIMENSION(max_fit_pts, nxtrack_max, nytrack_max):: spec, prec, wavl,stray,smear   
+    !INTEGER :: nxtrack, nwavel
+    !INTEGER (KIND=2), POINTER, DIMENSION (:)        :: mqflg
+    !INTEGER, DIMENSION(nxtrack_max, nytrack_max) :: nwav,errstat
+    !INTEGER, DIMENSION(max_fit_pts, 10, nytrack_max) :: qflg
+    !INTEGER (KINd=2), DIMENSION(max_fit_pts,10,nytrack_max) :: wind
+    !INTEGER, DIMENSION (maxwin, nxtrack_max,nytrack_max) :: npix
+    !REAL (KIND=8), DIMENSION(nxtrack_max, nytrack_max) :: norm
+    !REAL (KIND=8), DIMENSION(maxwin, nxtrack_max,nytrack_max,2) :: winpix
+    !REAL,    DIMENSION(max_fit_pts, nxtrack_max, nytrack_max):: spec, prec, wavl,stray,smear   
 
-     INTEGER (KIND=2), POINTER, DIMENSION (:)       :: mqflg
-     INTEGER,          POINTER, DIMENSION (:, :)    :: nwav,errstat
-     INTEGER,          POINTER, DIMENSION (:, :, :) :: qflg
-     INTEGER (KINd=2), POINTER, DIMENSION (:,:,:)   :: wind
-     INTEGER,          POINTER, DIMENSION (:, :,:)  :: npix
-     REAL (KIND=8),    POINTER, DIMENSION (:, :)    :: norm
-     REAL (KIND=8),    POINTER, DIMENSION (:,:,:,:) :: winpix
-     REAL,             POINTER, DIMENSION (:, :, :) :: spec, prec, wavl,stray,smear   
-     !INTEGER (KIND=i8)                               :: nxtrack, nwavel   : geun closed
+    INTEGER (KIND=2), POINTER, DIMENSION (:)       :: mqflg
+    INTEGER,          POINTER, DIMENSION (:, :)    :: nwav,errstat
+    INTEGER,          POINTER, DIMENSION (:, :, :) :: qflg
+    INTEGER (KINd=2), POINTER, DIMENSION (:,:,:)   :: wind
+    INTEGER,          POINTER, DIMENSION (:, :,:)  :: npix
+    REAL (KIND=8),    POINTER, DIMENSION (:, :)    :: norm
+    REAL (KIND=8),    POINTER, DIMENSION (:,:,:,:) :: winpix
+    REAL,             POINTER, DIMENSION (:, :, :) :: spec, prec, wavl,stray,smear   
+    !INTEGER (KIND=i8)                               :: nxtrack, nwavel   : geun closed
   END TYPE RAD_GROUP
   TYPE (RAD_GROUP) :: synt_rad
 
@@ -170,9 +170,9 @@ MODULE SYNT_data_module
 
   CONTAINS
   SUBROUTINE allocate_synt_raddata (nx, ny, nw, max_fit_pts, maxwin, status)
-  IMPLICIT NONE
-   INTEGER, INTENT(IN) :: nx, ny, nw, max_fit_pts, maxwin
-   INTEGER, INTENT(OUT) :: status
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: nx, ny, nw, max_fit_pts, maxwin
+    INTEGER, INTENT(OUT) :: status
 
 !!-----------------------
 !! Array for radiance dataset
@@ -287,7 +287,6 @@ MODULE SYNT_data_module
 
    !IF (ASSOCIATED (omps_smear_corr)) DEALLOCATE (omps_smear_corr)
    !ALLOCATE (omps_smear_corr(nw, nx, ny), stat=status); IF (status .ne. 0 ) GOTO 111
-
 
    IF (ASSOCIATED (synt_latitude)) DEALLOCATE (synt_latitude)
    ALLOCATE (synt_latitude(nx, ny), stat=status); IF (status .ne. 0 ) GOTO 111

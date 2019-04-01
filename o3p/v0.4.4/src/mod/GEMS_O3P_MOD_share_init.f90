@@ -57,6 +57,7 @@ SUBROUTINE GEMS_O3P_MOD_share_init(retCode)
     !
     !--------  GEMS Share: Global Variables  --------- 
     !
+    stop
     CALL GEMS_Share_Init_GlobalConstants
 !    CALL GEMS_Share_Init_L2O3P_GlobalConstants
 

@@ -39,9 +39,15 @@ if [ ! ${FLAVOR} ]; then
    fi
 fi
 
+
+export O3P_VER=v0.4.4
+
 export PGEVERSION=$O3P_VER
 export PGEHOME=$O3P_HOME/$O3P_VER
 export LIDORTHOME=$O3P_HOME/share/lidort
+export PATH=$PATH0  # initialize $PATH
+export PATH=$PATH:$O3P_HOME/$O3P_VER/run
+export PATH=$PATH:/opt/hdf/h4h5tools-2.2.2-linux-static/bin:$O3P_HOME/$O3P_VER/bin:.
 
 export SHARE_HOME=$GEMS_HOME/share
 export OMIUTIL=$SHARE_HOME/extlib
@@ -57,7 +63,7 @@ source $OMIUTIL/toolkit/bin/linux64/pgs-dev-env.ksh
 export MACHINE=`uname -a | awk "{print $2}"`
 
 # Environment variables for this program/project
-export SAOPGE=GEMS_O3P
+export SAOPGE=SYNT_O3P
 export PGEIODIR=$PGEHOME/out
 export PGSMSG=$PGEHOME/msg
 export MKFDIR=$PGEHOME/make

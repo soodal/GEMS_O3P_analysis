@@ -149,8 +149,8 @@ ENDIF
     gds_L2O3P%o3p_gfld%ViewZenAng(the_x,the_y)  =  gems_vza  (currpix, currloop)
     gds_L2O3P%o3p_gfld%RelAziAng(the_x,the_y)   =  gems_aza  (currpix, currloop)
     gds_L2O3P%o3p_gfld%Time(the_y)              =  gems_time (currloop)
-    gds_L2O3P%o3p_gfld%Pix(the_x,the_y)     =  the_x    ! geun
-    gds_L2O3P%o3p_gfld%Line(the_x,the_y)    =  the_y    ! geun
+    gds_L2O3P%o3p_gfld%Pix_tmp(the_x,the_y)     =  the_x    ! geun
+    gds_L2O3P%o3p_gfld%Line_tmp(the_x,the_y)    =  the_y    ! geun
 
     if (exval <= -9) RETURN
 

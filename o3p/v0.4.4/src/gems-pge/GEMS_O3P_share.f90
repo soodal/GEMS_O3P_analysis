@@ -191,7 +191,7 @@ SUBROUTINE Gems_o3p_share_l2_cld (nx, ny, gems_cfr, gems_ctp, gems_qflag)
   ! ================
   ! Local variables
   ! ================
-   CHARACTER(LEN=LPATH_SZ)    :: ctl_fpath
+   CHARACTER(LEN=128)    :: ctl_fpath
    TYPE(CLD_ds)          :: CLDds
 !  TYPE(L2_cld)          :: L2CLD      ! For GEMS L2 CLD
    TYPE(OMI_L2CLD)       :: L2CLD       ! For OMI L2 CLD

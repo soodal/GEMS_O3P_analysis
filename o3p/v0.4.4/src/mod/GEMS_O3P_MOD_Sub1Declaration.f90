@@ -51,7 +51,5 @@ SUBROUTINE GEMS_O3P_SUB1_Declaration(retCode)
         retCode = errCode
         RETURN
     END IF
-    retCode = errCode
-    RETURN
-END SUBROUTINE GEMS_O3P_SUB1_Declaration
+END SUBROUTINE
 END MODULE O3P_MOD_Declaration

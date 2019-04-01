@@ -11,8 +11,8 @@ INTEGER (KIND=i4)         :: orbnum, orbnumsol !, gemssol_version
 
 
 ! Define Data Maximum Dimension
-INTEGER (KIND=i4), PARAMETER :: ntimes_max= 2000, nxtrack_max  = 60, nwavel_max  = 720   ! ntimes_max 1645 -> 2000 geun mod
-INTEGER (KIND=i4), PARAMETER :: mchannel=2 ! # of maximum channel , mswath
+INTEGER (KIND=i4), PARAMETER :: ntimes_max= 899, nxtrack_max  = 30, nwavel_max  = 1001   ! ntimes_max 1645 -> 2000 geun mod
+INTEGER (KIND=i4), PARAMETER :: mchannel=1 ! # of maximum channel , mswath
 INTEGER :: nchannel, nxtrack, nfxtrack, ntimes  !nfxtrack = nxtrakc for UV1 if selected
 INTEGER, DIMENSION (mchannel):: chs
 INTEGER :: nxbin, nybin, ncoadd,first_pix, last_pix, first_line, last_line, offline, gems_nx, gems_ny
@@ -25,8 +25,8 @@ LOGICAL :: do_xbin, do_ybin
 
 ! Boundary wavelengths (approximate) for UV-2 and VIS channels
 ! ------------------------------------------------------------
-REAL (KIND=r4), DIMENSION(mchannel),  PARAMETER :: upper_wvls = (/310.0, 387.0/), &
-                                                   lower_wvls = (/260.0, 310.0/)
+REAL (KIND=r4), DIMENSION(mchannel),  PARAMETER :: upper_wvls = (/500.0/), &
+                                                   lower_wvls = (/299.0/)
 REAL (KIND=dp), DIMENSION(mchannel)             :: reduce_ubnd, reduce_lbnd, retubnd, retlbnd
 
 

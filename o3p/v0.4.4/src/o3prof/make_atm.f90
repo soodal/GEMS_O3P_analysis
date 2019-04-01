@@ -32,7 +32,7 @@
 !  a larger number, and may also need to increase nref to a larger number.
 
 SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,                       &
-     ctp, numk, toz, spres, tpres, atmosprof, ozprof, nup2p, sacldscl, nbatm, nold, errstat)  ! nbatm, nold added : geun
+     ctp, numk, toz, spres, tpres, atmosprof, ozprof, nup2p, sacldscl, errstat)  ! nbatm, nold added : geun
   
   USE OMSAO_precision_module
   USE OMSAO_parameters_module, ONLY: p0, boltz, xmair, accgrav, ugc, avo, rearth, du2mol
@@ -47,8 +47,7 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,                      
        ngas, the_cld_flg, tracegas, maxlay, use_reg_presgrid, presgrid_fname,                 &
        adjust_trop_layer, fixed_ptrop, ntp0, pst0, nsfc, nfsfc, use_tropopause,               &
        scaled_aod, scale_aod, ngksec,  maxgksec, do_simu, radcalwrt, which_toz, norm_tropo3,  &
-       so2zind, so2vprofn1p1, so2valts, atmos_unit, ozone_above60km, pv811, trpz,             &    !geun
-       which_tprof, which_sfct   
+       so2zind, so2vprofn1p1, so2valts, atmos_unit, ozone_above60km, pv811, trpz
 
   USE OMSAO_errstat_module
   IMPLICIT NONE
@@ -56,12 +55,12 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,                      
   ! xliu:, 03/08/2011
   ! Switch from using 17 2.5x2 NCEP Reanalysis temperture to 26 level 1x1 NCEP FNL data
   !INTEGER, PARAMETER :: nv8=11, nold=28, nlecm=22, nref=71, nmpref=61, nmipas=121
-  INTEGER, PARAMETER :: nv8=11, nlecm=31, nref=71, nmpref=61, nmipas=121 ! remove nlfnl, nold : geun
+  INTEGER, PARAMETER :: nv8=11, nlfnl=26, nlecm=31, nold=nlecm+6, nref=71, nmpref=61, nmipas=121
   
   ! Input variables
-  INTEGER, INTENT(IN)          :: year, month, day, ndiv, numk, nbatm, nold ! nbatm, nold added : geun 
+  INTEGER, INTENT(IN)          :: year, month, day, ndiv, numk
   INTEGER, INTENT(OUT)         :: errstat
-  REAL (KIND=dp), INTENT(INOUT)   :: tauc, cfrac
+  REAL (KIND=dp), INTENT(INOUT):: tauc, cfrac
   REAL (KIND=dp), INTENT(INOUT):: ctp, toz, spres, tpres
   
   ! Output variables
@@ -87,14 +86,13 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,                      
 !  REAL (KIND=dp), DIMENSION (0:nold), PARAMETER :: told0 = (/288.2, 287.5, 283.3, 278.7, &
 !       268.6, 261., 252., 241.4, 228.6, 223.1, 220.5, 216.5, 216.6, 216.6, 216.6, 220.5,  &
 !       223.1, 227.7, 232.4, 239.3, 249.5, 257.9, 271.3, 270.7, 260.8, 250., 247.0, 242., 236.0/)
-  !REAL (KIND=dp), DIMENSION (0:nold), PARAMETER :: pold0 = (/1013.25, 1000., 975., 950., 925., 900., 850., &
-       !800., 750., 700., 650., 600., 550., 500., 450., 400., 350., 300., 250., 200., 150., 100., 70., 50., &
-       !30., 20., 10., 7., 5., 3., 2., 1., 0.70, 0.35, 0.25, 0.175, 0.125, 0.0874604/)
-  !REAL (KIND=dp), DIMENSION (0:nold), PARAMETER :: told0 = (/288.2, 287.5, 286.1, 284.7, 283.2, 281.8, &
-       !278.7, 275.5, 272.2, 268.6, 264.8, 260.8, 256.6, 251.9, 246.9, 241.4, 235.4, 228.6, 220.5, &
-       !216.5, 216.7, 216.7, 216.7, 217.2, 220.5, 223.1, 227.7, 232.4, 239.3, 249.5, 257.9, 271.3, &
-       !269.3, 256.8, 249.7, 242.5, 235.9, 229.1/)
-  REAL (KIND=dp), DIMENSION (0:nold)         :: told0, pold0 ! geun
+  REAL (KIND=dp), DIMENSION (0:nold), PARAMETER :: pold0 = (/1013.25, 1000., 975., 950., 925., 900., 850., &
+       800., 750., 700., 650., 600., 550., 500., 450., 400., 350., 300., 250., 200., 150., 100., 70., 50., &
+       30., 20., 10., 7., 5., 3., 2., 1., 0.70, 0.35, 0.25, 0.175, 0.125, 0.0874604/)
+  REAL (KIND=dp), DIMENSION (0:nold), PARAMETER :: told0 = (/288.2, 287.5, 286.1, 284.7, 283.2, 281.8, &
+       278.7, 275.5, 272.2, 268.6, 264.8, 260.8, 256.6, 251.9, 246.9, 241.4, 235.4, 228.6, 220.5, &
+       216.5, 216.7, 216.7, 216.7, 217.2, 220.5, 223.1, 227.7, 232.4, 239.3, 249.5, 257.9, 271.3, &
+       269.3, 256.8, 249.7, 242.5, 235.9, 229.1/)
 
   REAL (KIND=dp), DIMENSION (0:nold)         :: pold, told, zold
   REAL (KIND=dp), DIMENSION (1:nmipas)       :: mipasp, mipast, mipaso3
@@ -112,9 +110,6 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,                      
   REAL (KIND=dp), DIMENSION (0:nv8), SAVE    :: pv80
   REAL (KIND=dp), DIMENSION (0:maxlay), SAVE :: umkp0, umkz0
 
-  INTEGER :: nlat_atm, nlon_atm, nl_atm  !geun
-  REAL (KIND=dp) :: longrid_atm, latgrid_atm !geun
-
   LOGICAL :: use_input_spres = .TRUE., fixed_temp = .FALSE.
 
   !xliu, 09/23/05, indicator for a layer if it is above a cloud or not
@@ -128,23 +123,6 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,                      
 
   errstat = pge_errstat_ok
   
-  IF (which_tprof == 0 .OR. which_tprof == 1) THEN  !geun 
-    pold0 = (/1013.25, 1000., 975., 950., 925., 900., 850., &
-              800., 750., 700., 650., 600., 550., 500., 450., 400., 350., 300., 250., 200., 150., 100., 70., 50., &
-              30., 20., 10., 7., 5., 3., 2., 1., 0.70, 0.35, 0.25, 0.175, 0.125, 0.0874604/)
-    told0 = (/288.2, 287.5, 286.1, 284.7, 283.2, 281.8, &
-              278.7, 275.5, 272.2, 268.6, 264.8, 260.8, 256.6, 251.9, 246.9, 241.4, 235.4, 228.6, 220.5, &
-              216.5, 216.7, 216.7, 216.7, 217.2, 220.5, 223.1, 227.7, 232.4, 239.3, 249.5, 257.9, 271.3, &
-              269.3, 256.8, 249.7, 242.5, 235.9, 229.1/)
-  ELSEIF (which_tprof == 2) THEN
-    pold0 = (/1013.25, 1000., 950., 925., 850., &
-              700., 600., 500., 400., 300., 250., 200., 150., 100., 70., 50., &
-              30., 20., 10., 7., 5., 3., 2., 1., 0.50, 0.40, 0.25, 0.175, 0.125, 0.0874604/)
-    told0 = (/288.2, 287.5, 284.7, 283.2, 278.7,   &
-              268.6, 260.8, 251.9, 241.4, 228.6, 220.5, 216.5, 216.7, 216.7, 216.7, 217.2, &
-              220.5, 223.1, 227.7, 232.4, 239.3, 249.5, 257.9, 271.3, 269.3, 256.8, 249.7, 242.5, 235.9, 229.1/)
-  ENDIF !geun
-
   ! pressure grid for temperature profile
   pold = pold0; pold(nold) = p0 * 2.0D0 ** (-13.5D0) 
  
@@ -155,36 +133,20 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,                      
   ! So need to merge NCEP FNL and ECMWF data from different spatial grid
   ! Get temperature profiles
 ! CALL GET_NCEPT(year, month, day, the_lon, the_lat, told(1:nlecm))
- 
-  IF (which_tprof == 0 .OR. which_tprof == 1) THEN  ! geun
-    nlat_atm = 180  ;  nlon_atm = 360   ; nl_atm = 26
-    longrid_atm = 1.0  ;  latgrid_atm = 1.0
-  ELSE IF (which_tprof == 2) THEN
-    nlat_atm = 769  ;  nlon_atm = 1024  ; nl_atm = 25
-    longrid_atm = 0.351562  ;  latgrid_atm = 0.234375
-  ENDIF  ! geun
-
-  CALL GET_NCEPFNLT(year, month, day, the_lon, the_lat, told(1:nbatm), nlon_atm, nlat_atm, nl_atm, longrid_atm, latgrid_atm)
-  IF (which_tprof == 0 .OR. which_tprof == 1) CALL GET_ECMWFAVGT(month, day, the_lon, the_lat, told(nbatm+1:nlecm))  !geun
+print*,'make_atm started!!' 
+  CALL GET_NCEPFNLT(year, month, day, the_lon, the_lat, told(1:nlfnl))
+  CALL GET_ECMWFAVGT(month, day, the_lon, the_lat, told(nlfnl+1:nlecm))
 
   IF (ALL(told(1:nlecm) == 0.0)) told = told0
  
   ! Use TOMS V8 temperature climatology for 0.70, 0.35 mb 
-  
-  IF (which_tprof == 0 .OR. which_tprof == 1 ) THEN !geun
-    CALL GET_V8TEMP(month, day, the_lat, v8temp)
-    told(nlecm+1) = v8temp(10); told(nlecm+2) = v8temp(11)
+  CALL GET_V8TEMP(month, day, the_lat, v8temp)
+  told(nlecm+1) = v8temp(10); told(nlecm+2) = v8temp(11)
 
-    ! Use MIPAS Temperature cimatology for the upper 4 layers)
-    CALL GET_MIPASIG2T(month, day, the_lat, mipasp, mipast)
-    mipasp = LOG(mipasp); ptemp = LOG(pold(nlecm+3:nlecm+6))
-    CALL BSPLINE(mipasp, mipast, nmipas, ptemp, told(nlecm+3:nlecm+6), 4, errstat)
-  ELSEIF (which_tprof == 2) THEN
-    ! Use MIPAS Temperature cimatology for the upper 4 layers)
-    CALL GET_MIPASIG2T(month, day, the_lat, mipasp, mipast)
-    mipasp = LOG(mipasp); ptemp = LOG(pold(nbatm+1:nbatm+4))
-    CALL BSPLINE(mipasp, mipast, nmipas, ptemp, told(nbatm+1:nbatm+4), 4, errstat)
-  ENDIF ! geun
+  ! Use MIPAS Temperature cimatology for the upper 4 layers)
+  CALL GET_MIPASIG2T(month, day, the_lat, mipasp, mipast)
+  mipasp = LOG(mipasp); ptemp = LOG(pold(nlecm+3:nlecm+6))
+  CALL BSPLINE(mipasp, mipast, nmipas, ptemp, told(nlecm+3:nlecm+6), 4, errstat)
 
   IF (errstat < 0) THEN
      WRITE(*, *) modulename, ': BSPLINE error, errstat = ', errstat
@@ -192,17 +154,8 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,                      
   ENDIF
   if (fixed_temp) told = told0
 
-  IF (which_sfct == 0 .OR. which_sfct == 1) THEN  ! geun
-    nlat_atm = 180  ;  nlon_atm = 360  
-    longrid_atm = 1.0  ;  latgrid_atm = 1.0
-  ELSE IF (which_sfct == 2) THEN
-    nlat_atm = 769  ;  nlon_atm = 1024 
-    longrid_atm = 0.351562  ;  latgrid_atm = 0.234375
-  ENDIF  ! geun
-
   ! xliu, 03/09/11, get surface temperature
-  CALL GET_SFCT(year, month, day, the_lon, the_lat, sfct, nlon_atm, nlat_atm, longrid_atm, latgrid_atm)
-
+  CALL GET_SFCT(year, month, day, the_lon, the_lat, sfct)
   ! xliu (12/05/2006): Change from 7 K / 90 mb to 5.65 K / 100 mb (~6.5 K / km)
   !told(0) = told(1) + (pold(0) - pold(1)) / 100.0 * 5.65
   ! xliu (08/17/2008): Use extrapolation 

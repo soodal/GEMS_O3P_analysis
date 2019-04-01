@@ -80,12 +80,16 @@ SUBROUTINE GEMS_Share_MOD_MPI_Start(myrank, nprocs, retCode)
     INTEGER(KIND=4)             :: errCode = 0
     INTEGER(KIND=4)             :: i, j
 
+print*,'MPI START Done'
     !-------------------------------------------------------------------------
     !-------- . MPI Start
     !-------------------------------------------------------------------------
     call MPI_INIT(errCode)
+print*,'MPI INIT Done'
     call MPI_COMM_SIZE(MPI_COMM_WORLD, gci_nprocs, errCode)
+print*,'MPI COMM SIZE Done'
     call MPI_COMM_RANK(MPI_COMM_WORLD, myrank, errCode)
+print*,'MPI COMM Rank Done'
     IF( errCode /= 0 ) THEN
         PRINT*, 'Error !!! [', errCode, ']'
         retCode = errCode

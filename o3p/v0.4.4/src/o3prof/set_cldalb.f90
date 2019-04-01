@@ -55,11 +55,14 @@ SUBROUTINE SET_CLDALB(npoints, fitwavs, ctau, ctp, cfrac, salbedo, pge_error_sta
   ELSE IF (which_alb == 4) THEN
      CALL GET_OMLER_ALB(the_month, the_day, edgelons, edgelats, albedo)
      albarr(:) = albedo
+  ELSE IF (which_alb == 5) THEN
+    CALL GET_SYNT_ALB(albedo)
+    albarr(:) = albedo
   ELSE
      WRITE(*, *) 'Albedo database: not implemented!!!'
      pge_error_status = pge_errstat_error; RETURN
   ENDIF
-  
+
   ! get initial albedo
   IF (ctp > 0.0) THEN
      noalb = .TRUE.
@@ -167,22 +170,22 @@ SUBROUTINE SET_CLDALB(npoints, fitwavs, ctau, ctp, cfrac, salbedo, pge_error_sta
  
   hasalb = 0
   DO i = 1, nalb 
-     j = albidx + i -1
-     albfpix(i)= MINVAL(MINLOC(fitwavs(1:npoints), MASK=(fitwavs(1:npoints) &
-          >= albmin(i) .AND. fitwavs(1:npoints) < albmax(i)))) 
-     alblpix(i)= MINVAL(MAXLOC(fitwavs(1:npoints), MASK=(fitwavs(1:npoints) &
-          >= albmin(i) .AND. fitwavs(1:npoints) < albmax(i)))) 
-     IF (fitvar_rad_str(j)(4:4) == '0') then 
-          hasalb(albfpix(i):alblpix(i)) = hasalb(albfpix(i):alblpix(i)) + 1
-     endif
+    j = albidx + i -1
+    albfpix(i)= MINVAL(MINLOC(fitwavs(1:npoints), MASK=(fitwavs(1:npoints) &
+                >= albmin(i) .AND. fitwavs(1:npoints) < albmax(i)))) 
+    alblpix(i)= MINVAL(MAXLOC(fitwavs(1:npoints), MASK=(fitwavs(1:npoints) &
+                >= albmin(i) .AND. fitwavs(1:npoints) < albmax(i)))) 
+    IF (fitvar_rad_str(j)(4:4) == '0') then 
+      hasalb(albfpix(i):alblpix(i)) = hasalb(albfpix(i):alblpix(i)) + 1
+    endif
   ENDDO
   IF (ANY(hasalb(1:npoints) == 0)) THEN
-     WRITE(*, *) 'Albedo is not specified for all wavelengths!!!'
-       print *, fitwavs(albfpix(2)), fitwavs(alblpix(2)) 
-     pge_error_status = pge_errstat_error; RETURN
+    WRITE(*, *) 'Albedo is not specified for all wavelengths!!!'
+    print *, fitwavs(albfpix(2)), fitwavs(alblpix(2)) 
+    pge_error_status = pge_errstat_error; RETURN
   ELSE IF (ANY(hasalb(1:npoints) > 1)) THEN
-     WRITE(*, *) 'Multiple albedos are specified for some wavelengths!!!'
-     pge_error_status = pge_errstat_error; RETURN
+    WRITE(*, *) 'Multiple albedos are specified for some wavelengths!!!'
+    pge_error_status = pge_errstat_error; RETURN
   ENDIF
   !DO i = 1, nalb
   !   j = albidx +i - 1

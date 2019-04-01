@@ -37,8 +37,7 @@ SUBROUTINE read_ozprof_input (fit_ctrl_unit, fit_ctrl_file, pge_error_status )
        wfcidx, wfcfidx, so2zind, so2zfind, do_bothstep, do_twostep, &
        use_large_so2_aperr, use_effcrs, radc_msegsr, radc_nsegsr, radc_samprate,&
        radc_lambnd, hres_samprate, thealbidx, thewfcidx, do_simu_rmring,        &
-       update_o3, update_sao3,                                                 &
-       which_tpres, which_spres, which_sfct, which_tprof    ! added atm option by geun
+       update_o3, update_sao3
        
   USE OMSAO_parameters_module,   ONLY: maxlay,  maxchlen, maxwin         
   USE OMSAO_indices_module,      ONLY: max_rs_idx,  max_calfit_idx, mxs_idx,   &
@@ -207,7 +206,7 @@ SUBROUTINE read_ozprof_input (fit_ctrl_unit, fit_ctrl_file, pge_error_status )
   READ (fit_ctrl_unit, *) norm_tropo3
   READ (fit_ctrl_unit, *) which_alb
 
-  IF (which_alb > 4) THEN
+  IF (which_alb > 5) THEN
      WRITE(*, *) modulename, ' No such albedo database!!!'
      pge_error_status = pge_errstat_error; RETURN
   ENDIF
@@ -218,31 +217,6 @@ SUBROUTINE read_ozprof_input (fit_ctrl_unit, fit_ctrl_file, pge_error_status )
      pge_error_status = pge_errstat_error; RETURN
   ENDIF
 
-! geun added --------------------------------------------
-  READ(fit_ctrl_unit, *) which_tpres
-  IF (which_tpres > 3) then                          ! added tpres data option by geun
-    WRITE(*,*) modulename, 'No such tpres option !!!'
-    pge_error_status = pge_errstat_error; return
-  ENDIF
-
-  READ(fit_ctrl_unit, *) which_spres
-  IF (which_spres > 2) then
-    WRITE(*,*) modulename, 'No such spres option !!!'
-    pge_error_status = pge_errstat_error; return
-  ENDIF
-
-  READ(fit_ctrl_unit, *) which_sfct
-  IF (which_sfct > 2) then
-    WRITE(*,*) modulename, 'No such sfct option !!!'
-    pge_error_status = pge_errstat_error; return
-  ENDIF
-
-  READ(fit_ctrl_unit, *) which_tprof
-  IF (which_tprof > 2) then
-    WRITE(*,*) modulename, 'No such tprof option !!!'
-    pge_error_status = pge_errstat_error; return
-  ENDIF
-! ------------------------------------------- geun added
  
   READ (fit_ctrl_unit, *) aerosol, strat_aerosol
   IF( aerosol ) print *,'aerosol is considered !!!' 

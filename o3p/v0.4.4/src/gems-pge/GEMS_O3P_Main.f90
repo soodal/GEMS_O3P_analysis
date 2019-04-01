@@ -132,11 +132,11 @@ PROGRAM GEMS_O3P_Main
     !-------- 1. Global Variable Declaration                      ------------ 
     !-------------------------------------------------------------------------
     ! 공통 모듈 사용을 위한 초기화 작업
-    CALL GEMS_O3P_SUB1_Declaration(errCode)
-    IF( errCode /= 0 ) THEN
-        str_attr = "Program Declaration Error!!!"
-        GOTO 2999
-    ENDIF
+    !CALL GEMS_O3P_SUB1_Declaration(errCode)
+    !IF( errCode /= 0 ) THEN
+        !str_attr = "Program Declaration Error!!!"
+        !GOTO 2999
+    !ENDIF
     !-------------------------------------------------------------------------
     !-------- 2. Input Processing                                 ------------ 
     !-------------------------------------------------------------------------
@@ -145,9 +145,9 @@ PROGRAM GEMS_O3P_Main
     !3. 공통모듈로부터 위성자료 읽음
     !4. o3p 알고리즘 변수 할당
     !5. irradiance 자료처리 (valid subset for o3 fitting window, coadding process)
-    CALL GEMS_O3P_SUB2_Proc_Input(fit_ctrl_file, errCode)
+    CALL SYNT_O3P_SUB2_Proc_Input(fit_ctrl_file, errCode)
     IF ( errCode /= 0 ) GOTO 1999
-
+stop
     !-------------------------------------------------------------------------
     !-------- 3. Irrad_Cross_Calibrate
     !-------------------------------------------------------------------------

@@ -19,7 +19,7 @@ MODULE O3P_MOD_Input
  USE OMSAO_parameters_module,     ONLY:maxchlen
  USE GEMS_O3P_gemsdata_module,    ONLY: do_xbin, do_ybin, nxbin, nybin,  ncoadd, nxtrack, &
                                         gems_ny,gems_nx, ntimes , allocate_o3p_var
- USE OMSAO_variables_module,      ONLY:pixnum_lim, linenum_lim, coadd_uv2
+ USE OMSAO_variables_module,      ONLY:pixnum_lim, linenum_lim
 !**********************************************************!
  IMPLICIT NONE
 
@@ -73,7 +73,9 @@ SUBROUTINE GEMS_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
     !
     !--
     !
+
     WRITE(*,'(A)') ' => Reading GEMS l1b Data from GEMS SHARE MODULE'
+
    ! Allocate & initialize gemsdata variables from gems share module
     CALL gems_o3p_share_l1b (pge_error_status)
     If (pge_error_status >= pge_errstat_error)  THEN
@@ -109,18 +111,6 @@ SUBROUTINE GEMS_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
       nybin = 1
     ENDIF
 
-    ! check pixnum_lim
-    ! check for selected across track position (must start from odd positions)
-    IF (coadd_uv2)  THEN
-     i = pixnum_lim(2)-pixnum_lim(1) + 1
-     IF ( MOD(pixnum_lim(1), ncoadd) /= 1 .OR. MOD(i, ncoadd) /= 0 ) THEN
-        WRITE(*, '(A,2I4)') 'Incorrect across track positions to be coadded: ',pixnum_lim(1:2)
-        pge_error_status = pge_errstat_error; RETURN
-     ENDIF
-     ! pixnum_lim for UV2
-     pixnum_lim = CEILING(1.0 * pixnum_lim / ncoadd)  !nint
-     ! pixnum_lim for Uv1 if ncoadd = 2
-    ENDIF
 
    ! must divide and must start from odd coadded positions
    IF (do_xbin .AND. nxbin > 1) THEN

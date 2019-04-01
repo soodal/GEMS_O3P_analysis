@@ -38,7 +38,7 @@ SUBROUTINE omi_write_intermed (founit, fitcol, dfitcol, rms, exval )
   USE OMSAO_parameters_module, ONLY: maxloc, maxwin,max_fit_pts
   USE OMSAO_indices_module,    ONLY: ring_idx, shi_idx, squ_idx,&
        wvl_idx, spc_idx, sig_idx, hwe_idx, hwr_idx, vgr_idx, vgl_idx,  &
-       asy_idx, hwl_idx, ops_idx
+       asy_idx, hwl_idx
   USE ozprof_data_module,      ONLY: ozprof, ozprof_std, ozprof_init, &
        ozprof_ap, ozprof_apstd, eff_alb, eff_alb_init, nlay, ozdfs, ozinfo, num_iter, &
        covar, contri, avg_kernel, use_lograd, use_oe, nalb, atmosprof, ntp, nlay_fit, &
@@ -83,6 +83,7 @@ SUBROUTINE omi_write_intermed (founit, fitcol, dfitcol, rms, exval )
   !REAL (KIND=dp), DIMENSION (n_rad_wvl)    :: simrad
   
   WRITE(founit, '(A11,2I5,1X,A28)') 'Line/XPix: ',curr_y, curr_x, the_utc
+
   DO i = 1, nloc
      latlon(2*i-1) = the_lats(i); latlon(2*i) = the_lons(i)
   END DO

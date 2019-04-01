@@ -102,7 +102,7 @@ PROGRAM SYNT_O3P_Main
   IF( errCode /= 0 ) THEN
       str_attr = 'MPI Start Error!!!' ; GOTO 2999
   ENDIF
-
+print*,'##GEMS_Share_MOD_MPI_Start End##'
  !-------------------------------------------------------------------------
  !-------- O3P MAIN PROGRAM Start                            ------------ 
  !-------------------------------------------------------------------------
@@ -199,6 +199,8 @@ PROGRAM SYNT_O3P_Main
         print*, "O3 Fitting Error !!! "
         GOTO 1999  
     ENDIF
+print*,'GEMS_O3P_SUB4_fitting_process DONE STOPPED.'
+stop
     !-------------------------------------------------------------------------
     !-------- . MPI Processing
     !-------------------------------------------------------------------------
@@ -339,7 +341,7 @@ SUBROUTINE  Assign_mpi_line  (myrank,nprocs,linelim, mpi_line, mpi_line_out)
     mpi_line_out(i,1) = line1 + INT(offline/nybin) 
     mpi_line_out(i,2) = line2 + INT(offline/nybin)
     IF (myrank == 0 ) THEN 
-        WRITE(*,'(A10,i5,i5,"]",A10,i5,i5,"]")') 'ORI_LINE[', mpi_line(i,:), 'SAVE_LINE:[',mpi_line_out(i,:)
+        WRITE(*,'(A10,"[",i5,i5,"]",A10,"[",i5,i5,"]")') 'ORI_LINE', mpi_line(i,:), ' SAVE_LINE:[',mpi_line_out(i,:)
     ENDIF
     line1 = line2 + 1
  ENDDO

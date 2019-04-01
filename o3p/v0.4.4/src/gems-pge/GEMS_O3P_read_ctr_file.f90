@@ -40,10 +40,10 @@ SUBROUTINE gems_o3p_read_ctr_file (fit_ctrl_unit, fit_ctrl_file,  pge_error_stat
        outdir, atmdbdir, refdbdir, &
        reduce_resolution,reduce_slit, redsampr, redlam, redfixwav,use_redfixwav,redfixwav_fname,nredfixwav, &
        rm_mgline,numwin, do_bandavg,wcal_bef_coadd,band_selectors,  n_band_avg, n_band_samp,& 
-       winlim,winwav_min, winwav_max, coadd_uv2, &   
+       winlim,winwav_min, winwav_max, &   
        have_amftable,have_undersampling,   &
        scnwrt, database_indices, radnhtrunc, refnhextra, & 
-       pixnum_lim, linenum_lim,  l1b_rad_filename,l1b_irrad_filename,l2_cld_filename, l2_filename
+       pixnum_lim, linenum_lim,  l1b_rad_filename,l1b_irrad_filename,l2_cld_filename, l2_filename, geo_nc_filename
        
   USE OMSAO_errstat_module
   USE GEMS_O3P_gemsdata_module, ONLY: mchannel, nchannel,  ncoadd, gems_redslw, &
@@ -235,7 +235,7 @@ SUBROUTINE gems_o3p_read_ctr_file (fit_ctrl_unit, fit_ctrl_file,  pge_error_stat
         WRITE(*, *) 'No such bands exist !!!'
         pge_error_status = pge_errstat_error; RETURN
      ENDIF
-     
+    
      IF (numwin > 1) THEN
         IF (winlim(i, 1) < lower_wvls(band_selectors(i)) .OR. winlim(i, 2) > upper_wvls(band_selectors(i))) THEN
            WRITE(*, *) 'Specified fitting windows does not make sense!!!'
@@ -244,6 +244,7 @@ SUBROUTINE gems_o3p_read_ctr_file (fit_ctrl_unit, fit_ctrl_file,  pge_error_stat
      ELSE
         ! Allow 2 extra nm for radiance calibration
         IF (winlim(i, 1) < lower_wvls(band_selectors(i)) - 1.0 .OR. winlim(i, 2) > upper_wvls(band_selectors(i)) + 1.0) THEN
+            print*,lower_wvls(band_selectors(i))-1.0,upper_wvls(band_selectors(i))+1.0
            WRITE(*, *) 'Specified fitting windows does not make sense!!!'
            pge_error_status = pge_errstat_error; RETURN
         ENDIF
@@ -266,22 +267,6 @@ SUBROUTINE gems_o3p_read_ctr_file (fit_ctrl_unit, fit_ctrl_file,  pge_error_stat
      IF (retubnd(i) == 0.0)    retubnd(i) = upper_wvls(i)
   ENDDO
   
-  IF (ANY(band_selectors(1:numwin) == 1) .AND. ANY(band_selectors(1:numwin) == 2)) THEN
-     coadd_uv2 = .TRUE.; nchannel = 2
-  ELSE
-     coadd_uv2 = .FALSE.; nchannel = 1
-  ENDIF
-  IF (nchannel == 1 .AND. band_selectors(1) == 1) THEN
-     nchannel = 2 ! have to read measurements around 370 nm
-     coadd_uv2 = .TRUE.
-  ENDIF
-
-  IF (coadd_uv2) THEN 
-     ncoadd = 2 
-  ELSE
-     ncoadd = 1
-  ENDIF
-
   IF (do_bandavg) THEN
      IF (ANY(n_band_avg(1:numwin) < 1)) THEN
         WRITE(*, *) 'Number of points for averaging must >= 1!!!'

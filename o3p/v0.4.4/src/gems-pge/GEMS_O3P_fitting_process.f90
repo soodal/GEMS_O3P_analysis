@@ -23,10 +23,10 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
   USE OMSAO_precision_module
   USE OMSAO_variables_module,  ONLY: currpix,currloop,currtrack, currline,currtime, &
                                      the_lons, the_lats,ozabs_convl, so2crs_convl, wavcal, scnwrt, &
-                                     npix_fitting, npix_fitted,n_fitvar_rad, fitvar_rad_saved, mask_fitvar_rad 
-  USE ozprof_data_module, ONLY:num_iter
- !USE OMSAO_slitfunction_module
-  USE GEMS_o3P_geo_module
+                                     npix_fitting, npix_fitted,n_fitvar_rad, fitvar_rad_saved, mask_fitvar_rad, &
+                                     l2_filename 
+  USE ozprof_data_module, ONLY:num_iter, l2funit, algorithm_name, algorithm_version
+  USE SYNT_O3P_geo_module
   USE OMSAO_errstat_module
   USE GEMS_O3P_gemsdata_module, ONLY: ncoadd, nxbin, nybin, lineloc, pixloc, &
                                       first_pix, last_pix, first_line, last_line, offline, &
@@ -45,7 +45,7 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
   ! Local variables 
   ! -------------------------
   INTEGER :: initval, errstat, exval
-  INTEGER :: curr_fitted_line, nxcoadd, iy, ix, iw  ! wasp
+  INTEGER :: curr_fitted_line, nxcoadd, iy, ix
   REAL (KIND=dp), DIMENSION(3)    :: fitcol
   REAL (KIND=dp), DIMENSION(3, 2) :: dfitcol
   REAL (KIND=dp)     :: fitcol_avg, rms_avg, dfitcol_avg, drel_fitcol_avg, rms
@@ -65,7 +65,7 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
 
   !------------------------------
   WRITE(*, '(A)') ' => Preparing Geolocation data'
-  CALL gems_o3p_prep_geo (last_line, offline, pge_error_status)
+  CALL synt_o3p_prep_geo (last_line, offline, pge_error_status)
   IF ( pge_error_status >= pge_errstat_error ) RETURN
   
 
@@ -73,14 +73,14 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
   ! Read Cloud Pressure
   !------------------------------
   WRITE(*, '(A)') ' => Preparing Cloud data'
-  Call gems_o3p_prep_cld (last_line, offline, pge_error_status)
+  Call synt_o3p_prep_cld (last_line, offline, pge_error_status)
   IF ( pge_error_status >= pge_errstat_error ) RETURN
 
   !---------------------------
   ! Read radiance
   !------------------------------
   WRITE(*,'(A, i4,"-",3i4)') ' => Preparing Radiance data'
-  CALL GEMS_O3P_read_l1b_rad ( nxcoadd, first_pix, last_pix,  last_line, offline, pge_error_status)
+  CALL SYNT_O3P_read_l1b_rad ( nxcoadd, first_pix, last_pix,  last_line, offline, pge_error_status)
   If (pge_error_status >= pge_errstat_error) RETURN
   
   IF (wavcal) THEN
@@ -105,7 +105,6 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
      CALL gems_o3p_adj_solar_data (pge_error_status)
      IF ( pge_error_status >= pge_errstat_error ) CYCLE
      ozabs_convl =.TRUE. ; so2crs_convl=.TRUE.
-
 
      GEMS_LINE : DO currloop = first_line, last_line
 
@@ -135,6 +134,8 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
      ELSE
          exval = -9
      ENDIF
+
+
      WRITE(*, '(6I5,2f8.2,I6, f8.3,i5, A27)') currline, currtrack,currloop, currpix,lineloc(currloop), pixloc(currpix), &
                                               the_lons(5), the_lats(5) ,exval, rms, num_iter, currtime
 
@@ -165,7 +166,3 @@ SUBROUTINE GEMS_O3P_SUB4_fitting_process ( pge_error_status)
    
   RETURN
 END SUBROUTINE GEMS_O3P_SUB4_fitting_process    
-
-
-
-

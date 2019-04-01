@@ -17,12 +17,11 @@ MODULE O3P_MOD_Input
  USE O3P_MOD_Declaration
  USE OMSAO_errstat_module
  USE OMSAO_parameters_module,     ONLY:maxchlen
- USE GEMS_O3P_gemsdata_module,    ONLY: do_xbin, do_ybin, nxbin, nybin,  ncoadd,  &
+ USE GEMS_O3P_gemsdata_module,    ONLY: do_xbin, do_ybin, nxbin, nybin,  ncoadd, nchannel, &
                                         gems_ny,gems_nx, ntimes , allocate_o3p_var, nfxtrack
 
- USE OMSAO_variables_module,      ONLY:pixnum_lim, linenum_lim, coadd_uv2, &
-                                       l1b_rad_filename, &
-                                       nx_pix, ny_line
+ USE OMSAO_variables_module,      ONLY:pixnum_lim, linenum_lim,  &
+                                       l1b_rad_filename
  USE SYNT_data_module             
  USE SYNT_read_l1b,               ONLY: read_synt_l1b,  get_synt_dims
 
@@ -41,13 +40,13 @@ SUBROUTINE SYNT_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
     IMPLICIT NONE
    
     CHARACTER (Len=maxchlen), INTENT(IN)  :: fit_ctrl_file
-    INTEGER(KIND=4), INTENT(INOUT)          :: pge_error_status  ! return error code
-    INTEGER (KIND=4)                       :: estat
+    INTEGER(KIND=4), INTENT(INOUT)        :: pge_error_status  ! return error code
+    INTEGER (KIND=4)                      :: estat
 
     ! ---------------
     ! Local variables
     ! ---------------
-    INTEGER                         :: nxcoadd,i
+    INTEGER                         :: nxcoadd, npix
     INTEGER                         :: nx, ny, nw, didx
     INTEGER,             PARAMETER  :: fcunit = 11,  specunit = 12
    
@@ -89,14 +88,13 @@ SUBROUTINE SYNT_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
     !
     !--
     !
-    !WRITE(*,'(A)') ' => Reading GEMS l1b Data from GEMS SHARE MODULE'
 
     WRITE(*,'(A)') ' => Reading SYNT l1b Data from SYNT MODULE'
-   ! Allocate & initialize gemsdata variables from gems share module
-    !CALL gems_o3p_share_l1b (pge_error_status)
 
+    !Allocate & initialize gemsdata variables from gems share module
     CALL get_synt_dims (l1b_rad_filename, nxtrack, nytrack, nwavel)
-    !! spatial binning is not implemented for omps
+
+    ! spatial binning is not implemented for omps
     if (nxtrack .ne. nxtrack_max .and. nytrack .ne. nytrack_max) then
         print *, 'nxtrack=',nxtrack,nxtrack_max,nytrack, nytrack_max, 'nwavel=',nwavel, l1b_rad_filename
         write(*,'(a)') 'this case is not performed '
@@ -108,16 +106,16 @@ SUBROUTINE SYNT_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
 
     first_pix  = CEILING(1.0 * pixnum_lim(1) / nxbin)
     last_pix   = NINT(1.0 * pixnum_lim(2) / nxbin )
-    nx_pix     = last_pix - first_pix + 1
+
     ! Line number, starting from zero and keep track of offset
     first_line  = CEILING(1.0 * linenum_lim(1) / nybin)
     last_line   = NINT(1.0 * linenum_lim(2) / nybin )
-    ny_line     = last_line - first_line + 1
 
-    WRITE(*,'(A)') '=> Reading OMPS radiance / irradiance / Geolocation files'
+    WRITE(*,'(A)') '=> Reading radiance / irradiance / Geolocation files'
     call allocate_synt_raddata( nxtrack, nytrack, nwavel, max_fit_pts, maxwin, pge_error_status) 
                                                                                  ! add for using pointer variables : geun
     call allocate_synt_data( nxtrack, nytrack, nwavel, pge_error_status)
+
     !didx=INDEX(l1b_rad_filename, '.nc')  ;  didx=didx-19  ! total data
     didx=INDEX(l1b_rad_filename, '.nc')  ;  didx=didx-23   ! sliced data
     synt_db=l1b_rad_filename(:didx-10)    
@@ -127,11 +125,7 @@ SUBROUTINE SYNT_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
         
     !CALL read_synt_l1b (l1b_rad_filename, snr_filename, pge_error_status)
     CALL read_synt_l1b (l1b_rad_filename, pge_error_status)
-    !IF ( pge_error_status >= pge_errstat_error ) RETURN
-    !WRITE(*,'(A)') '=> Prepare Geolocation Data'
-    !CALL prepare_geolocation_data ( pge_error_status )
-    !IF ( pge_error_status >= pge_errstat_error ) RETURN
-    
+
     If (pge_error_status >= pge_errstat_error)  THEN
          !WRITE(*,'(A)') ' => Error in gems_o3p_share_l1b'
          WRITE(*,'(A)') ' => Error in reading l1b files'
@@ -171,16 +165,16 @@ SUBROUTINE SYNT_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
     IF ( linenum_lim(1) < 1 )              linenum_lim(1)      = 1
     IF ( linenum_lim(2) > ntimes)          linenum_lim(2)      = ntimes
 
-    IF ( ALL ( pixnum_lim < 0 ) )          pixnum_lim(1:2)    = (/ 1, nxtrack /)
-    IF ( pixnum_lim(1) > pixnum_lim(2) )   pixnum_lim([1, 2]) = pixnum_lim([2, 1])
+    IF ( ALL ( pixnum_lim < 0 ) )          pixnum_lim(1:2)    = (/ 1, nxtrack/)
+    IF ( pixnum_lim(1) > pixnum_lim(2) )   pixnum_lim([1, 2]) = pixnum_lim([2,1])
     IF ( pixnum_lim(1) < 1 )               pixnum_lim(1)      = 1
-    IF ( pixnum_lim(2) > nxtrack )        pixnum_lim(2)      = nxtrack
+    IF ( pixnum_lim(2) > nxtrack )         pixnum_lim(2)      = nxtrack
     
     ! linenum_lim check
     If (do_ybin .and. nybin > 1 ) THEN 
-      i = linenum_lim(2) - linenum_lim(1) +1
-      IF (MOD (i, nybin) /= 0 ) THEN 
-          linenum_lim(2) = NINT(1.0*i/nybin)*nybin + linenum_lim(1) - 1
+      npix = linenum_lim(2) - linenum_lim(1) +1
+      IF (MOD (npix, nybin) /= 0 ) THEN 
+          linenum_lim(2) = NINT(1.0*npix/nybin)*nybin + linenum_lim(1) - 1
           IF (linenum_lim(2) > ntimes) linenum_lim(2) = linenum_lim(2) - nybin
           IF (linenum_lim(1) > linenum_lim(2)) THEN 
               print * , 'check linenum_lim in GEMS_O3P_sub2input' ; stop
@@ -190,54 +184,34 @@ SUBROUTINE SYNT_O3P_SUB2_Proc_Input(fit_ctrl_file, pge_error_status)
       nybin = 1
     ENDIF
 
-    ! check pixnum_lim
-    ! check for selected across track position (must start from odd positions)
-    IF (coadd_uv2)  THEN
-     i = pixnum_lim(2)-pixnum_lim(1) + 1
-     IF ( MOD(pixnum_lim(1), ncoadd) /= 1 .OR. MOD(i, ncoadd) /= 0 ) THEN
-        WRITE(*, '(A,2I4)') 'Incorrect across track positions to be coadded: ',pixnum_lim(1:2)
-        pge_error_status = pge_errstat_error; RETURN
-     ENDIF
-     ! pixnum_lim for UV2
-     pixnum_lim = CEILING(1.0 * pixnum_lim / ncoadd)  !nint
-     ! pixnum_lim for Uv1 if ncoadd = 2
-    ENDIF
-
-
-   ! must divide and must start from odd coadded positions
-   IF (do_xbin .AND. nxbin > 1) THEN
-     i = pixnum_lim(2)-pixnum_lim(1) + 1
-     IF ( MOD (i, nxbin) /= 0 .OR. MOD(pixnum_lim(1), nxbin) /= 1 ) THEN
-        print * , mod(i,nxbin), mod(pixnum_lim(1), nxbin)
-        WRITE(*, '(A,2I4)') 'Incorrect across track binning option: ',pixnum_lim(1:2)
-        pge_error_status = pge_errstat_error; RETURN
-     ENDIF
-   ELSE
-     nxbin = 1
-   ENDIF
-    
     !---------------------------------------------------------------------
 
-    nxcoadd    = ncoadd*nxbin            ! Need just for OMI
-    gems_nx    = nxtrack/nxcoadd         ! N of total x-pixels after coadding
-    gems_ny    = INT ( ntimes*1.0/nybin) ! N of total y-pixels after coadding
-    !gems_ny = 10    !geun
-    
+    gems_nx     = nxtrack                 ! N of total x-pixels after coadding
+    gems_ny     = INT ( ntimes*1.0/nybin) ! N of total y-pixels after coadding
+    !gems_ny    = 10    !geun
+    nxcoadd     = 1
+    nchannel    = 1
+    ncoadd      = 1
+    print*,'nxbin,nybin=',nxbin,nybin
+    print*,'nchannel=',nchannel
+    print*,'ncoadd=',ncoadd
+    print*,'gems_nx=',gems_nx
+    print*,'gems_ny=',gems_ny
+
     call allocate_o3p_var(ntimes,  pge_error_status)
  
     !!------------------------------
     !! Irradiance  -> gems irradiance variable
     !!------------------------------
     WRITE(*,'(A,i2,"-",i2)') ' => Reading SYNT irradiance for ', 1, gems_nx
-    !CALL gems_o3p_read_l1b_irrad ( nxcoadd, 1, gems_nx, pge_error_status)   ! read climatological irradiance
+    !CALL gems_o3p_read_l1b_irrad ( nxcoadd, 1, gems_nx, pge_error_status)  ! read climatological irradiance
     CALL synt_o3p_read_l1b_irrad ( nxcoadd, 1, gems_nx, pge_error_status)  ! read synthtic irradiance
+
     If (pge_error_status >= pge_errstat_error) THEN
          RETURN
     END IF
-   
     RETURN
 
 END SUBROUTINE SYNT_O3P_SUB2_Proc_Input
-
 
 END MODULE O3P_MOD_Input

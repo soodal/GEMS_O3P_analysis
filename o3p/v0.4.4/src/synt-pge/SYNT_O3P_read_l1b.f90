@@ -61,12 +61,6 @@ SUBROUTINE SYNT_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
   gems_irrad%errstat(1:nxtrack) = pge_errstat_ok
 
   nsolbin = 1
-  !IF (.NOT. use_backup) THEN
-  ! DO is = 1, nchannel
-  !     ch = chs(is)
-  !     IF ch == 1. AND. nx == nfxtrack*2 ) nsolbin = 2 ???
-  ! ENDDO
-  !ENDIF
 
   IF (nsolbin == 2) THEN
       pge_error_status  = pge_errstat_error
@@ -88,49 +82,18 @@ SUBROUTINE SYNT_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
       pge_error_status = pge_errstat_error; RETURN
   END IF
   DO i = 1, 12
-   READ(LUN, *)
+    READ(LUN, *)
   ENDDO
   DO i = 1, thedoy
-   READ(LUN, *) normsc, normsc
+    READ(LUN, *) normsc, normsc
   ENDDO
   CLOSE(LUN)
      
   normsc = 1.0 / normsc ** 2  ! solar energy is inversely proportional to square distance
     
- !-----------------------------------------
- ! load irradiance dataset to gems_irrad array
- !-----------------------------------------
-  !bkfname = ADJUSTL(TRIM(refdbdir)) // 'OMI/omisol_v003_avg_nshi_backup.dat'
-  !OPEN (UNIT=lun, FILE=TRIM(ADJUSTL(bkfname)), STATUS='UNKNOWN', IOSTAT=errstat)
-  !IF ( errstat /= pge_errstat_ok ) THEN
-     !WRITE(*, '(2A)') modulename, ': Cannot open solar backup file!!!'
-     !pge_error_status = pge_errstat_error; RETURN
-  !END IF
-
-  !nwavel = 0
-  !DO is = 1, 2
-    !READ(lun, *) nx, nwls(is)
-    !spos(is) = nwavel + 1; epos(is) = nwavel + nwls(is)
-    !DO i = 1, nx
-       !READ(lun, *) 
-       !DO j = 1, nwls(is)
-       !READ(lun, *) gems_irrad%wavl(nwavel + j, i), gems_irrad%spec(nwavel + j, i), &
-                    !gems_irrad%prec(nwavel + j, i), nsub, nsub
-       !IF (nsub > 0) gems_irrad%prec(nwavel + j, i) = gems_irrad%prec(nwavel + j, i) &
-                     !/ SQRT( REAL(nsub, KIND=dp) )
-       !ENDDO
-    !ENDDO
-    !gems_irrad%spec(spos(is):epos(is), 1:nx) = gems_irrad%spec(spos(is):epos(is), 1:nx) * normsc
-    !gems_irrad%prec(spos(is):epos(is), 1:nx) = gems_irrad%prec(spos(is):epos(is), 1:nx) * normsc
-    !nwavel = epos(is)
-     
-    !!print * , spos(is), epos(is), nwls(is), nwavel ! 1 159 159  159 ! 160 716 557 716
-  !ENDDO
-
   ! one channel in SYNT
   spos(1) = 1; epos(1) = nwavel 
 
-  !CLOSE(LUN)
 
   ! load irradiance data 
   gems_irrad%wavl=synt_irrad_wavl
@@ -295,67 +258,6 @@ SUBROUTINE SYNT_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
            IF (noff1 == 1) EXIT
        ENDIF
    ENDDO
-
-   ! geun close : wavelength range between UV1 and UV2 fitting windows for ring effect
-   !              but gems has only one channel 
-   !DO iw = 2, numwin
-      !ch = band_selectors(iw)
-      !nbin = nwbin(iw - 1) ; iix = (ix - 1) * nbin           
-
-     
-      !IF (ch == band_selectors(iw - 1) ) THEN   
-          !DO i = winpix(iw-1, 2)+1, winpix(iw, 1)-1 
-             !IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > lower_spec) .AND. &
-                 !ALL(gems_irrad%spec(i, iix+1:iix+nbin) < upper_spec) .AND. flgmsks(i) == 0) THEN
-                 !nring = nring + 1
-
-                 !subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
-                 !subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
-                 
-              !ENDIF
-          !ENDDO
-      !ELSE  ! first channel 1 and second channel 2
-          !wcenter = (winlim(iw-1, 2) + winlim(iw, 1)) / 2.0 
-          !idx = MAXVAL ( MAXLOC ( gems_irrad%wavl(spos(ch-1):epos(ch-1), iix+1), &
-                   !MASK =gems_irrad%wavl(spos(ch-1):epos(ch-1), iix+1) < wcenter ) ) + spos(ch-1) - 1
-          !!(c) ring(127:131) : 309.114~310.29              
-          !DO i = winpix(iw-1, 2)+1, idx 
-              !IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > lower_spec) .AND. &
-                  !ALL(gems_irrad%spec(i, iix+1:iix+nbin) < upper_spec) .AND. flgmsks(i) == 0 .AND. &
-                  !ALL(gems_irrad%wavl(i, iix+1:iix+nbin) > subrsol(wvl_idx, nring)) ) THEN
-                  !nring = nring + 1
-
-                  !subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
-                  !subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin                   
-		!!  print * , i, nring, subrsol(1, nring)
-              !ENDIF
-          !ENDDO
-         !!(c) ring(132:141) : 310.58-312.01
-          !gems_ring%sol_ndiv(ix) = nring               ! 1:nring is from the same channel
-          !nbin = nwbin(iw) ; iix = (ix - 1) * nbin
-              
-          !idx = MAXVAL ( MINLOC ( gems_irrad%wavl(spos(ch):epos(ch), iix+1),   &
-                !MASK = gems_irrad%wavl(spos(ch):epos(ch), iix+1) > wcenter ) ) + spos(ch) - 1
-
-          !DO i = idx, winpix(iw, 1) - 2 + spos(ch)                 
-                 !IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > lower_spec) .AND. &
-                      !ALL(gems_irrad%spec(i, iix+1:iix+nbin) < upper_spec) .AND. flgmsks(i) == 0 .AND. &
-                      !ALL(gems_irrad%wavl(i, iix+1:iix+nbin) > subrsol(wvl_idx, nring)) ) THEN
-                    !nring = nring + 1
-
-                    !subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
-                    !subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin                   
-			 !! print * , i, nring, subrsol(1, nring), nbin
-                 !ENDIF
-          !ENDDO
-		
-      !ENDIF
-           
-      !idx = SUM(gems_irrad%npix(1:iw-1, ix))
-      !subrsol(wvl_idx:spc_idx, nring+1:nring+gems_irrad%npix(iw, ix)) = subspec(1, wvl_idx:spc_idx, &
-               !idx+1:idx+gems_irrad%npix(iw, ix))
-      !nring = nring + gems_irrad%npix(iw, ix)
-   !ENDDO
 
    ! Add extra spectra after fitting window
    noff2 = nring
@@ -602,13 +504,11 @@ SUBROUTINE SYNT_O3P_read_l1b_rad (nxcoadd, first_pix, last_pix,ny, offline, pge_
           print * , 'rowanomaly_flg'
           gems_rad%errstat(ix, iy) = pge_errstat_error; CYCLE
       ENDIF
-
       ! Get quality flag bits
       ! Coadd uv-2 flags if necessary to avoid coadding inconsistent # of pixels 
       flgmsks = 0 
       nbin = nxbin
       iix = (ix - 1) * nbin 
-
      ! properly align cross track positions to be coadded (should be within one pixel)
 
       IF (nbin > 2) CALL prespec_align(nwavel, nbin, gems_rad%wavl(1:nwavel,&
@@ -660,7 +560,8 @@ SUBROUTINE SYNT_O3P_read_l1b_rad (nxcoadd, first_pix, last_pix,ny, offline, pge_
         WRITE(*, '(A,5I5,F9.2)') 'Too fewer radiance points: ', ix, iy, 1, &
               gems_rad%npix(1, ix, iy), gems_irrad%npix(1, ix), gems_sza(ix, iy)
         !gems_rad%errstat(ix, iy) = pge_errstat_error; EXIT
-        gems_rad%errstat(ix, iy) = pge_errstat_error; CYCLE  ! geun modified from EXIT to CYCLE
+        gems_rad%errstat(ix, iy) = pge_errstat_error
+stop; CYCLE  ! geun modified from EXIT to CYCLE
       ENDIF
      
       IF ( gems_rad%errstat(ix, iy) == pge_errstat_error) CYCLE   ! This pixel will not be processed.     

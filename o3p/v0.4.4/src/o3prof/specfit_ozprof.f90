@@ -22,7 +22,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
   USE OMSAO_indices_module,      ONLY: n_max_fitpars, wvl_idx, spc_idx,         &
        sig_idx, maxalb, no2_t1_idx, so2_idx, so2v_idx, bro_idx, hcho_idx, us1_idx,        &
        us2_idx, max_calfit_idx, max_rs_idx, mxs_idx, maxoth, shift_offset, maxwfc, &
-       comvidx, cm1vidx, comfidx, cm1fidx, bro2_idx, o2o2_idx, solar_idx ! wasp
+       comvidx, cm1vidx, comfidx, cm1fidx, bro2_idx, o2o2_idx
   USE OMSAO_variables_module,    ONLY: curr_rad_spec, rad_wav_avg, fitwavs,     &
        currspec, fitweights, fitvar_rad, fitvar_rad_apriori, fitvar_rad_saved,  &
        fitvar_rad_init, fitvar_rad_str, lo_radbnd, up_radbnd, n_fitvar_rad, &
@@ -32,7 +32,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
        fitvar_rad_nstd, numwin, nradpix, refspec_norm, scnwrt, ozabs_convl, the_surfalt, &
        fitvar_rad_init_saved, the_lons, the_lats, the_surfalt, nloc, fitvar_rad_aperror, &
        the_sza_atm, currline, refwvl, n_refwvl, reduce_resolution,curr_sol_spec,n_irrad_wvl,&
-       database, database_shiwf, the_sza_atm, the_vza_atm, the_aza_atm, atmdbdir ! atmdbdir added : geun  
+       database, database_shiwf, the_sza_atm, the_vza_atm, the_aza_atm
   USE ozprof_data_module,        ONLY: ozprof_start_index, ozprof_end_index,    &
        ozfit_start_index, ozfit_end_index, covar, ozprof_std, ozprof_ap,& 
        which_clima, ncovar, ozprof_apstd, ozprof_init, ozprof, start_layer,     &
@@ -50,8 +50,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
        twaefind, saodind, glintprob, which_toz, sprsind, sprsfind, wfcidx, wfcfidx,  &
        nwfc, nfwfc, eff_wfc, eff_wfc_init, so2zind, so2zfind, fit_atanring, &
        use_large_so2_aperr, ozwrtcontri, ozwrtwf, weight_function, contri, &
-       trace_profwf, trace_contri, trace_prof, trace_avgk , sacldscl0, &
-       which_spres, which_sfct, which_tprof, ncep_fname,div_sun,div_rad ! geun wasp
+       trace_profwf, trace_contri, trace_prof, trace_avgk , sacldscl0
   
   USE OMSAO_errstat_module
 
@@ -70,7 +69,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
   ! Local variables
   ! ===============
   INTEGER  :: i, j, nump, errstat, k1, npoints, k, u1idx, u2idx, nsub, nord, is, fidx, lidx
-  REAL (KIND=dp) :: asum, ssum, chisq, tmpsa, aodscl, waerscl, salbedo, ncepreso_z0, omi_z0, fdum ! wasp
+  REAL (KIND=dp) :: asum, ssum, chisq, tmpsa, aodscl, waerscl, salbedo, ncepreso_z0, omi_z0
   REAL (KIND=dp), DIMENSION(n_max_fitpars, n_max_fitpars)    :: bb, sa
   REAL (KIND=dp), DIMENSION(nlay, nlay)                   :: sao3
   REAL (KIND=dp), DIMENSION (n_max_fitpars)               :: lowbond, upbond, fitvar, &
@@ -88,22 +87,17 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
   LOGICAL, SAVE :: first = .TRUE.
   INTEGER, SAVE :: ozp_fidx,  ozp_lidx, ozf_fidx, ozf_lidx, nf
   
-  INTEGER :: nold, nbatm, dum,e  ! geun,wasp
-  CHARACTER (LEN=2)               :: monc, dayc   ! geun
-  CHARACTER (LEN=4)               :: yrc          ! geun
-  LOGICAL                         :: file_exist   ! geun
-
   !xliu: 09/03/05, add sacldscal, scaling factor for scaling a priori covariance below clouds
   REAL (KIND=dp), DIMENSION(nlay)           :: sacldscl
   INTEGER :: idx_jbak1, idx_jbak2
-  INTEGER :: nlat_atm, nlon_atm  !geun 
-  REAL (KIND=dp) :: longrid_atm, latgrid_atm !geun
 
   ! ==============================
   ! Name of this module/subroutine
   ! ==============================
 
   CHARACTER (LEN=14), PARAMETER :: modulename = 'specfit_ozprof'
+
+
 
   ! Initialize variables for convenience
   IF (first) THEN  ! only need to be initialized once
@@ -117,50 +111,8 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
      fitvar = 0.0 ; lowbond = 0.0 ; upbond = 0.0 
      varname(1:nf) = fitvar_rad_str(mask_fitvar_rad(1:nf))
 
-  ! tprof files check -----------------------------------------------------------------------------------------
-     WRITE(monc, '(I2.2)') the_month          ! from 9 to '09'
-     WRITE(dayc, '(I2.2)') the_day            ! from 9 to '09'
-     WRITE(yrc,  '(I4.4)') the_year
-
-     IF ( which_tprof == 0 ) THEN  ! geun
-        ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp/fnltemp_' // yrc // monc // dayc // '.dat'
-        print *, 'TPROF is taken from FNL daily'
-     ELSE IF (which_tprof == 1 ) THEN   ! added by geun
-        ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp/fnltempavg' // monc // '.dat'
-        print *, 'TPROF is taken from FNL monthly'
-     ELSE IF (which_tprof == 2 ) THEN   ! added by geun
-        ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'umatmos/umtemp/umtemp_' // yrc // monc // dayc // '.dat'
-        print *, 'TPROF is taken from UM daily'
-     ENDIF  ! geun
-
-     ! Determine if file exists or not
-     INQUIRE (FILE= ncep_fname, EXIST= file_exist)
-     IF (.NOT. file_exist) THEN
-        WRITE(*, *) 'Warning: no T profile file found, use monthly mean!!!'
-        ncep_fname = TRIM(ADJUSTL(atmdbdir)) // 'fnl13.75LST/fnltemp/fnltempavg' // monc // '.dat'
-        which_tprof = 1
-     ENDIF
-  ! -----------------------------------------------------------------------------------------------------------
-
      first = .FALSE.
   ENDIF
-
-!+---------------------------------------------------------------------------+
-! Check radiation input 
-!+---------------------------------------------------------------------------+
-  !print*, n_irrad_wvl, n_rad_wvl
-  !do i=1, n_rad_wvl
-    !write(*,'(1x,f13.8,1x,f10.7,1x,f13.8,1x,f13.8)'),curr_rad_spec(wvl_idx,i),checkspec(i),curr_rad_spec(spc_idx,i),&
-                                                    !(checkspec(i) - curr_rad_spec(spc_idx,i))/curr_rad_spec(spc_idx,i)
-    !print*,curr_rad_spec(wvl_idx,i),curr_rad_spec(spc_idx,i)
-  !enddo
-
-  !do i=1,n_irrad_wvl
-    !print*,curr_sol_spec(wvl_idx,i),curr_sol_spec(spc_idx,i)
-    !print*, curr_sol_spec(wvl_idx,i)/curr_rad_spec(wvl_idx,i),curr_sol_spec(spc_idx,i)/curr_rad_spec(spc_idx,i)
-  !enddo
-  !stop
-!+---------------------------------------------------------------------------+
 
   ! Initialize variables
   errstat = pge_errstat_ok
@@ -174,15 +126,9 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
   !	         Set up measurement vector and measurement error
   ! ===================================================================
 
-
   fitwavs   (1:npoints) = curr_rad_spec(wvl_idx,1:npoints)
   currspec  (1:npoints) = curr_rad_spec(spc_idx,1:npoints)
   fitweights(1:npoints) = curr_rad_spec(sig_idx,1:npoints)
-  !print * , npoints !wasp : 204
-!do i=1,npoints
-  !write(*,*) fitwavs(i),currspec(i) ! wasp: 270~330, normalized, 1e-2~1e0
-!enddo
-!stop
 
   IF (ozabs_convl) THEN
      ! For aerosol properties
@@ -218,15 +164,9 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
   ! 2. get z0 at ncep/ncar reso
   ! 3. get z0 at omi spatial resolution
   ! 4. get spres at omi spatial resolution
-  IF (which_spres == 0 .OR. which_spres == 1) THEN  ! geun
-    nlat_atm = 180  ;  nlon_atm = 360 
-    longrid_atm = 1.0  ;  latgrid_atm = 1.0 
-  ELSE IF (which_spres == 2) THEN
-    nlat_atm = 769  ;  nlon_atm = 1024 
-    longrid_atm = 0.351562  ;  latgrid_atm = 0.234375 
-  ENDIF  ! geun
 
-  CALL GET_SPRES(the_year, the_month, the_day, the_lon, the_lat, ps0, nlon_atm, nlat_atm, longrid_atm, latgrid_atm)
+  CALL GET_SPRES(the_year, the_month, the_day, the_lon, the_lat, ps0)
+
   CALL get_ncepreso_surfalt(the_lon, the_lat, ncepreso_z0)
   DO i = 1, nloc
      CALL get_finereso_surfalt(the_lons(i), the_lats(i), fine_z0(i))
@@ -239,14 +179,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
   ps0 = ps0 + 1013.25 * (10.**(-omi_z0/16.) - 10.**(-ncepreso_z0/16.))
   the_surfalt = omi_z0
   IF (use_tropopause) THEN 
-     IF (which_spres == 0 .OR. which_spres == 1) THEN  ! geun
-       nlat_atm = 180  ;  nlon_atm = 360 
-       longrid_atm = 1.0  ;  latgrid_atm = 1.0 
-     ELSE IF (which_spres == 2) THEN
-       nlat_atm = 769  ;  nlon_atm = 1024 
-       longrid_atm = 0.351562  ;  latgrid_atm = 0.234375 
-     ENDIF  ! geun
-     CALL GET_TPRES(the_year, the_month, the_day, the_lon, the_lat, pst, nlon_atm, nlat_atm, longrid_atm, latgrid_atm)
+     CALL GET_TPRES(the_year, the_month, the_day, the_lon, the_lat, pst)
   ELSE
      pst = pst0
   ENDIF
@@ -259,6 +192,8 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
      toz = 0.0
   ENDIF
       
+  the_ctp=ps0
+  the_cfrac=0.001
   IF (scnwrt) THEN 
      WRITE(*, '(6(A,F8.2))') '   spres =', ps0, ' tpres =', pst, ' toz = ', toz, ' ctp =', the_ctp
      WRITE(*, '(6(A,F8.3))') '   Lat =', the_lat, 'Lon =', the_lon,' SZA =',the_sza_atm, ' VZA =', the_vza_atm, ' aza = ', the_aza_atm
@@ -286,21 +221,12 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
   !the_cfrac = 1.0
   !the_ctp  = the_ctp + 50 
  
-   IF (which_tprof == 0 .OR. which_tprof == 1) THEN ! geun
-     nbatm=26 ! nlfnl
-     nold=37  ! nlecm(31)+6
-   ELSE IF (which_tprof == 2) THEN 
-     nbatm=25 ! nlum
-     nold=29 ! nlum+4
-   ENDIF  !geun
-   
-   CALL make_atm(the_year, the_month, the_day, ndiv, &
+  CALL make_atm(the_year, the_month, the_day, ndiv, &
        the_cod, the_cfrac, the_ctp, nlay, toz, ps0, pst, atmosprof(:,0:nlay),    &
-       ozprof(1:nlay), nup2p(0:nlay), sacldscl, nbatm, nold, errstat) ! nbatm, nold added : geun 
+       ozprof(1:nlay), nup2p(0:nlay), sacldscl, errstat) ! nbatm, nold added : geun 
   IF (errstat == pge_errstat_error)  THEN
      exval = -2; RETURN
   ENDIF
-
  
 
   ! second step, use channel 1 retrieval results
@@ -429,6 +355,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
      lo_radbnd(ozp_lidx-i:ozp_lidx) = fitvar_rad(ozp_lidx-i:ozp_lidx)
      up_radbnd(ozp_lidx-i:ozp_lidx) = fitvar_rad(ozp_lidx-i:ozp_lidx)    
   ENDIF
+
    
   ! Get a priori ozone covariance matrix
   CALL GET_APRIORI_COVAR(toz, ozprof(1:nlay), sao3)
@@ -563,14 +490,9 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
      ! need to update o3 a priori covariance matrix for each retrieval
      sa(ozf_fidx:ozf_lidx, ozf_fidx:ozf_lidx) = &
           sao3(start_layer:end_layer,start_layer:end_layer) 
-!print*, nfalb >0 .OR. nfwfc >0 .OR. ecfrfind > 0
      IF (nfalb > 0 .OR. nfwfc > 0 .OR. ecfrfind > 0) THEN
-!print*, albfc_aperr
         albfc_aperr = 0.05**2.0
-!print*, albfc_aperr
-!print*, tropaod(1) >= 0.25 .AND. taodfind == 0 .AND. twaefind == 0
-!print*, has_glint
-       IF (tropaod(1) >= 0.25 .AND. taodfind == 0 .AND. twaefind == 0) THEN
+        IF (tropaod(1) >= 0.25 .AND. taodfind == 0 .AND. twaefind == 0) THEN
            albfc_aperr1 = albfc_aperr * (1.0 + 8.0 * tropaod(1) - 2.0) 
         ELSE IF (has_glint) THEN  ! Assume a priori error of 0.2 instead of 0.05 for 100% sun glint
            albfc_aperr1 = albfc_aperr * ( 1.0 + 15.0 * glintprob) 
@@ -578,8 +500,6 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
            albfc_aperr1 = albfc_aperr 
         ENDIF
         albfc_aperr2    = albfc_aperr * (1.0 + 15.0 * salbedo)
-!print*, albfc_aperr1,albfc_aperr2,salbedo
-!print*,'end check'
         albfc_aperr     = MAX(albfc_aperr1, albfc_aperr2)
      ENDIF
 
@@ -717,18 +637,6 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
      stderr(i) = SQRT(covar(i, i)); stderr1(i) = SQRT(ncovar(i, i))
   END DO
 
-
-!print*,ecfrfind,ecfrind,n_max_fitpars,nf !,sa(ecfrfind,ecfrfind),albfc_aperr
-!print*,'fitvar_rad(ecfrind),fitvar_rad_init(ecfrind),fitvar_rad_apriori(ecfrind)'
-!print*,fitvar_rad(ecfrind),fitvar_rad_init(ecfrind),fitvar_rad_apriori(ecfrind)
-!print*,'sa(ecfrfind,ecfrfind),albfc_aperr'
-!print*,sa(ecfrfind,ecfrfind),albfc_aperr
-!print*,'stderr(1:nf)'
-!print*,stderr(1:nf)
-!print*,'stderr1(1:nf)'
-!print*,stderr1(1:nf)
- !stop 
-
   fitvar_rad_std(mask_fitvar_rad(1:nf))  = stderr(1:nf)
   fitvar_rad_nstd(mask_fitvar_rad(1:nf)) = stderr1(1:nf)
   
@@ -824,7 +732,7 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
      ENDDO
      the_cfrac = fitvar_rad(i)   ! Use UV2/last channel cloud fraction
   ELSE IF ( ecfrfind > 0) THEN
-     the_cfrac = fitvar_rad(ecfrind )
+     the_cfrac = fitvar_rad(ecfrind)
   ENDIF
   
   !IF (the_cfrac <= 1.0D-3 .AND. ecfrind > 0) THEN
@@ -902,26 +810,25 @@ SUBROUTINE specfit_ozprof (initval, fitcol, dfitcol, rms, exval)
     aodscl = 1.0
  ENDIF
 
-IF ( twaefind > 0 ) THEN
+  IF ( twaefind > 0 ) THEN
     waerscl = fitvar_rad(twaeind) / tropwaer(actawin)   ! Scale single scattering albedo
     tropwaer(1:actawin) = tropwaer(1:actawin) * waerscl
     tropsca(1:actawin)  = tropsca(1:actawin) * waerscl * aodscl
- ENDIF
+  ENDIF
 
- IF ( saodfind > 0 ) THEN
+  IF ( saodfind > 0 ) THEN
     aodscl = fitvar_rad(saodind) / strataod(actawin)
     strataod(1:actawin) = strataod(1:actawin) * aodscl    
     stratsca(1:actawin) = stratsca(1:actawin) * aodscl
- ENDIF
-
- IF ( ecfrfind > 0) THEN
+  ENDIF
+  IF ( ecfrfind > 0) THEN
     the_cfrac = fitvar_rad(ecfrind)
- ENDIF
+  ENDIF
 
- IF (sprsfind > 0) THEN
+  IF (sprsfind > 0) THEN
     atmosprof(1, nsfc) = fitvar_rad(sprsind)
- ENDIF
+  ENDIF
 
 
- RETURN
+  RETURN
 END SUBROUTINE specfit_ozprof

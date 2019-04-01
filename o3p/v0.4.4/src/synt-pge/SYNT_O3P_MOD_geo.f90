@@ -122,6 +122,17 @@ CONTAINS
     saz(1:nx, 1:nline) = gems_geo%saz(1:nx, sline:eline)*1.0_r8
     vaz(1:nx, 1:nline) = gems_geo%vaz(1:nx, sline:eline)*1.0_r8  
 
+!print*,'+---------------------------------------------------------------------------+'
+!print*,gems_geo%lat(1:nx, sline:eline)
+!print*,gems_geo%lon(1:nx, sline:eline)
+!print*,'+---------------------------------------------------------------------------+'
+!print*,gems_geo%sza(1:nx, sline:eline)
+!print*,gems_geo%vza(1:nx, sline:eline)
+!print*,'+---------------------------------------------------------------------------+'
+!print*,gems_geo%saz(1:nx, sline:eline)
+!print*,gems_geo%vaz(1:nx, sline:eline)
+!print*,'+---------------------------------------------------------------------------+'
+
     CALL get_sphgeoview_corners (nx, nline, nxbin, nybin , &
          lon(1:nx, 1:nline), lat(1:nx, 1:nline),         &
          sza(1:nx, 1:nline), saz(1:nx, 1:nline),      &
@@ -318,6 +329,7 @@ CONTAINS
           tmpx(ix) = tmpx(ix-1) + xsize(ix)
        ENDDO
        tmpxmid(1:nxtrack) = (tmpx(0:nxtrack-1) + tmpx(1:nxtrack)) / 2.0
+
        CALL interpol(tmpxmid(1:nxtrack), sza(1:nxtrack, i),  nxtrack, tmpx(0:nxtrack), &
             tmpsza(0:nxtrack),  nxtrack+1, errstat)      
        CALL interpol(tmpxmid(1:nxtrack), saza(1:nxtrack, i), nxtrack, tmpx(0:nxtrack), &
