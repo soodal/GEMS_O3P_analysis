@@ -147,7 +147,6 @@ PROGRAM GEMS_O3P_Main
     !5. irradiance 자료처리 (valid subset for o3 fitting window, coadding process)
     CALL SYNT_O3P_SUB2_Proc_Input(fit_ctrl_file, errCode)
     IF ( errCode /= 0 ) GOTO 1999
-stop
     !-------------------------------------------------------------------------
     !-------- 3. Irrad_Cross_Calibrate
     !-------------------------------------------------------------------------

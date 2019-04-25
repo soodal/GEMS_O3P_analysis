@@ -133,7 +133,6 @@ SUBROUTINE MAKE_ATM ( year, month, day, ndiv, tauc, cfrac,                      
   ! So need to merge NCEP FNL and ECMWF data from different spatial grid
   ! Get temperature profiles
 ! CALL GET_NCEPT(year, month, day, the_lon, the_lat, told(1:nlecm))
-print*,'make_atm started!!' 
   CALL GET_NCEPFNLT(year, month, day, the_lon, the_lat, told(1:nlfnl))
   CALL GET_ECMWFAVGT(month, day, the_lon, the_lat, told(nlfnl+1:nlecm))
 

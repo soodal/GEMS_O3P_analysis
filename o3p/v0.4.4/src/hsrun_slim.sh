@@ -7,7 +7,7 @@ orbs[0]=''
 norb=0
 rm -f orbs.list
 
-nmpi=1
+nmpi=4
 ver=3
 pixset=0    #0: no identification of pixline, 1: with identification of pixline
 use_qsub=0
@@ -37,7 +37,7 @@ if [ $lidort_make -eq 1 ] ; then
 fi
 
 # ' line1, line2, cross pixel 1, cross pixel 2 '
-pixsel='400 400 15 15'
+pixsel='-1 -1 -1 -1'
 #'1147 1 58' 
 #pixsel='880 950 1 60' 
 timesel='2016m0115t03'
@@ -182,8 +182,8 @@ do
     #$PGEHOME/bin/${SAOPGE}_exec  > $lv2dir$type$orb'.dat'
     echo SAOPGE = $SAOPGE
     #echo $PGEHOME/bin/${SAOPGE}_exec #> $logfname
-    #mpirun -np $nmpi $PGEHOME/bin/${SAOPGE}_exec > $logfname 
-    $PGEHOME/bin/${SAOPGE}_exec > $logfname 
+    mpirun -np $nmpi $PGEHOME/bin/${SAOPGE}_exec > $logfname 
+    #$PGEHOME/bin/${SAOPGE}_exec > $logfname 
 
     #$PGEHOME/bin/${SAOPGE}_exec > $logfname
     cd $pwd

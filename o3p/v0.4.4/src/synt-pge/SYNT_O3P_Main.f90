@@ -199,8 +199,7 @@ print*,'##GEMS_Share_MOD_MPI_Start End##'
         print*, "O3 Fitting Error !!! "
         GOTO 1999  
     ENDIF
-print*,'GEMS_O3P_SUB4_fitting_process DONE STOPPED.'
-stop
+
     !-------------------------------------------------------------------------
     !-------- . MPI Processing
     !-------------------------------------------------------------------------

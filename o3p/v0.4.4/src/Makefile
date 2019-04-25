@@ -83,8 +83,8 @@ include ../make/make.mod_sources
 include ../make/make.synt_mod_sources
 include ../make/make.sources
 include ../make/make.o3prof_sources
-include ../make/make.gems_sources
 include ../make/make.synt_sources
+include ../make/make.gems_sources
 
 GEMS_LIB += -I/usr/local/mpi/include -L/usr/local/mpi/lib -lmpi -lmpi_mpifh
 GEMS_LIB += -L$(LAPACK_PATH_LIB) -llapack -lblas

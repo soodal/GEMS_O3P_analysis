@@ -162,7 +162,6 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
     pge_error_status = pge_errstat_error; RETURN
   ENDIF
 
-
   ! Determine number of binning for different fitting windows
   DO iw = 1, numwin     
     ch = band_selectors(iw)
@@ -239,6 +238,7 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
     winpix(iw, 2) = MAXVAL ( MAXLOC ( gems_irrad%wavl(spos(ch):epos(ch),iix + 1), &
              MASK = gems_irrad%wavl(spos(ch):epos(ch),iix + 1) <= winlim(iw, 2)) )
 
+
     gems_irrad%npix  (iw, ix) = nsub
     fidx = winpix(iw, 1) + spos(ch) - 1
     lidx = winpix(iw, 2) + spos(ch) - 1
@@ -310,6 +310,7 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
   ELSE
     noff1 = 25
   ENDIF
+
   nring = gems_irrad%npix(1,ix) + noff1
   subrsol(1:spc_idx, noff1+1: nring) = subspec(1, 1:spc_idx, 1:gems_irrad%npix(1,ix))
   gems_ring%sol_ndiv(ix) = 0
@@ -319,14 +320,13 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
   ! if unavailable, needed to ammened with solar reference spectrum
   noff1 = noff1 + 1 ;     nbin = nwbin(1); iix = (ix - 1) * nbin
 
-
   DO i = winpix(1, 1) - 1, 1, -1
     IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
         ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
         noff1 = noff1 - 1
         subrsol(wvl_idx, noff1) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
         subrsol(spc_idx, noff1) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
-	
+        	
         IF (noff1 == 1) EXIT
     ENDIF
   ENDDO
@@ -351,7 +351,8 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
       wcenter = (winlim(iw-1, 2) + winlim(iw, 1)) / 2.0 
       idx = MAXVAL ( MAXLOC ( gems_irrad%wavl(spos(ch-1):epos(ch-1), iix+1), &
       MASK =gems_irrad%wavl(spos(ch-1):epos(ch-1), iix+1) < wcenter ) ) + spos(ch-1) - 1
-      !(c) ring(127:131) : 309.114~310.29              
+
+!(c) ring(127:131) : 309.114~310.29              
       DO i = winpix(iw-1, 2)+1, idx 
         IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
             ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
@@ -360,7 +361,7 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
 
             subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
             subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin                   
-		!  print * , i, nring, subrsol(1, nring)
+!print * , i, nring, subrsol(1, nring)
         ENDIF
       ENDDO
       !(c) ring(132:141) : 310.58-312.01
@@ -381,7 +382,6 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
 		   ! print * , i, nring, subrsol(1, nring), nbin
         ENDIF
       ENDDO
-	  
     ENDIF
            
     idx = SUM(gems_irrad%npix(1:iw-1, ix))
@@ -399,7 +399,6 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
   ENDIF
         
   DO i = spos(ch) + winpix(numwin, 2), epos(ch)
-
     IF (ch == 1 ) THEN
       nbin = nxbin
     ELSE
@@ -410,16 +409,16 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
     IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
         ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
       noff2 = noff2 + 1
-
+    
       subrsol(wvl_idx, noff2) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
       subrsol(spc_idx, noff2) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
       ! write(*,'(3i5,3f10.4)') i, noff2,iix, subrsol(wvl_idx, noff2),gems_irrad%wavl(i, iix+1:iix+nbin)
     ENDIF
-           
+  
     IF (noff2 == nring) EXIT
   ENDDO     
   gems_ring%nsol(ix) = nring; gems_ring%sol_lin(ix) = noff1; gems_ring%sol_uin(ix) = noff2
-
+   
   ! Get data for surface albedo & cloud fraction at 370.2 nm +/- 15 pixels
   irefl = 0; gems_refl%solwinpix(ix, 1:2) = 0
   nbin = nxbin * ncoadd
@@ -427,7 +426,7 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
      
   idx = MAXVAL ( MINLOC ( gems_irrad%wavl(1:nwavel, iix+1), &
                           MASK = (gems_irrad%wavl(1:nwavel, iix+1) > pos_alb - toms_fwhm * 1.4) ))
-
+  
   DO i  = idx, nwavel
     IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
         ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
@@ -455,24 +454,24 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
       ENDIF
     ENDDO
   ENDIF
-
+  
   gems_irrad%norm(ix) = SUM ( subspec(1, spc_idx, 1:nsub) ) / nsub
      
   IF (gems_irrad%norm(ix) <= 0.0 ) THEN 
     gems_irrad%errstat(ix) = pge_errstat_error; CYCLE
   ENDIF
-     
+  
   gems_irrad%wavl(1:nsub, ix)  = subspec(1, wvl_idx, 1:nsub)
   gems_irrad%spec(1:nsub, ix)  = subspec(1, spc_idx, 1:nsub) / gems_irrad%norm(ix)
   gems_irrad%prec(1:nsub, ix)  = subspec(1, sig_idx, 1:nsub) / gems_irrad%norm(ix)    
-
+  
   gems_ring%solwavl(1:nring, ix) = subrsol(1, 1:nring)
   gems_ring%solspec(1:nring, ix) = subrsol(2, 1:nring) / gems_irrad%norm(ix) 
   !print * , gems_irrad%norm(ix)
   !print * , gems_irrad%wavl(1:5, ix)
   !print * , gems_irrad%spec(1:5, ix)
   !print * , gems_irrad%prec(1:5, ix)
-
+ 
   ENDDO ! xtrack
 RETURN
 END SUBROUTINE GEMS_O3P_read_l1b_irrad
@@ -621,7 +620,7 @@ SUBROUTINE GEMS_O3P_read_l1b_rad (nxcoadd, first_pix, last_pix,ny, offline, pge_
   ENDDO ! end  channel loop
 
 
- ! Process for reduced resoution (not included for gems)
+! Process for reduced resoution (not included for gems)
 
   IF (nwavel > nwavel_max) THEN
     WRITE(*, *) "Need to increase nwavel_max!!!"
@@ -717,7 +716,8 @@ SUBROUTINE GEMS_O3P_read_l1b_rad (nxcoadd, first_pix, last_pix,ny, offline, pge_
          
         fidx = lidx + 1
         gems_rad%npix(iw, ix, iy) = nsub - gems_rad%npix(iw, ix, iy)
-       ! If the # of wavelengths is <= 75% of the # of irradiances, stop processing this pixel
+
+! If the # of wavelengths is <= 75% of the # of irradiances, stop processing this pixel
         IF (gems_rad%npix(iw, ix, iy) <= gems_irrad%npix(iw, ix) * 0.8 ) THEN   !geun  0.9 -> 0.8
           WRITE(*, '(A,5I5,F9.2)') 'Too fewer radiance points: ', ix, iy, iw, &
           gems_rad%npix(iw, ix, iy), gems_irrad%npix(iw, ix), gems_sza(ix, iy)
@@ -728,7 +728,7 @@ SUBROUTINE GEMS_O3P_read_l1b_rad (nxcoadd, first_pix, last_pix,ny, offline, pge_
       IF ( gems_rad%errstat(ix, iy) == pge_errstat_error) CYCLE   ! This pixel will not be processed.     
       gems_rad%nwav(ix, iy) = nsub
 
-      ! Perform coadding if UV-2 is selected with UV-1
+! Perform coadding if UV-2 is selected with UV-1
       fidx = 1     
       DO iw = 1, numwin
         ch = band_selectors(iw);  nbin = nwbin(iw)
@@ -745,7 +745,7 @@ SUBROUTINE GEMS_O3P_read_l1b_rad (nxcoadd, first_pix, last_pix,ny, offline, pge_
         fidx = lidx + 1
       ENDDO
 
-      ! Get data for surface albedo & cloud fraction at 370.2 nm +/- 20 pixels
+! Get data for surface albedo & cloud fraction at 370.2 nm +/- 20 pixels
       irefl = 0; fidx = gems_refl%solwinpix(ix, 1)
       nbin = nxbin * ncoadd  
       iix = (ix - 1) * nbin
@@ -779,9 +779,9 @@ SUBROUTINE GEMS_O3P_read_l1b_rad (nxcoadd, first_pix, last_pix,ny, offline, pge_
       !write(*,*) 'hello wasp !  ',nsub !gems_rad%spec(1:nsub,ix,iy)
     ENDDO ! END of x-direction
   ENDDO ! End of y-direction
- !DO i=1,nsub
+!DO i=1,nsub
   !write(*,*) 'hello wasp !  ',gems_rad%wavl(i,15,245),gems_rad%spec(i,15,245)
- !ENDDO
+!ENDDO
   !write(*,*) 'hello wasp !  ',gems_rad%spec(1:nsub,ix,iy)
 !stop
- END SUBROUTINE GEMS_O3P_read_l1b_rad
+END SUBROUTINE GEMS_O3P_read_l1b_rad

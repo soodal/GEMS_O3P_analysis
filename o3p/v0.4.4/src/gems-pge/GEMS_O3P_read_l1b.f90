@@ -146,11 +146,13 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
     WRITE(*, '(A, 2i5)') "Need to increase nwavel_max!!!", nwavel, nwavel_max
     pge_error_status = pge_errstat_error; RETURN
   ENDIF
+
   ! Determine number of wavelengths to be read for deteriming cloud fraction
   fidx = MAXVAL ( MINLOC ( gems_irrad%wavl(1:nwavel, 1), MASK = &
        (gems_irrad%wavl(1:nwavel, 1) > pos_alb - toms_fwhm * 1.4) ))
   lidx = MAXVAL ( MAXLOC ( gems_irrad%wavl(1:nwavel, 1), MASK = &
        (gems_irrad%wavl(1:nwavel, 1) < pos_alb + toms_fwhm * 1.4) ))
+
   IF (fidx <1 .OR. lidx > nwavel) THEN
      WRITE(*, '(2A)') modulename, ': Need to change pos_alb/toms_fwhm!!!'
      pge_error_status = pge_errstat_error; RETURN
@@ -172,6 +174,7 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
     ENDIF
     nwbin(iw) = nwbin(iw) * nsolbin
   ENDDO
+
   !-----------------------------------------
   ! subset and coadding
   !-----------------------------------------
@@ -226,252 +229,249 @@ SUBROUTINE GEMS_O3P_read_l1b_irrad (nxcoadd, first_pix, last_pix, pge_error_stat
 	
       ENDDO	
       ! More process for reduce_resolution
-  ENDDO ! loop of nchannel
+    ENDDO ! loop of nchannel
    
-  ! Subset valid spectrum
-  nsub =0; subspec = 0.0
-  Do iw = 1, numwin
-    ch   = band_selectors (iw)
-    nbin = nwbin(iw);  iix = (ix - 1) * nbin
+    ! Subset valid spectrum
+    nsub =0; subspec = 0.0
+    Do iw = 1, numwin
+      ch   = band_selectors (iw)
+      nbin = nwbin(iw);  iix = (ix - 1) * nbin
       
-    winpix(iw, 1) = MINVAL ( MINLOC ( gems_irrad%wavl(spos(ch):epos(ch),iix + 1), &
-              MASK = gems_irrad%wavl(spos(ch):epos(ch),iix + 1) >= winlim(iw, 1)) )
-    winpix(iw, 2) = MAXVAL ( MAXLOC ( gems_irrad%wavl(spos(ch):epos(ch),iix + 1), &
-             MASK = gems_irrad%wavl(spos(ch):epos(ch),iix + 1) <= winlim(iw, 2)) )
+      winpix(iw, 1) = MINVAL ( MINLOC ( gems_irrad%wavl(spos(ch):epos(ch),iix + 1), &
+                      MASK = gems_irrad%wavl(spos(ch):epos(ch),iix + 1) >= winlim(iw, 1)) )
+      winpix(iw, 2) = MAXVAL ( MAXLOC ( gems_irrad%wavl(spos(ch):epos(ch),iix + 1), &
+                      MASK = gems_irrad%wavl(spos(ch):epos(ch),iix + 1) <= winlim(iw, 2)) )
 
-    gems_irrad%npix  (iw, ix) = nsub
-    fidx = winpix(iw, 1) + spos(ch) - 1
-    lidx = winpix(iw, 2) + spos(ch) - 1
-    gems_irrad%winpix(iw,ix,1:2) = 0
+      gems_irrad%npix  (iw, ix) = nsub
+      fidx = winpix(iw, 1) + spos(ch) - 1
+      lidx = winpix(iw, 2) + spos(ch) - 1
+      gems_irrad%winpix(iw,ix,1:2) = 0
 
-    IF (rm_mgline .AND. winlim(iw, 1) < 286.0 .AND. winlim(iw, 2) > 286.0) THEN
-      DO i = fidx, lidx
-        IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin)  > 0.0)   .AND. &
-            ALL(gems_irrad%spec(i, iix+1:iix+nbin)  < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
-            (ALL(gems_irrad%wavl(i, iix+1:iix+nbin) < 278.8)   .OR. &
-            ALL(gems_irrad%wavl(i, iix+1:iix+nbin)  > 281.0))  .AND. &
-            (ALL(gems_irrad%wavl(i, iix+1:iix+nbin) < 284.7)   .OR. &
-            ALL(gems_irrad%wavl(i, iix+1:iix+nbin)  > 285.7))) THEN
-          nsub = nsub + 1
-          subspec(1:nbin, wvl_idx, nsub) = gems_irrad%wavl(i, iix+1:iix+nbin)
-          subspec(1:nbin, spc_idx, nsub) = gems_irrad%spec(i, iix+1:iix+nbin)
-          subspec(1:nbin, sig_idx, nsub) = gems_irrad%prec(i, iix+1:iix+nbin)
-        IF ( gems_irrad%winpix(iw, ix, 1) == 0)   gems_irrad%winpix(iw, ix, 1) = i
-             gems_irrad%winpix(iw, ix, 2) = i
-             gems_irrad%wind(nsub, ix) = i
-        ENDIF
-	    ENDDO
-    ELSE
-      DO i = fidx, lidx
-        IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin)  > 0.0)   .AND. &
-            ALL(gems_irrad%spec(i, iix+1:iix+nbin)  < 4.0E14) .AND. flgmsks(i) == 0 ) THEN
-          nsub = nsub + 1
-          subspec(1:nbin, wvl_idx, nsub) = gems_irrad%wavl(i, iix+1:iix+nbin)
-          subspec(1:nbin, spc_idx, nsub) = gems_irrad%spec(i, iix+1:iix+nbin)
-          subspec(1:nbin, sig_idx, nsub) = gems_irrad%prec(i, iix+1:iix+nbin)
+      IF (rm_mgline .AND. winlim(iw, 1) < 286.0 .AND. winlim(iw, 2) > 286.0) THEN
+        DO i = fidx, lidx
+          IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin)  > 0.0)   .AND. &
+              ALL(gems_irrad%spec(i, iix+1:iix+nbin)  < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
+              (ALL(gems_irrad%wavl(i, iix+1:iix+nbin) < 278.8)   .OR. &
+              ALL(gems_irrad%wavl(i, iix+1:iix+nbin)  > 281.0))  .AND. &
+              (ALL(gems_irrad%wavl(i, iix+1:iix+nbin) < 284.7)   .OR. &
+              ALL(gems_irrad%wavl(i, iix+1:iix+nbin)  > 285.7))) THEN
+            nsub = nsub + 1
+            subspec(1:nbin, wvl_idx, nsub) = gems_irrad%wavl(i, iix+1:iix+nbin)
+            subspec(1:nbin, spc_idx, nsub) = gems_irrad%spec(i, iix+1:iix+nbin)
+            subspec(1:nbin, sig_idx, nsub) = gems_irrad%prec(i, iix+1:iix+nbin)
           IF ( gems_irrad%winpix(iw, ix, 1) == 0)   gems_irrad%winpix(iw, ix, 1) = i
+               gems_irrad%winpix(iw, ix, 2) = i
+               gems_irrad%wind(nsub, ix) = i
+          ENDIF
+	      ENDDO
+      ELSE
+        DO i = fidx, lidx
+          IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin)  > 0.0)   .AND. &
+              ALL(gems_irrad%spec(i, iix+1:iix+nbin)  < 4.0E14) .AND. flgmsks(i) == 0 ) THEN
+            nsub = nsub + 1
+            subspec(1:nbin, wvl_idx, nsub) = gems_irrad%wavl(i, iix+1:iix+nbin)
+            subspec(1:nbin, spc_idx, nsub) = gems_irrad%spec(i, iix+1:iix+nbin)
+            subspec(1:nbin, sig_idx, nsub) = gems_irrad%prec(i, iix+1:iix+nbin)
+            IF ( gems_irrad%winpix(iw, ix, 1) == 0)   gems_irrad%winpix(iw, ix, 1) = i
                  gems_irrad%winpix(iw, ix, 2) = i
                  gems_irrad%wind(nsub, ix) = i
-        ENDIF          
-      ENDDO    
-    ENDIF
-    gems_irrad%npix(iw, ix) = nsub - gems_irrad%npix(iw, ix)
-  ENDDO ! loop of numwin
-  gems_irrad%nwav(ix) = nsub
-
-  ! Coadding spectrum when necessary
-  fidx = 1
-  DO iw = 1, numwin       
-    ch = band_selectors(iw)
-    nbin = nwbin(iw)
-    lidx = fidx + gems_irrad%npix(iw, ix) - 1 
-    IF (nbin > 1) THEN ! wcal_bef_coadd F
-      !WRITE(*,'(A)') ' Perform solwavcal_coadd'
-      !print * , subspec(1:nbin,1, fidx:fidx), sum(subspec(1:nbin,1, fidx:fidx))/nbin
-      CALL solwavcal_coadd(wcal_bef_coadd, gems_irrad%npix(iw, ix), nbin, &
-           subspec(1:nbin, :, fidx:lidx), wshis(iw, 1:nbin), wsqus(iw, 1:nbin), error)
-      ! print * , subspec(1:nbin,1, fidx:fidx)
-	      
-      IF (error) THEN
-        WRITE(*, '(A)') 'No solar wavelength calibration before coadding!!!'
-        gems_irrad%errstat(ix) = pge_errstat_warning
+          ENDIF          
+        ENDDO    
       ENDIF
-    ENDIF
-    fidx = lidx + 1    
-  ENDDO
+      gems_irrad%npix(iw, ix) = nsub - gems_irrad%npix(iw, ix)
+    ENDDO ! loop of numwin
+    gems_irrad%nwav(ix) = nsub
+
+! Coadding spectrum when necessary
+    fidx = 1
+    DO iw = 1, numwin       
+      ch = band_selectors(iw)
+      nbin = nwbin(iw)
+      lidx = fidx + gems_irrad%npix(iw, ix) - 1 
+      IF (nbin > 1) THEN ! wcal_bef_coadd F
+        !WRITE(*,'(A)') ' Perform solwavcal_coadd'
+        !print * , subspec(1:nbin,1, fidx:fidx), sum(subspec(1:nbin,1, fidx:fidx))/nbin
+        CALL solwavcal_coadd(wcal_bef_coadd, gems_irrad%npix(iw, ix), nbin, &
+             subspec(1:nbin, :, fidx:lidx), wshis(iw, 1:nbin), wsqus(iw, 1:nbin), error)
+        !print * , subspec(1:nbin,1, fidx:fidx)
+	      
+        IF (error) THEN
+          WRITE(*, '(A)') 'No solar wavelength calibration before coadding!!!'
+          gems_irrad%errstat(ix) = pge_errstat_warning
+        ENDIF
+      ENDIF
+      fidx = lidx + 1    
+    ENDDO
  
-  ! GET solar spectrum for ring effect
-  subrsol = 0.0
+! GET solar spectrum for ring effect
+    subrsol = 0.0
 
-  !ring (a) iw=1 ring(13:126) = 269.13-308.817 Same As SubSPectra
-  ch = band_selectors(1)
-  IF (ch == 1) THEN 
-    noff1 = 12
-  ELSE
-    noff1 = 25
-  ENDIF
-  nring = gems_irrad%npix(1,ix) + noff1
-  subrsol(1:spc_idx, noff1+1: nring) = subspec(1, 1:spc_idx, 1:gems_irrad%npix(1,ix))
-  gems_ring%sol_ndiv(ix) = 0
-
-  ! ring (b) iw=1, ring(1:12) = 264.825-268.78
-  ! add extra spectra before first window (uncoadded)
-  ! if unavailable, needed to ammened with solar reference spectrum
-  noff1 = noff1 + 1 ;     nbin = nwbin(1); iix = (ix - 1) * nbin
-
-
-  DO i = winpix(1, 1) - 1, 1, -1
-    IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
-        ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
-        noff1 = noff1 - 1
-        subrsol(wvl_idx, noff1) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
-        subrsol(spc_idx, noff1) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
-	
-        IF (noff1 == 1) EXIT
+!ring (a) iw=1 ring(13:126) = 269.13-308.817 Same As Subspectra
+    ch = band_selectors(1)
+    IF (ch == 1) THEN 
+      noff1 = 12
+    ELSE
+      noff1 = 25
     ENDIF
-  ENDDO
+    nring = gems_irrad%npix(1,ix) + noff1
+    subrsol(1:spc_idx, noff1+1: nring) = subspec(1, 1:spc_idx, 1:gems_irrad%npix(1,ix))
+    gems_ring%sol_ndiv(ix) = 0
 
-  DO iw = 2, numwin
-    ch = band_selectors(iw)
-    nbin = nwbin(iw - 1) ; iix = (ix - 1) * nbin           
+! ring (b) iw=1, ring(1:12) = 264.825-268.78
+! add extra spectra before first window (uncoadded)
+! if unavailable, needed to ammened with solar reference spectrum
+    noff1 = noff1 + 1 ;     nbin = nwbin(1); iix = (ix - 1) * nbin
 
-     
-    IF (ch == band_selectors(iw - 1) ) THEN   
-      DO i = winpix(iw-1, 2)+1, winpix(iw, 1)-1 
-        IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
-            ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
+
+    DO i = winpix(1, 1) - 1, 1, -1
+      IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
+          ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
+          noff1 = noff1 - 1
+          subrsol(wvl_idx, noff1) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
+          subrsol(spc_idx, noff1) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
+          	
+          IF (noff1 == 1) EXIT
+      ENDIF
+    ENDDO
+
+    DO iw = 2, numwin
+      ch = band_selectors(iw)
+      nbin = nwbin(iw - 1) ; iix = (ix - 1) * nbin
+      IF (ch == band_selectors(iw - 1) ) THEN
+        DO i = winpix(iw-1, 2)+1, winpix(iw, 1)-1 
+          IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
+              ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
             nring = nring + 1
-
             subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
             subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
                  
-        ENDIF
-      ENDDO
-    ELSE  ! first channel 1 and second channel 2
-      wcenter = (winlim(iw-1, 2) + winlim(iw, 1)) / 2.0 
-      idx = MAXVAL ( MAXLOC ( gems_irrad%wavl(spos(ch-1):epos(ch-1), iix+1), &
-      MASK =gems_irrad%wavl(spos(ch-1):epos(ch-1), iix+1) < wcenter ) ) + spos(ch-1) - 1
-      !(c) ring(127:131) : 309.114~310.29              
-      DO i = winpix(iw-1, 2)+1, idx 
-        IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
-            ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
-            ALL(gems_irrad%wavl(i, iix+1:iix+nbin) > subrsol(wvl_idx, nring)) ) THEN
-            nring = nring + 1
+          ENDIF
+        ENDDO
+      ELSE  ! first channel 1 and second channel 2
+        wcenter = (winlim(iw-1, 2) + winlim(iw, 1)) / 2.0 
+        idx = MAXVAL ( MAXLOC ( gems_irrad%wavl(spos(ch-1):epos(ch-1), iix+1), &
+        MASK =gems_irrad%wavl(spos(ch-1):epos(ch-1), iix+1) < wcenter ) ) + spos(ch-1) - 1
+!(c) ring(127:131) : 309.114~310.29              
+        DO i = winpix(iw-1, 2)+1, idx 
+          IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
+              ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
+              ALL(gems_irrad%wavl(i, iix+1:iix+nbin) > subrsol(wvl_idx, nring)) ) THEN
+              nring = nring + 1
+
+              subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
+              subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin                   
+		          !print * , i, nring, subrsol(1, nring)
+          ENDIF
+        ENDDO
+!(c) ring(132:141) : 310.58-312.01
+        gems_ring%sol_ndiv(ix) = nring               ! 1:nring is from the same channel
+        nbin = nwbin(iw) ; iix = (ix - 1) * nbin
+              
+        idx = MAXVAL ( MINLOC ( gems_irrad%wavl(spos(ch):epos(ch), iix+1),   &
+        MASK = gems_irrad%wavl(spos(ch):epos(ch), iix+1) > wcenter ) ) + spos(ch) - 1
+
+        DO i = idx, winpix(iw, 1) - 2 + spos(ch)                 
+          IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
+              ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
+              ALL(gems_irrad%wavl(i, iix+1:iix+nbin) > subrsol(wvl_idx, nring)) ) THEN
+              nring = nring + 1
 
             subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
             subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin                   
-		!  print * , i, nring, subrsol(1, nring)
-        ENDIF
-      ENDDO
-      !(c) ring(132:141) : 310.58-312.01
-      gems_ring%sol_ndiv(ix) = nring               ! 1:nring is from the same channel
-      nbin = nwbin(iw) ; iix = (ix - 1) * nbin
-              
-      idx = MAXVAL ( MINLOC ( gems_irrad%wavl(spos(ch):epos(ch), iix+1),   &
-      MASK = gems_irrad%wavl(spos(ch):epos(ch), iix+1) > wcenter ) ) + spos(ch) - 1
-
-      DO i = idx, winpix(iw, 1) - 2 + spos(ch)                 
-        IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
-            ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0 .AND. &
-            ALL(gems_irrad%wavl(i, iix+1:iix+nbin) > subrsol(wvl_idx, nring)) ) THEN
-          nring = nring + 1
-
-          subrsol(wvl_idx, nring) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
-          subrsol(spc_idx, nring) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin                   
-		   ! print * , i, nring, subrsol(1, nring), nbin
-        ENDIF
-      ENDDO
-	  
-    ENDIF
+		        !print * , i, nring, subrsol(1, nring), nbin
+          ENDIF
+        ENDDO
+      ENDIF
            
-    idx = SUM(gems_irrad%npix(1:iw-1, ix))
-    subrsol(wvl_idx:spc_idx, nring+1:nring+gems_irrad%npix(iw, ix)) = subspec(1, wvl_idx:spc_idx, &
-            idx+1:idx+gems_irrad%npix(iw, ix))
-    nring = nring + gems_irrad%npix(iw, ix)
-  ENDDO
+      idx = SUM(gems_irrad%npix(1:iw-1, ix))
+      subrsol(wvl_idx:spc_idx, nring+1:nring+gems_irrad%npix(iw, ix)) = subspec(1, wvl_idx:spc_idx, &
+              idx+1:idx+gems_irrad%npix(iw, ix))
+      nring = nring + gems_irrad%npix(iw, ix)
+    ENDDO
 
-  ! Add extra spectra after fitting window
-  noff2 = nring
-  IF (ch == 2) THEN
-    nring = nring + 25
-  ELSE
-    nring = nring + 12
-  ENDIF
-        
-  DO i = spos(ch) + winpix(numwin, 2), epos(ch)
-
-    IF (ch == 1 ) THEN
-      nbin = nxbin
+! Add extra spectra after fitting window
+    noff2 = nring
+    IF (ch == 2) THEN
+      nring = nring + 25
     ELSE
-      nbin = nxbin * ncoadd
+      nring = nring + 12
     ENDIF
+        
+    DO i = spos(ch) + winpix(numwin, 2), epos(ch)
+
+      IF (ch == 1 ) THEN
+        nbin = nxbin
+      ELSE
+        nbin = nxbin * ncoadd
+      ENDIF
       iix = (ix - 1) * nbin
            
-    IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
-        ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
-      noff2 = noff2 + 1
+      IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
+          ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
+        noff2 = noff2 + 1
 
-      subrsol(wvl_idx, noff2) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
-      subrsol(spc_idx, noff2) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
-      ! write(*,'(3i5,3f10.4)') i, noff2,iix, subrsol(wvl_idx, noff2),gems_irrad%wavl(i, iix+1:iix+nbin)
-    ENDIF
+        subrsol(wvl_idx, noff2) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
+        subrsol(spc_idx, noff2) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
+        !write(*,'(3i5,3f10.4)') i, noff2,iix, subrsol(wvl_idx, noff2),gems_irrad%wavl(i, iix+1:iix+nbin)
+      ENDIF
            
-    IF (noff2 == nring) EXIT
-  ENDDO     
-  gems_ring%nsol(ix) = nring; gems_ring%sol_lin(ix) = noff1; gems_ring%sol_uin(ix) = noff2
+      IF (noff2 == nring) EXIT
+    ENDDO     
+    gems_ring%nsol(ix) = nring; gems_ring%sol_lin(ix) = noff1; gems_ring%sol_uin(ix) = noff2
 
-  ! Get data for surface albedo & cloud fraction at 370.2 nm +/- 15 pixels
-  irefl = 0; gems_refl%solwinpix(ix, 1:2) = 0
-  nbin = nxbin * ncoadd
-  iix = (ix - 1) * nbin
+! Get data for surface albedo & cloud fraction at 370.2 nm +/- 15 pixels
+    irefl = 0; gems_refl%solwinpix(ix, 1:2) = 0
+    nbin = nxbin * ncoadd
+    iix = (ix - 1) * nbin
      
-  idx = MAXVAL ( MINLOC ( gems_irrad%wavl(1:nwavel, iix+1), &
+    idx = MAXVAL ( MINLOC ( gems_irrad%wavl(1:nwavel, iix+1), &
                           MASK = (gems_irrad%wavl(1:nwavel, iix+1) > pos_alb - toms_fwhm * 1.4) ))
 
-  DO i  = idx, nwavel
-    IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
-        ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
-      irefl = irefl + 1
-      gems_refl%solwavl(irefl, ix) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
-      gems_refl%solspec(irefl, ix) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
-      !write(*,'(3i5,3f10.3)') irefl,nbin, iix+1,gems_refl%solwavl(irefl, ix), gems_irrad%wavl(i, iix+1:iix+nbin)
-      IF ( gems_refl%solwinpix(ix, 1) == 0)  gems_refl%solwinpix(ix, 1) = i
-        gems_refl%solwinpix(ix, 2) = i
-      ENDIF
-      IF (irefl == nrefl) EXIT
-  ENDDO
-  IF (irefl /= nrefl) THEN
-    WRITE(*, *) 'Could not get enough irradiance points for cloud fraction!!!'
-    gems_irrad%errstat(ix) = pge_errstat_error; CYCLE
-  ENDIF
-      
-  IF (scnwrt) THEN
-    WRITE(*, *) 'End Of Reading Irradiance Spectrum: ', ix
-    DO i = 1, numwin
-      WRITE(*,'(A10,I4,2f8.3,I4)') 'win = ', i, winlim(i,1), winlim(i,2),gems_irrad%npix(i, ix)
-      IF (gems_irrad%npix(i, ix) < 4) THEN
-        WRITE(*, '(A,f8.3,A3,f8.3)') ' Not enough points (>=4)  in window: ', winlim(i,1), ' - ', winlim(i,2)
-        pge_error_status = pge_errstat_error
-      ENDIF
+    DO i  = idx, nwavel
+      IF (ALL(gems_irrad%spec(i, iix+1:iix+nbin) > 0.0) .AND. &
+          ALL(gems_irrad%spec(i, iix+1:iix+nbin) < 4.0E14) .AND. flgmsks(i) == 0) THEN
+        irefl = irefl + 1
+        gems_refl%solwavl(irefl, ix) = SUM(gems_irrad%wavl(i, iix+1:iix+nbin)) / nbin
+        gems_refl%solspec(irefl, ix) = SUM(gems_irrad%spec(i, iix+1:iix+nbin)) / nbin
+        !write(*,'(3i5,3f10.3)') irefl,nbin, iix+1,gems_refl%solwavl(irefl, ix), gems_irrad%wavl(i, iix+1:iix+nbin)
+        IF ( gems_refl%solwinpix(ix, 1) == 0)  gems_refl%solwinpix(ix, 1) = i
+          gems_refl%solwinpix(ix, 2) = i
+        ENDIF
+        IF (irefl == nrefl) EXIT
     ENDDO
-  ENDIF
 
-  gems_irrad%norm(ix) = SUM ( subspec(1, spc_idx, 1:nsub) ) / nsub
-     
-  IF (gems_irrad%norm(ix) <= 0.0 ) THEN 
-    gems_irrad%errstat(ix) = pge_errstat_error; CYCLE
-  ENDIF
-     
-  gems_irrad%wavl(1:nsub, ix)  = subspec(1, wvl_idx, 1:nsub)
-  gems_irrad%spec(1:nsub, ix)  = subspec(1, spc_idx, 1:nsub) / gems_irrad%norm(ix)
-  gems_irrad%prec(1:nsub, ix)  = subspec(1, sig_idx, 1:nsub) / gems_irrad%norm(ix)    
+    IF (irefl /= nrefl) THEN
+      WRITE(*, *) 'Could not get enough irradiance points for cloud fraction!!!'
+      gems_irrad%errstat(ix) = pge_errstat_error; CYCLE
+    ENDIF
+      
+    IF (scnwrt) THEN
+      WRITE(*, *) 'End Of Reading Irradiance Spectrum: ', ix
+      DO i = 1, numwin
+        WRITE(*,'(A10,I4,2f8.3,I4)') 'win = ', i, winlim(i,1), winlim(i,2),gems_irrad%npix(i, ix)
+        IF (gems_irrad%npix(i, ix) < 4) THEN
+          WRITE(*, '(A,f8.3,A3,f8.3)') ' Not enough points (>=4)  in window: ', winlim(i,1), ' - ', winlim(i,2)
+          pge_error_status = pge_errstat_error
+        ENDIF
+      ENDDO
+    ENDIF
 
-  gems_ring%solwavl(1:nring, ix) = subrsol(1, 1:nring)
-  gems_ring%solspec(1:nring, ix) = subrsol(2, 1:nring) / gems_irrad%norm(ix) 
-  !print * , gems_irrad%norm(ix)
-  !print * , gems_irrad%wavl(1:5, ix)
-  !print * , gems_irrad%spec(1:5, ix)
-  !print * , gems_irrad%prec(1:5, ix)
+    gems_irrad%norm(ix) = SUM ( subspec(1, spc_idx, 1:nsub) ) / nsub
+     
+    IF (gems_irrad%norm(ix) <= 0.0 ) THEN 
+      gems_irrad%errstat(ix) = pge_errstat_error; CYCLE
+    ENDIF
+     
+    gems_irrad%wavl(1:nsub, ix)  = subspec(1, wvl_idx, 1:nsub)
+    gems_irrad%spec(1:nsub, ix)  = subspec(1, spc_idx, 1:nsub) / gems_irrad%norm(ix)
+    gems_irrad%prec(1:nsub, ix)  = subspec(1, sig_idx, 1:nsub) / gems_irrad%norm(ix)    
+
+    gems_ring%solwavl(1:nring, ix) = subrsol(1, 1:nring)
+    gems_ring%solspec(1:nring, ix) = subrsol(2, 1:nring) / gems_irrad%norm(ix) 
+    !print * , gems_irrad%norm(ix)
+    !print * , gems_irrad%wavl(1:5, ix)
+    !print * , gems_irrad%spec(1:5, ix)
+    !print * , gems_irrad%prec(1:5, ix)
 
   ENDDO ! xtrack
 RETURN
