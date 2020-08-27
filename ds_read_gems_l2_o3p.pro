@@ -1,14 +1,35 @@
 function ds_read_gems_l2_o3p, file
-nl=24
-nres=20
-data_list = ['EffectiveCloudFractionUV', 'ProcessingQualityFlags', $
-             'RootMeanSquareErrorOfFit', 'AveragingKernel', 'O3' , $
-             'O3Apriori', 'O3AprioriError','ColumnAmountO3', $
-             'CloudPressure','ResidualsOfFit','NumberOfIterations','Runtime']
 
-geo_list  = ['Latitude' ,'Longitude', 'SolarZenithAngle', $
-             'ViewingZenithAngle', 'Time','Altitude' ,    $
-             'Pressure','Pix','Line','TropopausePressure']
+fid=ncdf_open(file)
+p1id=ncdf_groupsinq(fid)
+p2id=ncdf_groupsinq(p1id[0])
+p3id=ncdf_groupsinq(p2id[0])
+p4id=ncdf_groupsinq(p3id[0])
+
+lat_id  = ncdf_varid(p4id[0],'Latitude')
+res_id  = ncdf_varid(p4id[1],'ResidualsOfFit')
+
+
+ncdf_varget,p4id[0],lat_id,Latitude
+ncdf_varget,p4id[1],res_id,ResidualsOfFit
+
+resdims = size(ResidualsOfFit,/dim)
+latdims = size(Latitude, /dim)
+
+nl = latdims[2]
+nres = datadims[0]
+npix=datadims[1] 
+nline=datadims[2]
+
+
+;data_list = ['EffectiveCloudFractionUV', 'ProcessingQualityFlags', $
+             ;'RootMeanSquareErrorOfFit', 'AveragingKernel', 'O3' , $
+             ;'O3Apriori', 'O3AprioriError','ColumnAmountO3', $
+             ;'CloudPressure','ResidualsOfFit','NumberOfIterations','Runtime']
+
+;geo_list  = ['Latitude' ,'Longitude', 'SolarZenithAngle', $
+             ;'ViewingZenithAngle', 'Time','Altitude' ,    $
+             ;'Pressure','Pix','Line','TropopausePressure']
 
 str = {Altitude:fltarr(nl+1), Pressure:fltarr(nl+1), $
   AveragingKernel:fltarr(nl, nl), O3:fltarr(nl), O3Apriori:fltarr(nl), $
@@ -20,17 +41,6 @@ str = {Altitude:fltarr(nl+1), Pressure:fltarr(nl+1), $
   O3RandomNoiseError:fltarr(nl), DegreesOfFreedomForSignal:fltarr(3), $
   NumberOfIterations:0, FinalAlgorithmFlags:0}
 
-
-fid=ncdf_open(file)
-p1id=ncdf_groupsinq(fid)
-p2id=ncdf_groupsinq(p1id[0])
-p3id=ncdf_groupsinq(p2id[0])
-p4id=ncdf_groupsinq(p3id[0])
-
-tmp_id  = ncdf_varid(p4id[0],'Latitude')
-ncdf_varget,p4id[0],tmp_id,Latitude
-datadims= size(Latitude,/dim)
-npix=datadims[0] & nline=datadims[1]
 gems=replicate(str,npix,nline)
 
 tmpdata = fltarr(npix,nline)
@@ -76,7 +86,7 @@ for dn=0,1 do begin
       endif
 
     ENDFOR  ; variable
-  ENDIF ELSE BEGIN ; datpath 
+  ENDIF ELSE BEGIN ; datapath 
     FOR vn=0,n_elements(varid)-1 DO BEGIN
       info_tmp=ncdf_varinq(id,varid[vn])
       print,'Reading ... ',info_tmp.name
