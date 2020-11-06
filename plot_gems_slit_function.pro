@@ -8,7 +8,7 @@ endif
 yidx = 1023
 centeridx = 30
 
-nwl = 1033
+nwl = 1033 ; wavelength number
 
 ncolors = 256
 ct = colortable([[100, 0, 100], [0, 0, 100], [0, 0, 255]], $
