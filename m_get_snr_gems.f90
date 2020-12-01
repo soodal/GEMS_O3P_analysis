@@ -1,9 +1,12 @@
 ! Purpose : GEMS SNR Calculation, converted from read_gemssnr_evol.pro
 ! Author: Juseon Bak
 ! date  : 2020-11-10
+! update: Dae Sung Choi
+! update date : 2020-11-27
+
 
 MODULE m_get_snr_gems
-   character(len=100), parameter :: data_dir = '/data1/gems/o3p/ds/SNR/'
+   character(len=100), parameter :: data_dir = '/data1/gems/o3p/ds/GEMS_O3P_analysis/SNR/'
    integer, parameter :: cr_lines=1001, ir_lines=1001, sr_lines =1001,sl_lines=1001
    real (kind=8), allocatable, dimension (:), save :: cr_wave, deg_bol, deg_eol  
    real (kind=8), allocatable, dimension (:), save :: ir_wave, ir_nom, ir_max, ir_num 
@@ -191,7 +194,7 @@ MODULE m_get_snr_gems
       read(1,*) wav, tmp1
       if ( wav >= fwav .and. wav <= lwav) then
        c = c + 1
-       cr_wave(c)=wav; deg_eol(i)=tmp1
+       cr_wave(c)=wav; deg_eol(c)=tmp1
       endif
     enddo
     close (1)
