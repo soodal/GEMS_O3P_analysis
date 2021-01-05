@@ -1,23 +1,22 @@
 
 ;gems_pohang_idx = [66,71]
-sonde_o3 = []
-gems_o3 = []
 
 stn = ['pohang', 'stn014', 'stn344']
 
 stns = [] 
 months = []
-for imonth = 8, 10 do begin
-  smonth = string(imonth, format='(i02)')
 
   ;=============================================================================
   ; Ozonesonde
   ;=============================================================================
 
-  for istn = 0, 2, 2 do begin
-    o3sonde_path = '/data1/gems/o3p/works/GEMS_O3P_analysis/data/ozonesonde/' $
-      + stn[istn] + '/'
-    print, o3sonde_path
+for istn = 0, 2 do begin
+  o3sonde_path = '/data1/gems/o3p/works/GEMS_O3P_analysis/data/ozonesonde/' $
+    + stn[istn] + '/'
+  sonde_o3 = []
+  gems_o3 = []
+  for imonth = 8, 10 do begin
+    smonth = string(imonth, format='(i02)')
 
     if stn[istn] eq 'pohang' then begin
       o3sonde_filelist = file_search(o3sonde_path + '2020' + smonth  + '*.txt')
@@ -127,11 +126,17 @@ for imonth = 8, 10 do begin
       endfor
     endif
   endfor
+  idx = where(finite(gems_o3) eq 1 and finite(sonde_o3) eq 1, /null)
+  plot_gems_validation, gems_o3[idx], sonde_o3[idx], filename='./plot/validation0006_gems_sonde_' + stn[istn] + '.png'
 endfor
-print, gems_o3, sonde_o3
-idx = where(finite(gems_o3) eq 1 and finite(sonde_o3) eq 1)
+
+idx = where(finite(gems_o3) eq 1 and finite(sonde_o3) eq 1 and $
+  stns eq 'pohang' or  stns eq 'sn344')
 
 print, correlate(gems_o3[idx], sonde_o3[idx])
+
+
+
 stop
 
 
