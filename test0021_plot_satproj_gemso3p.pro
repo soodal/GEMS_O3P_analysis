@@ -5,6 +5,5 @@ filelist = file_search('/data2/L2_GEMS/val_1008/GK2_GEMS_O3P_*.nc4')
 
 for i = 0, n_elements(filelist)-1 do begin
   plot_gems_satproj,filelist[i]
-  stop
 endfor
 end

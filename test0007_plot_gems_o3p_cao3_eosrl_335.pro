@@ -36,7 +36,7 @@
 pos = [0.10, 0.1, 0.8, 0.85]
 leg_pos = [0.85, 0.8]
 
-fitrange = '305340'
+fitrange = '300340'
 fit_range = strmid(fitrange, 0, 3) + '-' + strmid(fitrange, 3, 3)
 L1Cmaker = 'EOSRL'
 

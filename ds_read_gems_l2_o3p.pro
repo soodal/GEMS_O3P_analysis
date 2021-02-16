@@ -104,10 +104,14 @@ for dn=0,1 do begin
         if n_elements(gems) eq 0 then begin
           print,'Reading ... ',info_tmp.name
           ncdf_varget,id,varid[vn],data
+          nanidx = where(data lt -990, /null)
+          data[nanidx] = !values.f_nan
           gems = create_struct('Latitude', data)
         endif else begin
           print,'Reading ... ',info_tmp.name
           ncdf_varget,id,varid[vn],data
+          nanidx = where(data lt -990, /null)
+          data[nanidx] = !values.f_nan
           gems = create_struct(gems, 'Latitude', data)
         ENDELSE
       endif else if varname eq 'Line' $
@@ -126,10 +130,14 @@ for dn=0,1 do begin
         if n_elements(gems) eq 0 then begin
           print,'Reading ... ',info_tmp.name
           ncdf_varget,id,varid[vn],data
+          nanidx = where(data lt -990, /null)
+          data[nanidx] = !values.f_nan
           gems = create_struct('Longitude', data)
         endif else begin
           print,'Reading ... ',info_tmp.name
           ncdf_varget,id,varid[vn],data
+          nanidx = where(data lt -990, /null)
+          data[nanidx] = !values.f_nan
           gems = create_struct(gems, 'Longitude', data)
         ENDELSE
       endif else if varname eq 'Pix' $
@@ -273,7 +281,8 @@ for dn=0,1 do begin
           ncdf_varget,id,varid[vn],data
           gems = create_struct(gems, 'ColumnAmountO3', data)
         ENDELSE
-      endif else if varname eq 'DegreesOfFreedomForSignal' then  BEGIN
+      endif else if varname eq 'DegreesOfFreedomForSignal' $
+          and n_elements(where(varname eq varlist, /null)) ne 0 then BEGIN
         if n_elements(gems) eq 0 then begin
           print,'Reading ... ',info_tmp.name
           ncdf_varget,id,varid[vn],data

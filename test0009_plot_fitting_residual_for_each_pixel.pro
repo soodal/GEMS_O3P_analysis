@@ -10,7 +10,7 @@ L1Cmaker = 'EOSRL'
 
 path ='/data1/gems/o3p/ds/GEMS_O3P_Yonsei/' 
 outputpath = path + 'out/'
-projectpath = outputpath + fitrange + '_' + L1Cmaker + '/'
+projectpath = outputpath + 'softcal/' + fitrange + '/'
 
 filelist = file_search(projectpath + '*.nc4')
 

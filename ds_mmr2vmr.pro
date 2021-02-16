@@ -1,12 +1,15 @@
-function ds_mmr2vmr, mmr, ppbv=ppbv, ppmv=ppmv
-; ppbv
-if keyword_Set(ppbv) then begin
-  vmr = 28.9644 / 47.9982 * 1e9 * MMR
-endif else if keyword_set(ppmv) then begin
-  vmr = 28.9644 / 47.9982 * 1e6 * MMR
-endif else begin
-  print, 'please choose /ppbv or /ppmv'
-  return, !values.f_nan
-endelse
+function ds_mmr2vmr, mmr, molarmass=molarmass;, ppbv=ppbv, ppmv=ppmv
+if not keyword_Set(molarmass) then begin
+  print, 'keyword molarmass[g/mol] not set. Using O3 molarmass 47.9982g/mol.'
+  molarmass = 47.9982
+endif
+;if keyword_Set(ppbv) then begin
+  vmr = 28.9644 / molarmass ;* 1e9 * MMR
+;endif else if keyword_set(ppmv) then begin
+  ;vmr = 28.9644 / molarmass ;* 1e6 * MMR
+;endif else begin
+  ;print, 'keyword ppbv or ppmv not set. using ppbv'
+  ;vmr = 28.9644 / molarmass ;* 1e9 * MMR
+;endelse
 return, vmr
 end
