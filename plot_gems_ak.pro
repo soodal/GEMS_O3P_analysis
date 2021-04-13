@@ -1,10 +1,38 @@
-pro plot_gems_ak, o3p_file, xidx, yidx
+pro plot_gems_ak, input, xidx, yidx, scp_dest=scp_dest, $
+  use_structure=use_structure, $
+  use_filename=use_filename, $
+  basename=basename
 
+; Set keyword
+if not keyword_set(use_filename) then begin
+  use_filename=0
+endif
+if not keyword_set(use_structure) then begin
+  use_structure=0
+endif
+
+; read structure from nc4 file
+if use_filename or (not use_structure) then begin
+  basename = file_basename(input)
+  data = ds_read_gems_l2_o3p(input)
+  date = stregex(basename, $
+    '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]', $
+    /extract)
+  ;date = strmid(fn, 17, 13)
+  stop
+endif
+
+if use_structure then begin
+  if not keyword_set(basename) then begin
+    message, 'You need to set basename keyword.'
+  endif
+  data = input
+endif
 
 ;------------------------------------------------------------------------------
 ; Configuration
 ;------------------------------------------------------------------------------
-pos = [0.12, 0.1, 0.9, 0.85]
+pos = [0.12, 0.1, 0.6, 0.85]
 leg_pos = [0.85, 0.8]
 
 fitrange = '310340'
@@ -15,25 +43,17 @@ path ='/data1/gems/o3p/ds/GEMS_O3P_Yonsei/'
 outputpath = path + 'out/'
 projectpath = outputpath ;+ 'softcal/' + fitrange + '/'
 
-filelist = file_search(projectpath + '*.nc4')
+;filelist = file_search(projectpath + '*.nc4')
+
+;fn = file_basename(filefullpath)
 
 
-runtime = strmid(filelist, 13, 10, /reverse)
-runtimeidx = sort(runtime)
-recentrunfile = filelist[runtimeidx[-1]]
-
-filefullpath = '/data1/gems/o3p/ds/GEMS_O3P_Yonsei/out/GK2B_GEMS_L2_O3P_20200616_0345_climML_winliminit310_2020-12-05T0626.nc4'
-
-
-;fn = file_basename(recentrunfile)
-fn = file_basename(filefullpath)
-
-date = strmid(fn, 17, 13)
-
-scp_dest = 'soodal@164.125.38.179:/home/soodal/windowshome/works/plot/'
+if not keyword_set(scp_dest) then begin
+  scp_dest = 'soodal@164.125.38.179:/home/soodal/works/plot'
+ENDIf
 
 ; read GEMS_L2_O3P
-data = ds_read_gems_l2_o3p(o3p_file)
+;data = ds_read_gems_l2_o3p(o3p_file)
 
 ; get variable from GEMS_L2_O3P
 
@@ -41,6 +61,7 @@ ak = data.AveragingKernel
 akdim = size(ak, /dimension)
 
 pressure = data.Pressure
+
 pbdim = size(pressure, /dimension) ; number of boundary of pressure
 ; xidx=89, yidx=43
 
@@ -54,14 +75,29 @@ ct = colortable([[255, 0, 0], $
   /transpose, $
   ncolor=24) 
 
+aksz = size(ak, /dim)
+pressz = size(pressure, /dim)
+
+
 w = window(/buffer, $
   dimension=[500, 700])
-for ilayer=0, akdim[0]-1 do begin
-  ak_ = ak[ilayer, *, xidx, yidx]
-  pressure_boundary = pressure[*, xidx, yidx] ; boundary
-  pressure_center = fltarr(pbdim[0]-1)
-  for jp = 0, pbdim[0]-2 do begin
-    pressure_center[jp] = (pressure_boundary[jp] + pressure_boundary[jp+1])/2.
+for ilayer=0, 23 do begin
+  if aksz[0] eq 24 and aksz[1] eq 24 then begin
+    ak_ = reform(ak[ilayer, *, xidx, yidx])
+  ENDIf
+  if aksz[2] eq 24 and aksz[3] eq 24 then begin
+    ak_ = reform(ak[xidx, yidx, ilayer, *])
+  ENDIf
+
+  if pressz[0] eq 25 then begin
+    pressure_boundary = reform(pressure[*, xidx, yidx]) ; boundary
+  ENDIf
+  if pressz[2] eq 25 then begin
+    pressure_boundary = reform(pressure[xidx, yidx, *]) ; boundary
+  ENDIf
+  pressure_center = fltarr(24)
+  for ip = 0, 23 do begin
+    pressure_center[ip] = (pressure_boundary[ip] + pressure_boundary[ip+1])/2.
   endfor
   dummy = execute($
     " p" + string(ilayer, format='(i02)')+ " = " + $
@@ -70,18 +106,22 @@ for ilayer=0, akdim[0]-1 do begin
     "color=ct[*, ilayer], " + $
     "/ylog, " + $
     "yrange=[1000, 0.1], " + $
-    "name='layer'+string(ilayer, format='(i02)'), " + $
+    "name='column'+string(ilayer, format='(i02)'), " + $
     "title='Averaging Kernel', " + $
     "ytitle='Pressure[hPa]', " + $
+    "position=pos, " + $
     "overplot=ilayer) ")
 
 endfor
 leg = legend(target=[p00, p01, p02, p03,p04, p05, p06, p07, p08, $
   p09, p10, p11, p12, p13, p14, p15, p16, p17, p18, $
   p19, p20, p21, p22, p23], $
-  font_size=10)
-p23.save, 'fig3_AveragingKernelfor_x'+$
-  strmid(string(xidx), 2) + 'y'+strmid(string(yidx), 2)+'.png'
+  font_size=10, $
+  position=leg_pos)
+pngfile = basename + '.fig3_AveragingKernelfor_x'+$
+  strtrim(string(xidx), 2) + 'y'+strtrim(string(yidx), 2)+'.png'
+
+p23.save, pngfile
 p23.close
 ;for ilayer=0, akdim[0]-1 do begin
   ;ak_ = ak[*, ilayer, xidx, yidx]
@@ -101,8 +141,11 @@ p23.close
 ;endfor
 ;p.save, 'test2.png'
 ;p.close
+  spawn, 'scp -P18742 -p ' + pngfile +  ' ' + scp_dest
+
 stop
 
+return
 
 
 ecf = data.EffectiveCloudFractionUV
