@@ -1,8 +1,10 @@
 ;+
 ; This procedure collocate GEMS L2 O3P with OMI PROFOZ on the GEMS GRID.
 ;-
-pro collocate_gemsl2o3p_omil2profoz_on_gems_grid, year, month, day, hour, minute, $
-  output, gemsfile=gemsfile
+;
+
+pro colloc_omil2profoz_on_gems, year, month, day, hour, minute, $
+  output, gemsfile=gemsfile, writegemsl2o3p=writegemsl2o3p
 
 if not keyword_Set(pressure_limit) then begin
   pressure_limit = 0
@@ -14,7 +16,6 @@ endif
 
 limit=[-10, $ ;minimum latitude
   60, $ ;minimum longitude
-  ;60, $ ;maximum latitude
   60, $ ;maximum latitude
   160] ;maximum longitude
 
@@ -25,11 +26,11 @@ hh = string(hour, format='(i02)')
 mi = string(minute, format='(i02)')
 
 savpath = './collocate_gemsl2o3p_profoz/'
-savfile = savpath + 'col_gems_omi_'+yyyy+mm+dd+'_'+hh+mi+'.sav'
+savfile = savpath + 'col_omi_on_gems_grid_'+yyyy+mm+dd+'_'+hh+mi+'.sav'
 
 savefile =  file_test(savfile) 
-savefile = 0
 
+savefile = 0
 if not savefile then BEGIN
 
   ; initialize
@@ -85,6 +86,7 @@ if not savefile then BEGIN
   if gemsfn ne !null then begin
 
     ; read GEMS O3P data
+
     print, gemsfn
 
     varlist = ['EffectiveCloudFractionUV', 'ProcessingQualityFlags', $
@@ -108,20 +110,43 @@ if not savefile then BEGIN
     gems_o3ap = gemsvars.O3Apriori
     gems_o3_size = size(gems_o3, /dimension)
 
-    omi_o3p_on_gems_grid = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2])
-    omi_o3p_on_gems_grid[*] = !values.f_nan
-    omi_xtrack_on_gems_grid = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2])
-    omi_xtrack_on_gems_grid[*] = !values.f_nan
-    omi_atrack_on_gems_grid = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2])
-    omi_atrack_gems_grid[*] = !values.f_nan
-    omi_alt_on_gems_grid = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2])
-    omi_alt_on_gems_grid[*] = !values.f_nan
-    omi_pres_on_gems_grid = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2])
-    omi_pres_on_gems_grid[*] = !values.f_nan
-    ;omi_on_gems_grid = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2])
-    ;omi_on_gems_grid[*] = !values.f_nan
-    ;omi_on_gems_grid = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2])
-    ;omi_on_gems_grid[*] = !values.f_nan
+    ; create output variables
+
+    if gems_o3_size[0] eq 174 then begin
+      colloc_omi_o3p_on_gems = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2])
+      colloc_omi_o3p_on_gems[*] = !values.f_nan
+      colloc_omi_xtrack_on_gems = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2])
+      colloc_omi_xtrack_on_gems[*] = !values.f_nan
+      colloc_omi_atrack_on_gems = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2])
+      colloc_omi_atrack_on_gems[*] = !values.f_nan
+      colloc_omi_alt_on_gems = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2]+1)
+      colloc_omi_alt_on_gems[*] = !values.f_nan
+      colloc_omi_pres_on_gems = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2]+1)
+      colloc_omi_pres_on_gems[*] = !values.f_nan
+      colloc_omi_ecf_on_gems = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2]+1)
+      colloc_omi_ecf_on_gems[*] = !values.f_nan
+      colloc_omi_o3ap_on_gems = fltarr(gems_o3_size[0], gems_o3_size[1], gems_o3_size[2])
+      colloc_omi_o3ap_on_gems[*] = !values.f_nan
+      colloc_omi_mask_on_gems = bytarr(gems_o3_size[0], gems_o3_size[1])
+      colloc_omi_mask_on_gems[*] = 0
+    ENDIF else if gems_o3_size[0] eq 24 then begin
+      colloc_omi_o3p_on_gems = fltarr(gems_o3_size[2], gems_o3_size[0], gems_o3_size[1])
+      colloc_omi_o3p_on_gems[*] = !values.f_nan
+      colloc_omi_xtrack_on_gems = fltarr(gems_o3_size[2], gems_o3_size[0], gems_o3_size[1])
+      colloc_omi_xtrack_on_gems[*] = !values.f_nan
+      colloc_omi_atrack_on_gems = fltarr(gems_o3_size[2], gems_o3_size[0], gems_o3_size[1])
+      colloc_omi_atrack_on_gems[*] = !values.f_nan
+      colloc_omi_alt_on_gems = fltarr(gems_o3_size[2]+1, gems_o3_size[0], gems_o3_size[1])
+      colloc_omi_alt_on_gems[*] = !values.f_nan
+      colloc_omi_pres_on_gems = fltarr(gems_o3_size[2]+1, gems_o3_size[0], gems_o3_size[1])
+      colloc_omi_pres_on_gems[*] = !values.f_nan
+      colloc_omi_ecf_on_gems = fltarr(gems_o3_size[2]+1, gems_o3_size[0], gems_o3_size[1])
+      colloc_omi_ecf_on_gems[*] = !values.f_nan
+      colloc_omi_o3ap_on_gems = fltarr(gems_o3_size[2], gems_o3_size[0], gems_o3_size[1])
+      colloc_omi_o3ap_on_gems[*] = !values.f_nan
+      colloc_omi_mask_on_gems = bytarr(gems_o3_size[0], gems_o3_size[1])
+      colloc_omi_mask_on_gems[*] = 0
+    ENDIF
 
     ; path for OMI
 
@@ -132,9 +157,10 @@ if not savefile then BEGIN
       ;where($
         ;strmatch(omifiles, '*OMI-Aura_L2-PROFOZ_'+yyyy+'m'+mm+dd+'t0[1-6]*.he5') eq 1)]
 
-
     ; read OMI data
+
     nfiles = n_elements(omifiles)
+
     for ifile=0, nfiles-1 do begin
       fi = file_info(omifiles[ifile])
       omiobstime = strmid(omifiles[ifile], 46, 14, /reverse)
@@ -185,7 +211,6 @@ if not savefile then BEGIN
 
           ;time=STRMID(omifiles[ifile],46,14,/rev)
 
-
           omio3sz = size(profozresult.O3RetrievedProfile, /dim)
           omiprofilelevelaltitude = reform($
             profozresult.ProfileLevelAltitude, $
@@ -198,9 +223,9 @@ if not savefile then BEGIN
           omipres = reform(omipres, [omipressize[0], omipressize[1]*omipressize[2]])
           omipress = [[omipress], [omipres[*, roiidx]]]
 
-          omigroundpqfs   =  [omigroundpqfs, profozresult.GroundPixelQualityFlags[roiidx]]
-          omilats  =  [omilats, profozresult.Latitude[roiidx] ]
-          omilons  =  [omilons, profozresult.Longitude[roiidx] ]
+          omigroundpqfs = [omigroundpqfs, profozresult.GroundPixelQualityFlags[roiidx]]
+          omilats = [omilats, profozresult.Latitude[roiidx] ]
+          omilons = [omilons, profozresult.Longitude[roiidx] ]
           ;omisaas = [omisaas, profozresult.SolarAzimuthAngle[roiidx]]
           omiszas = [omiszas, profozresult.SolarZenithAngle[roiidx]]
 
@@ -215,9 +240,11 @@ if not savefile then BEGIN
           ;omivzas = [omivzas, profozresult.ViewingZenithAngle[roiidx]]
           ;omiaods = [omiaods, profozresult.AerosolOpticalThickness[roiidx]]
           ;omiaprioricovs = [omiaprioricovs, profozresult.APrioricov[roiidx]]
+
           o3ak = reform(profozresult.O3AveragingKernel, $
             [24, 24, long(omio3sz[1]) * omio3sz[2]])
           omiaks = [[[omiaks]], [[o3ak[*, *, roiidx]]]]
+
           omiecf =  [omiecf, profozresult.EffectiveCloudFraction[roiidx]]
           omiecp =  [omiecp, profozresult.EffectiveCloudPressure[roiidx]]
           ;omitozs  =  [omitozs, profozresult.ColumnAmountO3[roiidx] ]
@@ -225,6 +252,7 @@ if not savefile then BEGIN
           ;omiecf1s = [omiecf1s, profozresult.EffectiveCloudFractionUV1[roiidx]]
           ;omiecf2s = [omiecf2s, profozresult.EffectiveCloudFractionUV2[roiidx]]
           ;omiicis = [omiicis, profozresult.InstrumentConfigurationId[roiidx]]
+
           mqf = profozresult.MeasurementQualityFlags
           mqf = rebin(mqf, omio3sz[2], omio3sz[1])
           mqf = transpose(mqf)
@@ -250,63 +278,17 @@ if not savefile then BEGIN
           omio3ap[*,20:23, *] = !values.f_nan
           omio3apsize = size(omio3ap, /dim)
           omio3ap[where(omio3ap lt 0, /null)]=!values.f_nan
+
           for i = 0, n_elements(roiidx)-1 do begin
             omio3aps = [[omio3aps], $
               [reform(omio3ap[*, roiindices[0, i], roiindices[1, i]])]]
           ENDFOR
           
-          ;omisize = size(omilon, /dim)
-          ;omio3 = reform(o3result.o3, [18, omisize[0]*omisize[1]]) 
-          ;omio3s = [omio3s, profozresult.O3[roiidx]]
-
-          ;omirefcfs = [omirefcfs, profozresult.ReflectanceCostFunction[roiidx]]
-
-          ;omirowanomalys = [omirowanomalys, omo3prresult.rowanomaly[roiidx]]
-          
-          ;omixtracks  =  [omixtracks,profozresult.xtracks[roiidx]]
-          ;omilines =  [omilines,profozresult.lines[roiidx]]
-
-          ;endif
         ENDIF
       ENDIF  ; ntmp
     ENDFOR  ; ifile
 
-
-    ;omivars={lon:omilons, lat:omilats, time:omitimes, $
-      ;;toz:omitozs,$
-      ;SolarZenithAngle:omiszas, $
-      ;;SolarAzimuthAngle:omisaas, $
-      ;;ReflectanceCostFunction:omirefcfs, $
-      ;EffectiveCloudFraction:omiecf, $
-      ;EffectiveCloudPressure:omiecp, $
-      ;omilayero3:omilayero3, $
-      ;;pixlat:pixlats, pixlon:pixlons, pixs:omixtracks, lines:omilines,$
-      ;;xtracks:omixtracks, $
-      ;;lines:omilines, $
-      ;;rowanomaly:omirowanomalys, $
-      ;;ref331:omir331s, $
-      ;;cf:omicfs, $
-      ;;refcf:omirefcfs, $
-      ;;pcld:omipclds, $
-      ;qf:omigroundpqfs};,bloz:omiblozs}
-
-
-    ; collocation start
-
-    ;omilon = omivars.Lon
-    ;omilat = omivars.Lat
-    ;omitime = omivars.Time
-    ;;omitoz = omivars.toz
-    ;;omilayero3 = omivars.omilayero3
-    ;;omipixlat = omivars.pixlat
-    ;;omipixlon = omivars.pixlon
-    ;;omixtracks = omivars.xtracks
-    ;;omilines = omivars.lines
-    ;omiecf = omivars.EffectiveCloudFraction
-    ;omiecp = omivars.EffectiveCloudPressure
-    ;omiqf = omivars.qf
-    ;omirowanomaly = omivars.rowAnomaly
-
+; collocation start
 
     nanidx = where(omitimes lt -5.0E9, /null)
     omitimes[nanidx] = !values.f_nan
@@ -323,11 +305,8 @@ if not savefile then BEGIN
     
     omijulday[nanidx] = !values.f_nan
     
-    gemslon = gemsvars.Longitude
-    gemslat = gemsvars.Latitude
-    
-    ;ds_get_pixcor, gemslon, gemslat, gemslonpixcor, gemslatpixcor
-    gemssize = size(gemslon, /dim)
+    ;ds_get_pixcor, gemsvars.longitude, gemsvars.latitude, gemslonpixcor, gemslatpixcor
+    gemssize = size(gemsvars.longitude, /dim)
 
     ; TODO check the input time from gems_l2_o3p output
     gemstime = gemsvars.Time
@@ -337,7 +316,7 @@ if not savefile then BEGIN
       if gemstime_sz[1] eq 512 then BEGIN
         print, 'Size of the variable gemstime is 512.'
         print, 'May be this is for the date of 20200616'
-        print, 'Actual values are in [0:173] of the varaible'
+        print, 'Actual values are in [0:173] of the variable'
         gemstime = gemstime[0:173]
       endif else if gemstime_sz[1] ne 174 then begin 
         print, 'size of the variable gemstime is not matched'
@@ -348,11 +327,11 @@ if not savefile then BEGIN
       ENDIF
     ENDIF
 
-    ;#TODO time variable of gems l2o3p output file is -1.0E30 
+    ;TODO time variable of gems l2o3p output file is -1.0E30 
 
-    gemstime = fltarr(174)
-    gemstime[*] = (julday(month, day, year, hour, minute) - $
-      julday(1,1,2000,12,0))*24.*60.*60
+    ;gemstime = fltarr(174)
+    ;gemstime[*] = (julday(month, day, year, hour, minute) - $
+      ;julday(1,1,2000,12,0))*24.*60.*60
     gemstime = rebin(gemstime, [gemssize[0], gemssize[1]])
     
     nanidx = where(gemstime lt 0, /null)
@@ -382,26 +361,49 @@ if not savefile then BEGIN
 
     yn_omi_cross_time = intarr(ncolloc)
     yn_omi_cross_time[*] = 0
+    if gems_o3_size[0] eq 174 then BEGIN
+      yn_omi_cross_time_on_gems = intarr( gems_o3_size[0], gems_o3_size[1])
+      yn_omi_cross_time_on_gems[*] = 0
+    ENDIF else if gems_o3_size[0] eq 24 then BEGIN
+      yn_omi_cross_time_on_gems = intarr( gems_o3_size[1], gems_o3_size[2])
+      yn_omi_cross_time_on_gems[*] = 0
+    ENDIF
 
     for ip = 0, ncolloc-1 do BEGIN
       x = omilons[ip]
       y = omilats[ip]
 
       if finite(x) eq 1  and finite(y) eq 1 then begin
-        result = search_closest_pixel(gemslon, gemslat, x, y)
-        result2 = array_indices(gemslon, result)
-        close2gemspixidx[ip] = result
-        omi_o3p_on_gems_grid[*, result2[0]], result[1]] =  omi_o3s[*, ip]
-      ENDIF
+        result = search_closest_pixel(gemsvars.longitude, gemsvars.latitude, x, y)
+        if result ge 0 then begin 
+          result2 = array_indices(gemsvars.longitude, result)
+          close2gemspixidx[ip] = result
+          
 
-      ; time difference check
-      if close2gemspixidx[ip] ge 0 then begin
-        if abs(omijulday[ip] - gemsjulday[close2gemspixidx[ip]]) lt 1./24./2. then BEGIN
-          yn_omi_cross_time[ip] = 1
+          if gems_o3_size[0] eq 174 then begin 
+            colloc_omi_o3p_on_gems[result2[0], result2[1], *] =  omio3s[*, ip]
+            colloc_omi_alt_on_gems[result2[0], result2[1], *] =  omialts[*, ip]
+            colloc_omi_pres_on_gems[result2[0], result2[1], *] =  omipress[*, ip]
+            colloc_omi_ecf_on_gems[result2[0], result2[1], *] =  omiecf[ip]
+            colloc_omi_o3ap_on_gems[result2[0], result2[1], *] =  omio3aps[*, ip]
+          ENDIF else if gems_o3_size[0] eq 24 then begin
+            colloc_omi_o3p_on_gems[*, result2[0], result2[1]] =  omio3s[*, ip]
+            colloc_omi_alt_on_gems[*, result2[0], result2[1]] =  omialts[*, ip]
+            colloc_omi_pres_on_gems[*, result2[0], result2[1]] =  omipress[*, ip]
+            colloc_omi_ecf_on_gems[*, result2[0], result2[1]] =  omiecf[ip]
+            colloc_omi_o3ap_on_gems[*, result2[0], result2[1]] =  omio3aps[*, ip]
+          ENDIF
+
+          ; time difference check
+
+          if abs(omijulday[ip] - gemsjulday[close2gemspixidx[ip]]) lt 1./24./2. then BEGIN
+            yn_omi_cross_time[ip] = 1
+            yn_omi_cross_time_on_gems[result2[0], result2[1]] = 1
+            colloc_omi_mask_on_gems[result2[0], result2[1]] = 1
+          ENDIF
         ENDIF
-      endif
+      ENDIF
     ENDFOR
-    ;print, total(yn_omi_cross_time)
   endif
 
   ;gemstoz = reform(gemsvars.ColumnAmountO3[0, *, *])
@@ -433,7 +435,7 @@ if not savefile then BEGIN
 
   valididx = where(close2gemspixidx ge 0, /null)
   ; close2gemspixindices has different origin with close2gemspixidx.
-  close2gemspixindices = array_indices(gemslon, close2gemspixidx[valididx])
+  close2gemspixindices = array_indices(gemsvars.longitude, close2gemspixidx[valididx])
   valididx_sz = size(valididx, /dim)
 
   for ip=0, valididx_sz[0]-1 do BEGIN
@@ -457,32 +459,6 @@ if not savefile then BEGIN
           omiecf[valididx[ip]]]
         omi_solarzenithangle = [omi_solarzenithangle, omiszas[valididx[ip]]]
 
-        gems_o3s = [[gems_o3s] , $
-          [reform(gems_o3[close2gemspixindices[0, ip], $
-            close2gemspixindices[1, ip], *])]]
-        gems_o3aps = [[gems_o3aps] , $
-          [reform(gems_o3ap[close2gemspixindices[0, ip], $
-            close2gemspixindices[1, ip], *])]]
-
-        gems_idx = [gems_idx, close2gemspixidx[valididx[ip]]]
-        gems_alts = [[gems_alts], $
-          [reform(gems_altitude[close2gemspixindices[0, ip], $
-            close2gemspixindices[1, ip], *])]]
-        gems_press = [[gems_press], $
-          [reform(gems_pressure[close2gemspixindices[0, ip], $
-            close2gemspixindices[1, ip], *])]]
-
-        gems_effectivecloudfraction = [gems_effectivecloudfraction, $
-          gems_ecf[close2gemspixidx[valididx[ip]]]]
-
-        gems_solarzenithangle = [gems_solarzenithangle, $
-          gems_sza[close2gemspixidx[valididx[ip]]]]
-
-        gems_latitude = [gems_latitude, $
-          gemslat[close2gemspixidx[valididx[ip]]]]
-
-        gems_longitude = [gems_longitude, $
-          gemslon[close2gemspixidx[valididx[ip]]]]
 
       endif
     endif
@@ -491,49 +467,60 @@ if not savefile then BEGIN
 
   if n_elements(where(close2gemspixidx ge 0 and $
       yn_omi_cross_time eq 1, /null)) gt 0 then begin
-    output = create_struct('omi_o3', omio3s, $
-      'omi_o3_apriori', omi_o3aps, $
-      'omi_pressure', omipress[*, omi_idx], $
-      'omi_altitue',omialts[*, omi_idx], $
-      'omi_longitude', omilons[omi_idx], $
-      'omi_latitude', omilats[omi_idx], $
-      'omi_effectivecloudfraction', omi_effectivecloudfraction, $
-      'omi_solarzenithangle', omi_solarzenithangle, $
-      'gems_o3', gems_o3s, $
-      'gems_o3_apriori', gems_o3aps, $
-      'gems_altitude', gems_alts, $
-      'gems_pressure', gems_press, $
-      'gems_effectivecloudfraction', gems_effectivecloudfraction, $
-      'gems_solarzenithangle', gems_solarzenithangle, $
-      'gems_latitude', gems_latitude, $
-      'gems_longitude', gems_longitude, $
-      'gems_index', gems_idx)
+    output = create_struct('gemsl2o3p', gemsvars $
+      , 'colloc_omi_o3p_on_gems', colloc_omi_o3p_on_gems $
+      , 'colloc_omi_xtrack_on_gems', colloc_omi_xtrack_on_gems $
+      , 'colloc_omi_atrack_on_gems', colloc_omi_atrack_on_gems $
+      , 'colloc_omi_alt_on_gems', colloc_omi_alt_on_gems $
+      , 'colloc_omi_pres_on_gems', colloc_omi_pres_on_gems $
+      , 'colloc_omi_ecf_on_gems', colloc_omi_ecf_on_gems $
+      , 'colloc_omi_o3ap_on_gems', colloc_omi_o3ap_on_gems $
+      , 'close2gemspixidx', close2gemspixidx $
+      , 'valididx', valididx $
+      )
+
+    if writegemsl2o3p then begin
+      outputncfn = file_basename(gemsfn) + '.col.omi_profoz.nc'
+      exist =file_test(outputncfn)
+      if exist then begin
+        file_delete, outputncfn
+      endif
+      fid = ncdf_create(outputncfn $
+        , /netcdf4_format $ 
+        , /clobber $ ; overwrite
+        )
+      NCDF_CONTROL, fid, NOFILL=1 
+
+      image = ncdf_dimdef(fid, 'image', 174) 
+      spatial = ncdf_dimdef(fid, 'spatial', 512) 
+      nresidual = ncdf_dimdef(fid, 'nresidual', 20) 
+      ncolumns = ncdf_dimdef(fid, 'ncolumns', 3) 
+      nlayer = ncdf_dimdef(fid, 'nlayer', 24) 
+      nlevel = ncdf_dimdef(fid, 'nlevel', 25) 
+
+      NCDF_CONTROL, fid, /ENDEF
+
+      o3p_vid = ncdf_vardef(fid, 'O3_omi_profoz_on_gems', [image, spatial, nlayer], /float)
+      mask_vid = ncdf_vardef(fid, 'O3_mask_omi_profoz_on_gems', [image, spatial], /byte)
+      alt_vid = ncdf_vardef(fid, 'Altitude_omi_profoz_on_gems', [image, spatial, nlevel], /float)
+      pres_vid = ncdf_vardef(fid, 'Pressure_omi_profoz_on_gems', [image, spatial, nlevel], /float)
+
+      ncdf_varput, fid, o3p_vid, colloc_omi_o3p_on_gems
+      ncdf_varput, fid, mask_vid, colloc_omi_mask_on_gems
+      ncdf_varput, fid, alt_vid, colloc_omi_alt_on_gems
+      ncdf_varput, fid, pres_vid, colloc_omi_pres_on_gems
+      ncdf_close, fid
+    endif
   endif else begin
     output = !null
+    stop
   ENDELSE
 
+  save, filename=savfile, output
 
-
-  ;_omival = fltarr(174, 512)
-  ;_omival[*] = !values.f_nan
-  ;_omival[gems_idx] = omio3s
-
-  ;plot_gems_satproj_data, gemslon, gemslat, _omival, $
-    ;filename='./plot/omi_on_gems_grid_'+yyyy+mm+dd+'T'+hh+mi+'.png', $
-    ;title='OMI collocated on the GEMS pixels', range=[20, 60]
-
-  ;plot_gems_satproj_data, gemslon, gemslat, gemslayero3, $
-    ;filename='./plot/gems_'+yyyy+mm+dd+'T'+hh+mi + '.png', $
-    ;title='GEMS', range=[20, 60]
-
-  ;plot_omi_satproj, omivars.lon, omivars.lat, omivars.rowanomaly,$
-    ;filename='plot/OMI_rowanomaly_20200806T0345.png', $
-    ;title='OMI Row Anomaly', range=[0, 1.]
-  save, filename=savfile, gemsvars, profozresult, output
 endif else begin
   RESTORE, savfile
 ENDELSE
-stop
 return
 
 end

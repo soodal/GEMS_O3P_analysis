@@ -2,7 +2,10 @@ pro plot_gems_l2o3p_vertical_slice_profile, $
   z_xdir, x_xdir, y_xdir, z_ydir, x_ydir, y_ydir, $
   outpath, basename, $
   pixlon, pixlat, $
-  do_polyfill=do_polyfill, do_contour=do_contour, title=title, range=range
+  do_polyfill=do_polyfill, do_contour=do_contour, title=title, range=range, $
+  scp_send=scp, $
+  scp_dest=scp_dest
+
 
 if (not keyword_Set(do_polyfill)) and (not keyword_Set(do_contour)) then begin
   print, 'do_polyfill and do_contour keyword are not set'
@@ -17,6 +20,12 @@ endif
 if not keyword_Set(title) then begin
   title = 'GEMS L2 Ozone profile'
 endif
+
+if not keyword_Set(scp_dest) then begin
+  scp_dest = 'soodal@164.125.38.179:/home/soodal/works/plot/paper'
+endif ;else begin
+  ;scp_dest = scp_dest
+;endelse
 
 ; collocate
 ;cities_name = ['pohang']
@@ -139,17 +148,12 @@ if do_contour then begin
 
 endif
 
-if not keyword_Set(scp_dest1) then begin
-  scp_dest = 'soodal@164.125.38.179:/home/soodal/works/plot/paper'
-endif else begin
-  scp_dest = scp_dest1
-endelse
 
 ; send image to pc
-;if keyword_set(scp) then begin
+if keyword_set(scp) then begin
   spawn, 'scp -P18742 -p ' + pngfile + $
   ' ' + scp_dest
-;endif
+endif
 
 
 ; ==============================================================================
@@ -251,15 +255,9 @@ if do_contour then begin
 endif
 
 
-if not keyword_Set(scp_dest1) then begin
-  scp_dest = 'soodal@164.125.38.179:/home/soodal/works/plot/paper'
-endif else begin
-  scp_dest = scp_dest1
-endelse
-
 ; send image to pc
-;if keyword_set(scp) then begin
+if keyword_set(scp) then begin
   spawn, 'scp -P18742 -p ' + pngfile + $
   ' ' + scp_dest
-;endif
+endif
 end

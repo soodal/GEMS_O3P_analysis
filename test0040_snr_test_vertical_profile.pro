@@ -24,6 +24,7 @@ print, filelist
 L1Cmaker = 'EOSRL'
 runtime = strmid(filelist, 13+9+8, 10+7, /reverse)
 print, runtime
+
 ;runtimeidx = sort(runtime)
 ;recentrunfile = filelist[runtimeidx[-1]]
 

@@ -10,9 +10,12 @@ pro plot_gems_validation, xval, yval, filename=filename, cblim=cblim,$
   title=title, $
   xtitle = xtitle, $
   ytitle = ytitle, $
+  scp_send=scp, $
+  scp_dest=scp_dest1, $
   ct = ctnum, $
   background = bgcolor, $
   range=range, delta=delta
+
 
 
 if not keyword_Set(cblim) then begin
@@ -214,11 +217,18 @@ spawn, 'convert ' + pngfile + $
   ' -background "rgba(0,0,0,0.5)" -rotate -90 ' + pngfile
 
 
+if not keyword_Set(scp_dest1) then begin
+  scp_dest = 'soodal@164.125.38.179:/home/soodal/works/plot'
+endif else begin
+  scp_dest = scp_dest1
+endelse
 scp_dest = 'soodal@164.125.38.179:/home/soodal/works/plot'
 
-; send image to pc
+if keyword_set(scp) then begin
 spawn, 'scp -P18742 -p ' + pngfile + $
   ' ' + scp_dest
+endif
+; send image to pc
 
 
 end

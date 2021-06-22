@@ -1,4 +1,4 @@
-pro ds_gems_l2o3p_accum, data, o3accum, hpa=hpa, height=height
+pro ds_geoschem_accum, data, o3accum, hpa=hpa, height=height
 
 
 ;;----------------------------
@@ -6,46 +6,29 @@ pro ds_gems_l2o3p_accum, data, o3accum, hpa=hpa, height=height
 ;;----------------------------
 if keyword_set(hpa) then begin
   o3 = data.o3
-  o3size = size(data.o3, /dim)
-  gemspres = data.Pressure
-  gemslayero3 = fltarr(o3size[0:1])
+  o3size = size(o3, /dim)
   dim1 = o3size[0]
   dim2 = o3size[1]
+  gemspres = data.Pressure
+  gemslayero3 = fltarr(o3size[0], o3size[1])
   ;gemslayero3[*,*] = !values.f_nan
-
-  pressz = size(gemspres, /dim)
-
   for iy=0, dim2-1 do begin
   for ix=0, dim1-1 do begin
-    for ilevel=24, 0, -1 do begin
-      ilayer = ilevel-1
+    for ilayer=0, 46, 1 do begin
+      ;ilevel = ilayer+1
+      if gemspres[ilayer, ix, iy] gt hpa $
+          and gemspres[ilayer+1, ix, iy] gt hpa then begin
+        gemslayero3[ix, iy] = gemslayero3[ix, iy] + o3[ix, iy, ilayer]
 
-      if pressz[0] eq 174 then begin
-        if gemspres[ix, iy, ilevel] gt hpa $
-            and gemspres[ix, iy,ilevel-1] gt hpa then begin
-          gemslayero3[ix, iy] = gemslayero3[ix, iy] + o3[ix, iy, ilayer]
+      endif else if gemspres[ilayer, ix, iy] gt hpa $
+          and gemspres[ilayer+1, ix, iy] le hpa then begin
 
-        endif else if gemspres[ix, iy, ilevel] gt hpa $
-            and gemspres[ix, iy, ilevel-1] le hpa then begin
-
-          gemslayero3[ix, iy] = gemslayero3[ix, iy] + o3[ix, iy, ilayer]*$
-            (gemspres[ix, iy, ilevel]-hpa)/$
-            (gemspres[ix, iy, ilevel]-gemspres[ix, iy, ilevel-1])
-          break
-        endif
-      endif else if pressz[0] eq 25 then begin
-        if gemspres[ilevel, ix, iy] gt hpa $
-            and gemspres[ilevel-1, ix, iy] gt hpa then begin
-          gemslayero3[ix, iy] = gemslayero3[ix, iy] + o3[ix, iy, ilayer]
-
-        endif else if gemspres[ilevel, ix, iy] gt hpa $
-            and gemspres[ilevel-1, ix, iy] le hpa then begin
-
-          gemslayero3[ix, iy] = gemslayero3[ix, iy] + o3[ix, iy, ilayer]*$
-            (gemspres[ilevel, ix, iy]-hpa)/$
-            (gemspres[ilevel, ix, iy]-gemspres[ilevel-1, ix, iy])
-          break
-        endif
+        gemslayero3[ix, iy] = gemslayero3[ix, iy] + o3[ix, iy, ilayer]*$
+          (abs(hpa-gemspres[ilayer, ix, iy]))/$
+          (abs(gemspres[ilayer+1, ix, iy]-gemspres[ilayer, ix, iy]))
+        ;print, ilayer
+        ;stop
+        break
       endif
     endfor
   endfor

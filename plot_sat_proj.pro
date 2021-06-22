@@ -1,6 +1,6 @@
 pro plot_sat_proj, data, lon, lat, $
   pngfile=pngfile, $
-  scp_send=scp, $
+  scp_send=scp_send1, $
   scp_dest=scp_dest1, $
   range=range, $
   title=pic_title, $
@@ -50,6 +50,8 @@ for j = 0L, dim2-3 do begin
       if data[i,j] gt 0 and data[i, j] le 500 then begin
         xbox = [lon[i,j], lon[i+1,j], lon[i+1,j], lon[i,j]]
         ybox = [lat[i,j], lat[i,j], lat[i,j+1], lat[i,j+1]]
+        xbox = xbox[where(finite(xbox) eq 1, /null)]
+        ybox = ybox[where(finite(ybox) eq 1, /null)]
         polyfill, xbox, ybox, $
           color=bytscl(data[i,j], $
             min=range[0], $
@@ -89,15 +91,12 @@ endif
 cgPS2Raster,'gems.ps', pngfile, /png, density = 1000
 
 if not keyword_Set(scp_dest1) then begin
-  scp_dest = 'soodal@164.125.38.179:/home/soodal/works/plot'
-endif else begin
-  scp_dest = scp_dest1
-endelse
+  scp_dest1 = 'soodal@164.125.38.179:/home/soodal/works/plot'
+endif 
 
 ; send image to pc
-if keyword_set(scp) then begin
+if keyword_set(scp_send1) then begin
   spawn, 'scp -P18742 -p ' + pngfile + $
-  ' ' + scp_dest
+  ' ' + scp_dest1
 endif
-
 end

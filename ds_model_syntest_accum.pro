@@ -1,4 +1,4 @@
-pro ds_gems_l2o3p_accum, data, o3accum, hpa=hpa, height=height
+pro ds_model_syntest_accum, data, o3accum, hpa=hpa, height=height
 
 
 ;;----------------------------
@@ -6,8 +6,10 @@ pro ds_gems_l2o3p_accum, data, o3accum, hpa=hpa, height=height
 ;;----------------------------
 if keyword_set(hpa) then begin
   o3 = data.o3
-  o3size = size(data.o3, /dim)
-  gemspres = data.Pressure
+  gemspres = data.pressure
+  o3size = size(o3, /dim)
+  ;gemspres = congrid(data.Pressure, 175, 512, 56)
+
   gemslayero3 = fltarr(o3size[0:1])
   dim1 = o3size[0]
   dim2 = o3size[1]
@@ -17,10 +19,10 @@ if keyword_set(hpa) then begin
 
   for iy=0, dim2-1 do begin
   for ix=0, dim1-1 do begin
-    for ilevel=24, 0, -1 do begin
+    for ilevel=54, 0, -1 do begin
       ilayer = ilevel-1
 
-      if pressz[0] eq 174 then begin
+      if pressz[0] eq 175 then begin
         if gemspres[ix, iy, ilevel] gt hpa $
             and gemspres[ix, iy,ilevel-1] gt hpa then begin
           gemslayero3[ix, iy] = gemslayero3[ix, iy] + o3[ix, iy, ilayer]
@@ -33,7 +35,7 @@ if keyword_set(hpa) then begin
             (gemspres[ix, iy, ilevel]-gemspres[ix, iy, ilevel-1])
           break
         endif
-      endif else if pressz[0] eq 25 then begin
+      endif else if pressz[0] eq 56 then begin
         if gemspres[ilevel, ix, iy] gt hpa $
             and gemspres[ilevel-1, ix, iy] gt hpa then begin
           gemslayero3[ix, iy] = gemslayero3[ix, iy] + o3[ix, iy, ilayer]
@@ -57,19 +59,39 @@ endif
 
 ; GEMS vertical column layer for under 10 km
 if keyword_set(height) then begin
+  ;o3 = fltarr(175, 512, 55)
+  ;for ix=0, 174 do begin
+    ;for iy = 0, 511 do begin
+      ;for iz = 0, 54 do begin 
+        ;o3[ix, iy, iz] = mean(data.o3[$
+          ;ix*4:ix*4+3, iy*4:iy*4+3, iz])
+      ;endfor
+    ;endfor
+  ;endfor
   o3 = data.o3
-  o3size = size(data.o3, /dim)
-  altitude = data.Altitude
+
+  ;altitude = fltarr(175, 512, 56)
+  ;for ix=0, 174 do begin
+    ;for iy = 0, 511 do begin
+      ;for iz = 0, 55 do begin 
+        ;altitude[ix, iy, iz] = mean(data.altitude[$
+          ;ix*4:ix*4+3, iy*4:iy*4+3, iz])
+      ;endfor
+    ;endfor
+  ;endfor
+  altitude = data.altitude
+
+  o3size = size(o3, /dim)
+
   nanidx = where(altitude < 0, /null)
   altitude[nanidx] = !values.f_nan
-  o3size = size(data.o3, /dim)
   gemslayero3 = fltarr(o3size[0:1])
   dim1 = o3size[0]
   dim2 = o3size[1]
   ;gemslayero3[*,*] = !values.f_nan
   for iy=0, dim2-1 do begin
   for ix=0, dim1-1 do begin
-    for ilevel=24, 0, -1 do begin
+    for ilevel=55, 0, -1 do begin
       ilayer = ilevel-1
       if altitude[ix, iy, ilevel] lt height $
           and altitude[ix, iy, ilevel-1] lt height then begin

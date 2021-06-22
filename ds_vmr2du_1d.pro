@@ -31,8 +31,8 @@
 ;  All right reserved.
 ;
 ;===================================================================================================
-pro ds_vmr2du_1d, vmr_o3, pressure, temperature, altitude, o3_du_layer, $
-  incresing_height=incheight
+pro ds_vmr2du_1d, vmr_o3, pressure, temperature, altitude=altitude, o3_du_layer, $
+  incresing_height=incheight;, altitude_km=1
 
 if not keyword_set(incheight) then begin
   print, 'increasing_height keyword not set.'
@@ -42,8 +42,42 @@ if not keyword_set(incheight) then begin
   incheight = 1
 endif
 
+if keyword_set(altitude_km) then begin
+  if altitude_km eq 1 then begin 
+    multiplier = 1
+  endif else BEGIN
+    multiplier = 1000.
+  ENDELSE
+ENDIF 
 
-print, 'ds_vmr2du, o3vmr,pressure, temperature, altitude'
+multiplier = 1000.
+
+
+nlevel = n_elements(pressure)
+IF not keyword_set(altitude) THEN BEGIN
+  G = 9.80665
+  R = 287.053
+  GMR = G/R
+  if not incheight then begin
+    T = reverse(temperature) 
+    P= reverse(pressure)
+    H = fltarr(nlevel)
+    FOR i=1,nlevel-1 DO begin
+        H[i] = 1./1000.*(1/GMR * (T[i]+T[i-1])/2 * alog(P[i-1]/P[i]) ) + H[i-1]
+    ENDFOR
+    altitude = reverse(H)
+  ENDIF else begin
+    T = temperature
+    P= pressure
+    H = fltarr(nlevel)
+    FOR i=1,nlevel-1 DO begin
+        H[i] = 1./1000.*(1/GMR * (T[i]+T[i-1])/2 * alog(P[i-1]/P[i]) ) + H[i-1]
+    ENDFOR
+    altitude = H
+  ENDELSE
+ENDIF
+
+;print, 'ds_vmr2du, o3vmr,pressure, temperature, altitude'
 
 vmr_o3_size = n_elements(vmr_o3)
 
@@ -66,8 +100,9 @@ N_air = 2.69*10.^(16) ; molec/cm ^3
 du_tmp1 = fltarr(nz)
 dh      = fltarr(nz)
 
+
 FOR ih=0,nz-2 DO BEGIN
-  dh = altitude[ih+1] - altitude[ih]  ; meter
+  dh = (altitude[ih+1] - altitude[ih])*multiplier  ; meter
   dh = dh *  100 ; centimeter
   o3_du_layer[ih] = (N_o3[ih]+N_o3[ih+1])/2/N_air*dh ;cm thickness
 ENDFOR
