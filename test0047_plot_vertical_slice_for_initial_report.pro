@@ -12,7 +12,7 @@ varlist = ['EffectiveCloudFractionUV', 'ProcessingQualityFlags', $
             'SimulatedRadiances', 'Latitude' ,'Longitude', $
             'O3RandomNoiseError', $
             'O3SolutionError', $
-            'Time','Altitude' ,    $
+            'Time','Altitude' ,    g
             'Temperature', $
             'Pressure', 'TropopausePressure', $
             'Wavelengths', $

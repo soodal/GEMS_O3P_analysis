@@ -75,7 +75,8 @@ if not savefile then BEGIN
   if keyword_Set(gemsfile) then begin
     gemsfn = gemsfile
   endif else begin
-    if year eq 2020 and month eq 06 and day eq 16 then begin
+    if year eq 2020 and month eq 6 and day eq 16 then begin
+      gems_fp = '/data2/L2_GEMS/val_1008/'
       gemsfn = '/data2/L2_GEMS/val_1008/GK2_GEMS_O3P_' $
         + yyyy + mm + dd + '_' + hh + mi + '.nc4'
     endif else begin 

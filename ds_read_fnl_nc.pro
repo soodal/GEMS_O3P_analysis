@@ -1,7 +1,8 @@
+pro ds_read_fnl_nc, ncfile, outdatfile
+;ncfile = '/data1/gems/o3p/ds/GEMS_O3P_analysis/fnl_20200616_00_00.grib2.nc'
 
-file = '/data1/gems/o3p/ds/GEMS_O3P_analysis/fnl_20200616_00_00.grib2.nc'
-fid=ncdf_open(file)
-ncdf_list, file, /variables, /dimensions, /gatt, /vatt
+fid=ncdf_open(ncfile)
+ncdf_list, ncfile, /variables, /dimensions, /gatt, /vatt
 
 tid = ncdf_varid(fid, 'TMP_P0_L100_GLL0')
 ncdf_varget, fid, tid, fnltemp
@@ -34,22 +35,21 @@ FOR ix=0, 359 DO BEGIN
   ENDFOR
 ENDFOR
 
-
-
-filename = '/data1/app/gemsl2_2020.v0.2.i/data/o3p/ATMOS/fnl13.75LST/fnltemp/fnltemp_20200616.dat'
-IF file_test(filename) THEN BEGIN
-  file_delete, filename
+outfilename = '/data1/app/gemsl2_2020.v0.2.i/data/o3p/ATMOS/fnl13.75LST/fnltemp/fnltemp_20200616.dat'
+outfilename = outdatfile
+IF file_test(outfilename) THEN BEGIN
+  file_delete, outfilename
 ENDIF
-openw, 1, filename
+openw, lun, outfilename, /get_lun
 
 FOR ilayer=0, 25 DO BEGIN
   FOR iy=179, 0, -1 DO BEGIN
-    printf, 1, fnltemp_interpol[*, iy, ilayer], format='(360i3)'
+    printf, lun, fnltemp_interpol[*, iy, ilayer], format='(360i3)'
     ;print,mean(fnltemp_interpol[*, iy, ilayer])
   ENDFOR
   print, mean(fnltemp_interpol[*, *, ilayer])
 ENDFOR
-close, 1
+free_lun, lun
                                                                                                                                      
 stop
 

@@ -214,7 +214,7 @@ cgPS_Close
 pngfile = filename
 cgPS2Raster, 'test.ps', pngfile, density =1000, /png
 spawn, 'convert ' + pngfile + $
-  ' -background "rgba(0,0,0,0.5)" -rotate -90 ' + pngfile
+  ' -background "rgba(0,0,0,0.5)" ' + pngfile
 
 
 if not keyword_Set(scp_dest1) then begin

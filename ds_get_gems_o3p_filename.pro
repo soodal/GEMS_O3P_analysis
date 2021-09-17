@@ -40,6 +40,23 @@ gemsfn = '/data2/L2_GEMS/val_1008/GK2_GEMS_O3P_' $
 gemsfn_v1ba = '/data2/L2_GEMS/val_1008/GK2_GEMS_O3P_' $
   + yyyy + mm + dd + '_' + hh + mi + '_v1.ba.nc4'
 
+if year eq 2021 and month ge 4 and month le 6 then begin
+  gemsfn = '/data2/L2_GEMS.nier/monthly_val/O3P/GK2_GEMS_L2_' $
+    + yyyy + mm + dd + '_' + hh + mi + '_O3P_*.nc'
+  fl = file_search(gemsfn)
+  gemsfn = fl[0]
+  return, gemsfn
+endif
+
+if year eq 2021 and month ge 7 then begin
+  gemsfn = '/data/nier_ftp/O3P/V03/'+ yyyy + mm + '/' + dd + '/' + $
+    'GK2_GEMS_L2_' + yyyy + mm + dd + '_' + hh + mi + '_O3P_*BIN4x4.nc'
+  fl = file_search(gemsfn)
+  gemsfn = fl[0]
+  return, gemsfn
+endif
+
+
 if file_test(gemsfn_v1ba) then begin
   return, gemsfn_v1ba
 endif else if file_test(gemsfn) then begin

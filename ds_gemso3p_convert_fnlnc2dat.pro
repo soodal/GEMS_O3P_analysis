@@ -240,7 +240,7 @@ END
 ; 
 ;+---------------------------------------------------------------------------+
 
-PRO prepare_fnl_geun, date, dir, fnlout, lsttime=lsttime
+PRO ds_gemso3p_convert_fnlnc2dat, date, dir, fnlout, lsttime=lsttime
 
   ;date    = '20120612'
   IF ~KEYWORD_SET(lsttime) THEN BEGIN
@@ -274,7 +274,15 @@ PRO prepare_fnl_geun, date, dir, fnlout, lsttime=lsttime
 
   if nda ne 0 then lon0(da) = lon0(da) - 360.
 
-  utctime = -lon0/15. + lsttime
+  ; OMI가 극궤도 주기로 지구를 도는 경우 적도를 지나는 시각 1345
+  ; 이 시각에 맞추어 경도에 따라 다른 비율로 interpolation
+  ;utctime = -lon0/15. + lsttime
+  
+  ; gems 는 한씬에 전 영역을 모두 관측하므로
+  ; -lon0 대신 -125를 넣어서 일괄 계산
+  tmp = fltarr(360)
+  tmp[*] = 125
+  utctime = - tmp /15. + lsttime
 
   da = where(utctime ge 24.0, nda)
   if nda gt 0 then utctime(da) = utctime(da) -24.

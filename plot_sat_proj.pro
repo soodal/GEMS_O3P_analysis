@@ -21,7 +21,14 @@ Nlat = 60.
 Llon = 60.
 Rlon = 170.
 
-cgPS_Open, 'gems.ps'
+outdir = file_dirname(pngfile)
+if not file_test(outdir) then begin
+  file_mkdir, outdir + '/'
+endif
+
+out_basename = file_basename(pngfile, '.png')
+
+cgPS_Open, outdir + '/' + out_basename + '.ps'
 cgDisplay, aspect=0.7
 
 pos = [0.1,0.15,0.9,0.90]
@@ -43,17 +50,17 @@ sz = size(data)
 dim1 = sz[1]
 dim2 = sz[2]
 
-for j = 0L, dim2-3 do begin
-  for i = 0L, dim1-3 do begin
-    if (lat[i,j] ge Slat) and (lat[i,j] le Nlat) and $
-        (lon[i,j] ge Llon) and (lon[i,j] le Rlon) then begin
-      if data[i,j] gt 0 and data[i, j] le 500 then begin
-        xbox = [lon[i,j], lon[i+1,j], lon[i+1,j], lon[i,j]]
-        ybox = [lat[i,j], lat[i,j], lat[i,j+1], lat[i,j+1]]
+for jy = 0L, dim2-3 do begin
+  for ix = 0L, dim1-3 do begin
+    if (lat[ix,jy] ge Slat) and (lat[ix,jy] le Nlat) and $
+        (lon[ix,jy] ge Llon) and (lon[ix,jy] le Rlon) then begin
+      if data[ix,jy] gt 0 and data[ix, jy] le 500 then begin
+        xbox = [lon[ix,jy], lon[ix+1,jy], lon[ix+1,jy], lon[ix,jy]]
+        ybox = [lat[ix,jy], lat[ix,jy], lat[ix,jy+1], lat[ix,jy+1]]
         xbox = xbox[where(finite(xbox) eq 1, /null)]
         ybox = ybox[where(finite(ybox) eq 1, /null)]
         polyfill, xbox, ybox, $
-          color=bytscl(data[i,j], $
+          color=bytscl(data[ix,jy], $
             min=range[0], $
             max=range[1], $
             top=253)
@@ -88,7 +95,9 @@ if not keyword_Set(pngfile) then begin
   pngfile = 'test.png'
 endif
 
-cgPS2Raster,'gems.ps', pngfile, /png, density = 1000
+cgPS2Raster, outdir + '/' + out_basename + '.ps', pngfile, /png, density = 1000
+
+file_delete, outdir + '/' + out_basename + '.ps'
 
 if not keyword_Set(scp_dest1) then begin
   scp_dest1 = 'soodal@164.125.38.179:/home/soodal/works/plot'

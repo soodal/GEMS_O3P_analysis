@@ -1,4 +1,7 @@
-function search_closest_pixel, inputx, inputy, x, y
+function search_closest_pixel, inputx, inputy, x, y, maxlimit=maxlimit
+if not keyword_set(maxlimit) then begin
+  maxlimit = 0.1
+endif
 ;sz = size(inputx, /dimension)
 
 ;xnumsmall = round(sz[0]/10.)
@@ -33,7 +36,7 @@ function search_closest_pixel, inputx, inputy, x, y
 arr = sqrt((inputx-x)^2 + (inputy-y)^2)
 minval = min(arr, minidx, /nan)
 ;newxyidx = array_indices(inputx, minidx)
-if minval le 0.1 then begin
+if minval le maxlimit then begin
   result = minidx
 endif else begin
   result = -999

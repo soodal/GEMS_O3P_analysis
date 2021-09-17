@@ -1,4 +1,4 @@
-pro ds_read_merra2_inst3_3d_asm_np, fn, data
+function ds_read_merra2_inst3_3d_chm_nv, fn
 
 merra2asmfn = fn
 
@@ -23,6 +23,6 @@ data = {AIRDENS:AIRDENS, $
   lon:lon, $
   time:time}
 
-return
+return, data
 
 end

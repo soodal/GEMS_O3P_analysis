@@ -27,15 +27,15 @@
  T = reform(Temp[*,*,*,it])
  H = reform(alt[*,*,*,it])
 
- for ih=0,41 do Pm[*,*,ih] = P[ih]
+ for ih=0,41 do Pm[*,*,ih] = P[ih] ; assign vertical pressure to 3d array from the nc4 lev
  mmr_o3 = reform(o3[*,*,*,it])
 
  o3molarmass = 47.9982
 ;convert mass mxing ratio into vmr
  vmr_O3 = 28.9644/47.9982 * reform(o3[*,*,*,it])
  vmr_o3_ds = ds_mmr2vmr(reform(o3[*,*,*,it]), molarmass = o3molarmass)
- print, mean(vmr_o3-vmr_o3_ds, /nan)
- stop
+ ;print, mean(vmr_o3-vmr_o3_ds, /nan)
+ ;stop
 
 
 ;vmr to No3 (number density , molec/cm3)
