@@ -112,7 +112,7 @@ if fileok then begin
     ;rangetotal = [250, 345]
   ;ENDELSE
 
-  rangetotal = [250, 500]
+  rangetotal = [220, 430]
 
   sz = size(cao3, /dim)
   if sz[0] eq 3 then begin
@@ -130,6 +130,9 @@ if fileok then begin
     file_mkdir, outputpath
   endif
 
+  failedidx = where(cao3 lt -1.0e20, /null)
+
+  cao3[failedidx] = !values.f_nan
   plot_sat_proj, reform(cao3[*, *, 0]), longitude, latitude, $
     title='GEMS O3P Total ozone ' + datetime_str, $
     range=rangetotal, $
@@ -139,20 +142,27 @@ if fileok then begin
 
   plot_sat_proj, reform(cao3[*, *, 2]), longitude, latitude, $
     title='GEMS O3P Tropospheric ozone ' + datetime_str, $
-    range=[20, 100], $
+    ;range=[20, 100], $
+    range=[0, 60], $
     pngfile=outputpath + '03_tropsphericozone.png';, $
 
+  o3under300hpa[failedidx] = !values.f_nan
+  nanidx = where(o3under300hpa lt -1.0e20, /null)
+  o3under300hpa[nanidx] = !values.f_nan
   plot_sat_proj, o3under300hpa, longitude, latitude, $
     title='GEMS O3P Under 300 hPa ' + datetime_str, $
-    range=[20, 100], $
+    ;range=[20, 100], $
+    range=[0, 60], $
     pngfile=outputpath + '04_under300hPa.png';, $
 
-  plot_sat_proj, o3under500hpa, longitude, latitude, $
-    title='GEMS O3P Under 500 hPa ' + datetime_str, $
-    range=[20, 100], $
-    pngfile=outputpath + '05_under500hPa.png';, $
-    ;/scp_send, $
-    ;scp_dest=scp_dest
+  ;nanidx = where(o3under500hpa lt -1.0e20, /null)
+  ;o3under500hpa[nanidx] = !values.f_nan
+  ;plot_sat_proj, o3under500hpa, longitude, latitude, $
+    ;title='GEMS O3P Under 500 hPa ' + datetime_str, $
+    ;range=[20, 100], $
+    ;pngfile=outputpath + '05_under500hPa.png';, $
+    ;;/scp_send, $
+    ;;scp_dest=scp_dest
 
   plot_sat_proj, trppsprs, longitude, latitude, $
     title='GEMS O3P TropopausePressure ' + datetime_str, $

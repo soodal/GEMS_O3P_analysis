@@ -1,3 +1,4 @@
+#!/home/soodal/anaconda3/bin/python3
 import pandas as pd
 import numpy as np
 import sys
@@ -10,10 +11,11 @@ from netCDF4 import Dataset
 import datetime
 
 
+# date 
 daterange = pd.date_range(datetime.datetime(2021, 2, 15, 0, 45), 
         datetime.datetime(2021, 3, 21, 0, 45), freq='D')
 
-# ncfp = '/data2/L2_GEMS/val_1008/softcal/'
+# input irradiance file list
 input_irr_fp = '/data2/L1C_GEMS/L1C_nier/4x4/'
 
 import glob
@@ -35,7 +37,6 @@ for dt in daterange:
     input_fl = glob.glob(input_irr_fp + 'GK2_GEMS_IRR_' + yyyy + mm + dd + '_4x4.nc')
 
     if len(input_fl) > 0:
-        
         input_fl.sort()
         ncfn = input_fl[-1]
         print(ncfn)
@@ -47,8 +48,7 @@ for dt in daterange:
         image_pixel_values = nc['/image_pixel_values'][:]
         wavelength = nc['/wavelength'][:]
         wavelength_bfcal = nc['/wavelength_bfcal'][:]
-
-        # print(image_pixel_values.shape)
+g       # print(image_pixel_values.shape)
         if 'image_pixel_values_total' in locals():
             image_pixel_values_total = np.concatenate(
                     (image_pixel_values_total, 

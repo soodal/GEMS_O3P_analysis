@@ -1,6 +1,6 @@
 ;===================================================================================================
 ; PROGRAM NAME:
-;  ds_vmr2du
+;  ds_vmr2du_3d
 ;
 ; PURPOSE:
 ;  convert volum mixing ratio(VMR) to dobson unit(DU)
@@ -32,7 +32,7 @@
 ;
 ;===================================================================================================
 pro ds_vmr2du_3d, vmr_o3, pressure, temperature, altitude, o3_du_layer, $
-  xaxis=xi, yaxis=yi, zaxis=zi, incresing_height=incheight
+  xaxis=xi, yaxis=yi, zaxis=zi, increasing_height=incheight
 
 if not keyword_set(xi) then begin
   xi = 0
@@ -61,8 +61,7 @@ nx = vmr_o3_size[xi]
 ny = vmr_o3_size[yi]
 nz = vmr_o3_size[zi]
 
-
-o3_du_layer = fltarR(nx,ny,nz-1) ;nlayer
+o3_du_layer = fltarr(nx,ny,nz-1) ;nlayer
 
 ;vmr to N_o3 (number density , molec/cm3)
 k = 1.3807 * 10.^(-19); J K-1 molc-1 ; 10^4 * kg * cm^2 s^-2
@@ -75,16 +74,15 @@ N_o3 = vmr_o3 * pressure/(temperature*k)
 ;Air number density
 N_air = 2.69*10.^(16) ; molec/cm ^3
 
-du_tmp1 = fltarr(nx,ny,nz-1)
 dh      = fltarr(nx,ny,nz-1)
 
 FOR ih=0,nz-2 DO BEGIN
   if zi eq 2 then begin
-    dh = altitude[*,*,ih+1] - altitude[*,*,ih]  ; meter
+    dh = abs(altitude[*, *, ih+1] - altitude[*, *, ih])  ; meter
   endif else if zi eq 0 then begin
-    dh = altitude[ih, *,*] - altitude[ih, *,*]  ; meter
+    dh = abs(altitude[ih+1, *, *] - altitude[ih, *, *])  ; meter
   endif
-  dh = dh *  100 ; centimeter
+  dh = dh * 100. ; meter to centimeter
   o3_du_layer[*,*,ih] = (N_o3[*,*,ih]+N_o3[*,*,ih+1])/2/N_air*dh ;cm thickness
 ENDFOR
 

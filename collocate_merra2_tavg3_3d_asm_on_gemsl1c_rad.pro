@@ -24,6 +24,8 @@ savpath = './collocate_merra2_on_gemsl2o3p/'
 if not file_test(savpath) then begin
   file_mkdir, savpath
 endif
+outncfp = '/data/private/soodal/MERRA2_collocated_on_gems/' 
+outncfn = 'merra2_tavg3_3d_asm_collocated_on_gemsl1c_rad_'+yyyy+mm+dd+'_'+hh+mi+'.nc4'
 
 jday = julday(month, day, year, 0, 0)
 nday = jday+1
@@ -63,33 +65,34 @@ endif; else begin
 
 
 ; MERRA2 filename
-merra2_tavg3_3d_asm_fn = '/data/MODEL/MERRA2/' + yyyy + '/' + mm + '/MERRA2_400.tavg3_3d_asm_Nv.' $
+merra2_tavg3_3d_asm_fn = '/data/MODEL/MERRA2/tavg3_3d_asm_Nv/' + yyyy + '/' + mm + '/MERRA2_400.tavg3_3d_asm_Nv.' $
   + yyyy + mm + dd + '.nc4'
-merra2fn = '/data/MODEL/MERRA2/' + yyyy + '/' + mm + '/MERRA2_400.inst3_3d_chm_Nv.' $
-  + yyyy + mm + dd + '.nc4'
+merra2_fl = file_search(merra2_tavg3_3d_asm_fn)
+merra2_fn = merra2_fl[0]
+
 
 ; read file
 
 fl = file_search(gems_fp+gems_fn_p)
 print, gems_fp
 print, gems_fn_p
-print, fl
+print, fl[0]
 
-if file_test(fl[0]) and file_test(merra2fn) then begin
+if file_test(fl[0]) and file_test(merra2_fn) and not file_test(outncfp+outncfn) then begin
   gemsl1c_rad = ds_read_gems_l1c_4x4(fl[0])
 
-  merra2_tavg3_3d_asm = ds_read_merra2_tavg3_3d_asm_nv(merra2_tavg3_3d_asm_fn)
-  ;merra2 = ds_read_merra2_inst3_3d_chm_nv(merra2fn)
+  merra2_tavg3_3d_asm = ds_read_merra2_tavg3_3d_asm_nv(merra2_fn)
   print, 'read merra2 done.'
 
+  ; for read tomorrow
   IF hour ge 20 and hour le 24 then BEGIN ; for 2345 UTC
-    merra2_tavg3_3d_asm_fn_n = '/data/MERRA2/'+ yyyy_n + '/' + mm_n + '/MERRA2_400.tavg3_3d_asm_Nv.' $
+    merra2_tavg3_3d_asm_fn_n = '/data/MODEL/MERRA2/tavg3_3d_asm_Nv/'+ yyyy_n + '/' $
+      + mm_n + '/MERRA2_400.tavg3_3d_asm_Nv.' $
       + yyyy_n + mm_n + dd_n + '.nc4'
-    print, merra2_tavg3_3d_asm_fn_n
-    ;merra2fn_n = '/data/MERRA2/2020/08/MERRA2_400.inst3_3d_chm_Nv.' $
-      ;+ yyyy_n + mm_n + dd_n + '.nc4'
-    merra2_tavg3_3d_asm_n = ds_read_merra2_tavg3_3d_asm_nv(merra2_tavg3_3d_asm_fn_n)
-    ;merra2_n = ds_read_merra2_inst3_3d_chm_nv(merra2fn_n)
+    merra2_fl_n = file_search(merra2_tavg3_3d_asm_fn_n)
+    merra2_fn_n = merra2_fl_n[0]
+    print, merra2_fn_n
+    merra2_tavg3_3d_asm_n = ds_read_merra2_tavg3_3d_asm_nv(merra2_fn_n)
     print, 'reading... merra2 for next day ... done.'
   ENDIF
 
@@ -533,12 +536,9 @@ if file_test(fl[0]) and file_test(merra2fn) then begin
   ENDFOR
 
   ; save netcdf
-  outncfp = '/data/private/soodal/MERRA2_collocated_on_gems/' 
-  ;outncfn = file_basename(fl[0]) + '.merra2_tavg3_3d_asm.nc4'
-  outncfn = 'merra2_tavg3_3d_asm_collocated_on_gemsl1c_rad_'+yyyy+mm+dd+'_'+hh+mi+'.nc4'
-  if file_test(outncfp+outncfn) then begin
-    file_delete, outncfp+outncfn
-  endif
+  ;if file_test(outncfp+outncfn) then begin
+    ;file_delete, outncfp+outncfn
+  ;endif
 
   id = ncdf_create(outncfp + outncfn)
   _ximage = ncdf_dimdef(id, 'image', gems_sz[0])

@@ -4,6 +4,12 @@ pro plot_sat_proj, data, lon, lat, $
   scp_dest=scp_dest1, $
   range=range, $
   title=pic_title, $
+  colortable=ct, $
+  ctreverse=ctreverse, $
+  slat=slat, $
+  nlat=nlat, $
+  llon=llon, $
+  rlon=rlon, $
   cb_title=cb_title
 if not keyword_Set(pic_title) then begin
   pic_title = 'test'
@@ -16,10 +22,27 @@ endif
 if not keyword_Set(range) then begin
   range = minmax(data)
 endif
-Slat = -5.
-Nlat = 60.
-Llon = 60.
-Rlon = 170.
+
+if not keyword_Set(ct) then begin
+  ct = 33
+endif
+
+if not keyword_Set(ctreverse) then begin
+  ctreverse = 0
+endif
+
+if not keyword_Set(slat) then begin
+  Slat = -5.
+endif
+if not keyword_Set(nlat) then begin
+  Nlat = 60.
+endif
+if not keyword_Set(llon) then begin
+  Llon = 60.
+endif
+if not keyword_Set(rlon) then begin
+  Rlon = 170.
+endif
 
 outdir = file_dirname(pngfile)
 if not file_test(outdir) then begin
@@ -29,7 +52,7 @@ endif
 out_basename = file_basename(pngfile, '.png')
 
 cgPS_Open, outdir + '/' + out_basename + '.ps'
-cgDisplay, aspect=0.7
+cgDisplay, aspect=8./9.
 
 pos = [0.1,0.15,0.9,0.90]
 charsize = (!D.Name EQ 'PS') ? cgDefCharsize()*0.7 : cgDefCharsize()*0.75
@@ -44,7 +67,11 @@ cgMap_set,20,120, Limit=[-60, 0, 60, 360],$
               title=pic_title
 
 ;LoadCT, 22, Ncolors=254,bottom=1
-dsloadct, 33
+if ctreverse then  begin
+  dsloadct, ct, /ctreverse
+endif ELSE begin
+  dsloadct, ct
+ENDELSE
 
 sz = size(data)
 dim1 = sz[1]
@@ -54,7 +81,7 @@ for jy = 0L, dim2-3 do begin
   for ix = 0L, dim1-3 do begin
     if (lat[ix,jy] ge Slat) and (lat[ix,jy] le Nlat) and $
         (lon[ix,jy] ge Llon) and (lon[ix,jy] le Rlon) then begin
-      if data[ix,jy] gt 0 and data[ix, jy] le 500 then begin
+      if finite(data[ix,jy]) gt 0 or data[ix, jy] gt -999 then begin
         xbox = [lon[ix,jy], lon[ix+1,jy], lon[ix+1,jy], lon[ix,jy]]
         ybox = [lat[ix,jy], lat[ix,jy], lat[ix,jy+1], lat[ix,jy+1]]
         xbox = xbox[where(finite(xbox) eq 1, /null)]
@@ -63,7 +90,7 @@ for jy = 0L, dim2-3 do begin
           color=bytscl(data[ix,jy], $
             min=range[0], $
             max=range[1], $
-            top=253)
+            top=252)
       endif
     endif
   endfor

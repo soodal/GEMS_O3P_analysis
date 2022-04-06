@@ -1,5 +1,5 @@
 pro collocate_merra2_tavg3_3d_asm_on_gemsl2o3p, year, month, day, hour, minute $
-  , method=method
+  , method=method, gems_path=gems_fp, gems_fn_pattern=gems_fn_p
 
 ; read GEMS
 ; read MERRA2
@@ -10,6 +10,7 @@ pro collocate_merra2_tavg3_3d_asm_on_gemsl2o3p, year, month, day, hour, minute $
 if not keyword_set(method) then begin
   method = 'nearest'
 endif
+
 
 limit=[-10, 80, 60, 160]
 
@@ -26,36 +27,56 @@ endif
 
 jday = julday(month, day, year, 0, 0)
 nday = jday+1
-caldat, nday, month_n, day_n, year_n
+caldat, nday, month_n, day_n, year_n, hour_n, minute_n
+
+yyyy_n = string(year_n, format='(i04)')
+mm_n = string(month_n, format='(i02)')
+dd_n = string(day_n, format='(i02)')
+hh_n = string(hour_n, format='(i02)')
+mi_n = string(minute_n, format='(i02)')
+
+if not keyword_set(gems_fp) then begin
+  gems_fp = '/data2/tmp/L1C/1015/binning/'
+endif; else begin
+  ;gems_fp = gems_fp
+;endif
+
+if not keyword_set(gems_fn_p) then begin
+  gems_fn_p = 'GK2_GEMS_O3P_' $
+    + yyyy + mm + dd + '_' + hh + mi + '_v1.ba.nc4'
+endif; else begin
+  ;gems_fn_p = gems_fn_p
+;endif
+
+
 
 ; set read file name
 
 ; GEMS filename
-gemsfp = '/data2/L2_GEMS/val_1008/'
-gemsfn = 'GK2_GEMS_O3P_' $
-  + yyyy + mm + dd + '_' + hh + mi + '_v1.ba.nc4'
+if year eq 2020 and hour ge 3 and hour le 4 then begin
+  gemsfp = '/data2/L2_GEMS/val_1008/'
+  gemsfn = 'GK2_GEMS_O3P_' $
+    + yyyy + mm + dd + '_' + hh + mi + '_v1.ba.nc4'
+ENDIF else if year eq 2021 then begin
+  gemsfp '/data/nier_ftp/O3P/V03/202103/01/GK2_GEMS_L2_20210301_0045_O3P_HE-ETC_DPRO.nc' + yyyy + mm + '/' + dd + '/'
+  gemsfl = file_search(gemsfp + 'GK2_GEMS_L2_' + yyyy + mm + dd + '_' + hh + mi + '_O3P_*.nc')
+  gemsfn = file_basename(gemsfl[0])
+ENDIF
 
 ; MERRA2 filename
-merra2_tavg3_3d_asm_fn = '/data/MERRA2/' + yyyy + '/' + mm + '/MERRA2_400.tavg3_3d_asm_Nv.' $
-  + yyyy + mm + dd + '.nc4'
-merra2fn = '/data/MERRA2/' + yyyy + '/' + mm + '/MERRA2_400.inst3_3d_chm_Nv.' $
+merra2_tavg3_3d_asm_fn = '/data/MODEL/MERRA2/tavg3_3d_asm_Nv/' + yyyy + '/' + mm + '/MERRA2_400.tavg3_3d_asm_Nv.' $
   + yyyy + mm + dd + '.nc4'
 
 ; read file
-
-if file_test(gemsfp+gemsfn) and file_test(merra2fn) then begin
+if file_test(gemsfp+gemsfn) and file_test(merra2_tavg3_3d_asm_fn) then begin
   gemsvars = ds_read_gems_l2_o3p(gemsfp+gemsfn)
 
   merra2_tavg3_3d_asm = ds_read_merra2_tavg3_3d_asm_nv(merra2_tavg3_3d_asm_fn)
-  ;merra2 = ds_read_merra2_inst3_3d_chm_nv(merra2fn)
 
-  IF hour ge 20 and hour le 27 then BEGIN ; for 2345 UTC
-    merra2_tavg3_3d_asm_fn_n = '/data/MERRA2/2020/08/MERRA2_400.tavg3_3d_asm_Nv.' $
+  IF hour ge 20 and hour le 23 then BEGIN ; for 2345 UTC
+    merra2_tavg3_3d_asm_fn_n = '/data/MODEL/MERRA2/tavg3_3d_asm_Nv/' + yyyy + '/' + mm + '/MERRA2_400.tavg3_3d_asm_Nv.' $
       + yyyy_n + mm_n + dd_n + '.nc4'
-    ;merra2fn_n = '/data/MERRA2/2020/08/MERRA2_400.inst3_3d_chm_Nv.' $
-      ;+ yyyy_n + mm_n + dd_n + '.nc4'
     merra2_tavg3_3d_asm_n = ds_read_merra2_tavg3_3d_asm_nv(merra2_tavg3_3d_asm_fn_n)
-    ;merra2_n = ds_read_merra2_inst3_3d_chm_nv(merra2fn_n)
   ENDIF
 
   ; collocation

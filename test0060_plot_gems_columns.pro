@@ -40,7 +40,7 @@ for idate = 0, n_elements(jd_list)-1 do begin
   filelist = file_search(path + search_str)
   nfile = n_elements(filelist)
 
-  outputpath = './plot/vartest/climaTB_FNL/'
+  outputpath = './plot/GEMS_O3P/'
   if total(strlen(filelist)) gt 0 then begin 
     for inum = 0, nfile-1 do begin ; gems l2o3p file
       o3p = ds_read_gems_l2_o3p(filelist[inum], varlist=varlist)
@@ -79,10 +79,18 @@ for idate = 0, n_elements(jd_list)-1 do begin
 
       plot_sat_proj, o3under10km, longitude, latitude, $
         title='GEMS L2 O3P Under 10 KM ' + datetime_str, $
-        range=[20, 100], $
+        range=[0, 40], $
+        colortable=22, $
         pngfile=outputpath + 'gems_l2_o3p_' + datetime_str + '_under10km_wl310340_tb_fnl.png';, $
         ;/scp_send, $
         ;scp_dest=scp_dest
+
+      ;plot_sat_proj, o3under10km, longitude, latitude, $
+        ;title='GEMS L2 O3P Under 10 KM ' + datetime_str, $
+        ;range=[20, 100], $
+        ;pngfile=outputpath + 'gems_l2_o3p_' + datetime_str + '_under10km_wl310340_tb_fnl.png';, $
+        ;;/scp_send, $
+        ;;scp_dest=scp_dest
 
 
       cao3 = o3p.ColumnAmountO3
@@ -106,27 +114,27 @@ for idate = 0, n_elements(jd_list)-1 do begin
       endif
         
 
-      plot_sat_proj, reform(cao3[*, *, 0]), longitude, latitude, $
-        title='GEMS L2 O3P Total ozone ' + datetime_str, $
-        range=rangetotal, $
-        pngfile=outputpath + 'gems_l2_o3p_' + datetime_str +'_toz_wl310340_tb_fnl.png';, $
-        ;/scp_send, $
-        ;scp_dest=scp_dest
+      ;plot_sat_proj, reform(cao3[*, *, 0]), longitude, latitude, $
+        ;title='GEMS L2 O3P Total ozone ' + datetime_str, $
+        ;range=rangetotal, $
+        ;pngfile=outputpath + 'gems_l2_o3p_' + datetime_str +'_toz_wl310340_tb_fnl.png';, $
+        ;;/scp_send, $
+        ;;scp_dest=scp_dest
 
-      plot_sat_proj, reform(cao3[*, *, 2]), longitude, latitude, $
-        title='GEMS L2 O3P Tropospheric ozone ' + datetime_str, $
-        range=[20, 100], $
-        pngfile=outputpath + 'gems_l2_o3p_' + datetime_str + '_tropocolumn_wl310340_tb_fnl.png';, $
+      ;plot_sat_proj, reform(cao3[*, *, 2]), longitude, latitude, $
+        ;title='GEMS L2 O3P Tropospheric ozone ' + datetime_str, $
+        ;range=[20, 100], $
+        ;pngfile=outputpath + 'gems_l2_o3p_' + datetime_str + '_tropocolumn_wl310340_tb_fnl.png';, $
 
-      plot_sat_proj, reform(cao3[*, *, 2]), longitude, latitude, $
-        title='GEMS L2 O3P Tropospheric ozone ' + datetime_str, $
-        range=[20, 100], $
-        pngfile=outputpath + 'gems_l2_o3p_' + datetime_str + '_tropocolumn_wl310340_tb_fnl.png';, $
+      ;plot_sat_proj, reform(cao3[*, *, 2]), longitude, latitude, $
+        ;title='GEMS L2 O3P Tropospheric ozone ' + datetime_str, $
+        ;range=[20, 100], $
+        ;pngfile=outputpath + 'gems_l2_o3p_' + datetime_str + '_tropocolumn_wl310340_tb_fnl.png';, $
 
-      plot_sat_proj, trppsprs, longitude, latitude, $
-        title='GEMS L2 O3P TropopausePressure ' + datetime_str, $
-        range=[20, 300], $
-        pngfile=outputpath + 'gems_l2_o3p_' + datetime_str + '_tropopausepressure_fnl.png';, $
+      ;plot_sat_proj, trppsprs, longitude, latitude, $
+        ;title='GEMS L2 O3P TropopausePressure ' + datetime_str, $
+        ;range=[20, 300], $
+        ;pngfile=outputpath + 'gems_l2_o3p_' + datetime_str + '_tropopausepressure_fnl.png';, $
 
       ; plotting layers
       ;for i = 0, 23 do begin

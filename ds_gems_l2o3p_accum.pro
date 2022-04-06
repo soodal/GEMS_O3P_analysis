@@ -7,12 +7,19 @@ pro ds_gems_l2o3p_accum, data, o3accum, hpa=hpa, height=height
 if keyword_set(hpa) then begin
   o3 = data.o3
   o3size = size(data.o3, /dim)
-  gemspres = data.Pressure
-  gemslayero3 = fltarr(o3size[0:1])
-  dim1 = o3size[0]
-  dim2 = o3size[1]
-  ;gemslayero3[*,*] = !values.f_nan
+  if o3size[2] eq 24 then begin 
+    gemslayero3 = fltarr(o3size[0:1])
+    dim1 = o3size[0]
+    dim2 = o3size[1]
+    ;gemslayero3[*,*] = !values.f_nan
+  endif else if o3size[0] eq 24 then begin
+    gemslayero3 = fltarr(o3size[1:2])
+    dim1 = o3size[1]
+    dim2 = o3size[2]
+  endif
 
+
+  gemspres = data.Pressure
   pressz = size(gemspres, /dim)
 
   for iy=0, dim2-1 do begin
@@ -20,7 +27,7 @@ if keyword_set(hpa) then begin
     for ilevel=24, 0, -1 do begin
       ilayer = ilevel-1
 
-      if pressz[0] eq 174 then begin
+      if pressz[2] eq 25 then begin
         if gemspres[ix, iy, ilevel] gt hpa $
             and gemspres[ix, iy,ilevel-1] gt hpa then begin
           gemslayero3[ix, iy] = gemslayero3[ix, iy] + o3[ix, iy, ilayer]
@@ -58,15 +65,22 @@ endif
 ; GEMS vertical column layer for under 10 km
 if keyword_set(height) then begin
   o3 = data.o3
-  o3size = size(data.o3, /dim)
   altitude = data.Altitude
   nanidx = where(altitude < 0, /null)
   altitude[nanidx] = !values.f_nan
+
   o3size = size(data.o3, /dim)
-  gemslayero3 = fltarr(o3size[0:1])
-  dim1 = o3size[0]
-  dim2 = o3size[1]
-  ;gemslayero3[*,*] = !values.f_nan
+  if o3size[2] eq 24 then begin
+    gemslayero3 = fltarr(o3size[0:1])
+    dim1 = o3size[0]
+    dim2 = o3size[1]
+    ;gemslayero3[*,*] = !values.f_nan
+  endif else if o3size[0] eq 24 then begin
+    gemslayero3 = fltarr(o3size[1:2])
+    dim1 = o3size[1]
+    dim2 = o3size[2]
+  endif
+
   for iy=0, dim2-1 do begin
   for ix=0, dim1-1 do begin
     for ilevel=24, 0, -1 do begin

@@ -14,59 +14,11 @@ if p1name eq 'NETCDF4' then begin
   p3id=ncdf_groupsinq(p2id[0])
   p4id=ncdf_groupsinq(p3id[0])
 
-  ;lat_id  = ncdf_varid(p4id[0],'Latitude')
-  ;res_id  = ncdf_varid(p4id[1],'ResidualsOfFit')
-  ;o3solerr_id = ncdf_varid(p4id[1], 'O3SolutionError')
-
-  ;ncdf_varget,p4id[0],lat_id,Latitude
-  ;ncdf_varget,p4id[1],res_id,ResidualsOfFit
-  ;ncdf_varget,p4id[1],o3solerr_id,O3SolutionError
 ENDIF else begin
-  p2id=ncdf_groupsinq(p1id[0])
-  ;p3id=ncdf_groupsinq(p2id[0])
-  ;p4id=ncdf_groupsinq(p3id[0])
   p4id=p1id
-
-  ;lat_id  = ncdf_varid(p4id[0],'Latitude')
-  ;res_id  = ncdf_varid(p4id[1],'ResidualsOfFit')
-  ;o3solerr_id = ncdf_varid(p4id[1], 'O3SolutionError')
-
-  ;ncdf_varget,p4id[0],lat_id,Latitude
-  ;ncdf_varget,p4id[1],res_id,ResidualsOfFit
-  ;ncdf_varget,p4id[1],o3solerr_id,O3SolutionError
 ENDELSE
 
-
-
-;data_list = ['EffectiveCloudFractionUV', 'ProcessingQualityFlags', $
-             ;'RootMeanSquareErrorOfFit', 'AveragingKernel', 'O3' , $
-             ;'O3Apriori', 'O3AprioriError','ColumnAmountO3', $
-             ;'CloudPressure','ResidualsOfFit','NumberOfIterations','Runtime',
-             ;'SimulatedRadiances'] ; Added by Dae Sung 2020-08-29
-
-;geo_list  = ['Latitude' ,'Longitude', 'SolarZenithAngle', $
-             ;'ViewingZenithAngle', 'Time','Altitude' ,    $
-             ;'Pressure','Pix','Line','TropopausePressure']
-
-;struct = {Altitude:fltarr(nl+1), Pressure:fltarr(nl+1), $
-  ;AveragingKernel:fltarr(nl, nl), O3:fltarr(nl), O3Apriori:fltarr(nl), $
-  ;Runtime:0.0, O3AprioriError:fltarr(nl), ColumnAmountO3:fltarr(3),CloudPressure:0.0, $ 
-  ;Time:0.0d, Latitude:0.0, Longitude:0.0, SolarZenithAngle:0.0, $
-  ;Temperature:fltarr(nl+1), $
-  ;TerrainPressure:0.0, $
-  ;RelativeAzimuthAngle: 0.0, $
-  ;TerrainReflectivityUV: 0.0, $
-  ;Exitval: 0.0, $
-  ;ViewingZenithAngle:0.0, EffectiveCloudFractionUV:0.0, ProcessingQualityFlags:0, $
-  ;RootMeanSquareErrorOfFit:0.0, Line:0, Pix:0,TropopausePressure:0.0, $
-  ;ResidualsOfFit:fltarr(nres), SimulatedRadiances:fltarr(nres), O3SolutionError:fltarr(nl), $
-  ;O3RandomNoiseError:fltarr(nl), DegreesOfFreedomForSignal:!values.d_nan, $
-  ;NumberOfIterations:0, FinalAlgorithmFlags:0}
-
-;gems=replicate(struct,npix,nline)
-
-
-
+;ngroup = n_elements(p4id)
 for dn=0,1 do begin
   id=p4id[dn]
   varid=ncdf_varidsinq(id)

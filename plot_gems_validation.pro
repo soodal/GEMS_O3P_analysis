@@ -36,7 +36,14 @@ endif
 if not keyword_set(ctnum) then begin
   ctnum = 33
 endif
-cgPS_Open, 'test.ps', /landscape
+
+outdir = file_dirname(filename)
+if not file_test(outdir) then begin
+  file_mkdir, outdir + '/'
+endif
+out_basename = file_basename(filename, '.png')
+
+cgPS_Open, outdir + '/' + out_basename + '.ps', /landscape
 
 cgDisplay, aspect=1
 dsloadct, ctnum
@@ -55,6 +62,11 @@ endif
 if not keyword_Set(bgcolor) then begin
   bgcolor = 'white'
 endif
+
+nanidx = where(x_para eq 0 or y_para eq 0, /null)
+x_para[nanidx] = !values.f_nan
+y_para[nanidx] = !values.f_nan
+
 
 cgPlot, x_para, y_para, /NoData, $
   ;background=bgcolor, $
@@ -212,7 +224,7 @@ cgColorbar,format='(i4)', $
 cgPS_Close
 
 pngfile = filename
-cgPS2Raster, 'test.ps', pngfile, density =1000, /png
+cgPS2Raster, outdir + '/' + out_basename + '.ps', pngfile, density =1000, /png
 spawn, 'convert ' + pngfile + $
   ' -background "rgba(0,0,0,0.5)" ' + pngfile
 
