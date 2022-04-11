@@ -5,6 +5,7 @@ pro plot_sat_proj, data, lon, lat, $
   range=range, $
   title=pic_title, $
   colortable=ct, $
+  cornerpixel=cornerpixel, $
   ctreverse=ctreverse, $
   slat=slat, $
   nlat=nlat, $
@@ -44,6 +45,10 @@ if not keyword_Set(rlon) then begin
   Rlon = 170.
 endif
 
+if not keyword_Set(cornerpixel) then begin
+  cornerpixel = 0
+endif
+
 outdir = file_dirname(pngfile)
 if not file_test(outdir) then begin
   file_mkdir, outdir + '/'
@@ -73,28 +78,54 @@ endif ELSE begin
   dsloadct, ct
 ENDELSE
 
-sz = size(data)
-dim1 = sz[1]
-dim2 = sz[2]
-
-for jy = 0L, dim2-3 do begin
-  for ix = 0L, dim1-3 do begin
-    if (lat[ix,jy] ge Slat) and (lat[ix,jy] le Nlat) and $
-        (lon[ix,jy] ge Llon) and (lon[ix,jy] le Rlon) then begin
-      if finite(data[ix,jy]) gt 0 or data[ix, jy] gt -999 then begin
-        xbox = [lon[ix,jy], lon[ix+1,jy], lon[ix+1,jy], lon[ix,jy]]
-        ybox = [lat[ix,jy], lat[ix,jy], lat[ix,jy+1], lat[ix,jy+1]]
+if cornerpixel then begin
+  sz = size(data)
+  dim1 = sz[1]
+  for ip = 0L, dim1-1 do begin
+    print, ip
+    print, lat[ip, *]
+    print, lon[ip, *]
+    if (min(lat[ip, *]) ge Slat) and (max(lat[ip, *]) le Nlat) and $
+        (min(lon[ip, *]) ge Llon) and (max(lon[ip, *]) le Rlon) then begin
+      print, data[ip]
+      if finite(data[ip]) eq 1 or data[ip] gt -999 then begin
+        xbox = lon[ip, *]
+        ybox = lat[ip, *]
         xbox = xbox[where(finite(xbox) eq 1, /null)]
         ybox = ybox[where(finite(ybox) eq 1, /null)]
+        print, xbox, ybox
+        print, data[ip]
         polyfill, xbox, ybox, $
-          color=bytscl(data[ix,jy], $
+          color=bytscl(data[ip], $
             min=range[0], $
             max=range[1], $
             top=252)
       endif
     endif
   endfor
-endfor
+endif else begin
+  sz = size(data)
+  dim1 = sz[1]
+  dim2 = sz[2]
+  for jy = 0L, dim2-3 do begin
+    for ix = 0L, dim1-3 do begin
+      if (lat[ix,jy] ge Slat) and (lat[ix,jy] le Nlat) and $
+          (lon[ix,jy] ge Llon) and (lon[ix,jy] le Rlon) then begin
+        if finite(data[ix,jy]) gt 0 or data[ix, jy] gt -999 then begin
+          xbox = [lon[ix,jy], lon[ix+1,jy], lon[ix+1,jy], lon[ix,jy]]
+          ybox = [lat[ix,jy], lat[ix,jy], lat[ix,jy+1], lat[ix,jy+1]]
+          xbox = xbox[where(finite(xbox) eq 1, /null)]
+          ybox = ybox[where(finite(ybox) eq 1, /null)]
+          polyfill, xbox, ybox, $
+            color=bytscl(data[ix,jy], $
+              min=range[0], $
+              max=range[1], $
+              top=252)
+        endif
+      endif
+    endfor
+  endfor
+ENDELSE
 
 cgMap_Grid, Color='black', GLinestyle=1,londel=londel, latdel=latdel, charsize=1 $
                  ,LONLAB=20 ,LATLAB=160, LABEL=1
