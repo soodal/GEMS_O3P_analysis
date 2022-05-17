@@ -123,6 +123,7 @@ END
 ; REVISION HISTORY:
 ;   original sorce from Daegeun Shin
 ;   Updated by Dae Sung Choi 2020-09-08
+;   Updated by Dae Sung Choi 2022-04-12 stop -> message
 ;     Satellite Remote Sensing Laboratory
 ;     Division of Earth Environmental System
 ;     College of Natural Science
@@ -145,8 +146,11 @@ PRO read_fnl_nc, date, utc, fnl, fnl_new, dir, get_rearray=get_rearray
   ;;;;;;;;;;;;;;;;;;;;;;;;;;
   sel   = where ( fix(utc) ge 0 and fix(utc) le 18)
   da    = fix(utc(sel))/6
-  file  = findfile(dir + 'fnl_'+date + '_'+'*'+'_*.nc', count=nfile) & if nfile ne 4 then stop
-  print, file
+  file  = findfile(dir + 'fnl_'+date + '_'+'*'+'_*.nc', count=nfile) 
+  if nfile ne 4 then begin
+    message, 'FNL files for each 6 hours are not exists.'
+  endif
+
   file  = file(da)
   sel1  = where( fix(utc) eq -6, nsel1)
   sel2  = where( fix(utc) eq 24, nsel2)
@@ -240,7 +244,7 @@ END
 ; 
 ;+---------------------------------------------------------------------------+
 
-PRO ds_convert_fnl_to_dat_for_gemso3p, date, dir, fnlout, lsttime=lsttime
+PRO ds_convert_fnl_to_dat_for_gemso3p, date, dir, fnlout, outdat=outdat, lsttime=lsttime
 
   ;date    = '20120612'
   IF ~KEYWORD_SET(lsttime) THEN BEGIN
@@ -376,6 +380,14 @@ PRO ds_convert_fnl_to_dat_for_gemso3p, date, dir, fnlout, lsttime=lsttime
 
    fnlout = {sp:sp/100. , tp:tp/100., st:st, temp:temp, lon:lon, lat:lat, pres:pres/100., uwind:uwind, vwind:vwind, omega:omega}
 
+   tp_size = size(tp, /dimension)
+
+   openw, lun, outdat, /get_lun
+   
+   for iy=0, tp_size[1] - 1 do BEGIN
+     printf, lun, tp[*, iy], format='(360i3)'
+   ENDFOR
+   free_lun, lun
 END
 
 

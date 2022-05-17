@@ -1,7 +1,7 @@
 pro plot_sat_proj, data, lon, lat, $
   pngfile=pngfile, $
   scp_send=scp_send1, $
-  scp_dest=scp_dest1, $
+  ;scp_dest=scp_dest1, $
   range=range, $
   title=pic_title, $
   colortable=ct, $
@@ -82,9 +82,9 @@ if cornerpixel then begin
   sz = size(data)
   dim1 = sz[1]
   for ip = 0L, dim1-1 do begin
-    print, ip
-    print, lat[ip, *]
-    print, lon[ip, *]
+    ;print, ip
+    ;print, lat[ip, *]
+    ;print, lon[ip, *]
     if (min(lat[ip, *]) ge Slat) and (max(lat[ip, *]) le Nlat) and $
         (min(lon[ip, *]) ge Llon) and (max(lon[ip, *]) le Rlon) then begin
       print, data[ip]
@@ -93,13 +93,13 @@ if cornerpixel then begin
         ybox = lat[ip, *]
         xbox = xbox[where(finite(xbox) eq 1, /null)]
         ybox = ybox[where(finite(ybox) eq 1, /null)]
-        print, xbox, ybox
-        print, data[ip]
+        ;print, xbox, ybox
+        ;print, data[ip]
         polyfill, xbox, ybox, $
           color=bytscl(data[ip], $
             min=range[0], $
             max=range[1], $
-            top=252)
+            top=255)
       endif
     endif
   endfor
@@ -120,7 +120,7 @@ endif else begin
             color=bytscl(data[ix,jy], $
               min=range[0], $
               max=range[1], $
-              top=252)
+              top=255)
         endif
       endif
     endfor
@@ -150,20 +150,22 @@ cgColorbar, format='(f6.1)', range=range, $
 cgPS_Close
 
 if not keyword_Set(pngfile) then begin
-  pngfile = 'test.png'
+  pngfile = out_basename + '.png'
 endif
 
 cgPS2Raster, outdir + '/' + out_basename + '.ps', pngfile, /png, density = 1000
 
-file_delete, outdir + '/' + out_basename + '.ps'
+if file_test(outdir + '/' + out_basename + '.ps') then begin
+  file_delete, outdir + '/' + out_basename + '.ps'
+endif
 
-if not keyword_Set(scp_dest1) then begin
-  scp_dest1 = 'soodal@164.125.38.179:/home/soodal/works/plot'
-endif 
+;if not keyword_Set(scp_dest1) then begin
+  ;scp_dest1 = 'soodal@164.125.38.179:/home/soodal/works/plot'
+;endif 
 
 ; send image to pc
-if keyword_set(scp_send1) then begin
-  spawn, 'scp -P18742 -p ' + pngfile + $
-  ' ' + scp_dest1
-endif
+;if keyword_set(scp_send1) then begin
+  ;spawn, 'scp -P18742 -p ' + pngfile + $
+  ;' ' + scp_dest1
+;endif
 end

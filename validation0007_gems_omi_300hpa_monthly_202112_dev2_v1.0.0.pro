@@ -2,12 +2,12 @@
 total_omivals = []
 total_gemsvals = []
 
-for imon = 3, 3 do begin
+for imon = 12, 12 do begin
   jd_list = timegen(start=julday(imon, 2, 2021, 00, 45), $
-                    final=julday(imon, 7, 2021, 23, 45)-1, units='HOURS')
+                    final=julday(imon, 14, 2021, 23, 45)-1, units='HOURS')
   monthly_omivals = []
   monthly_gemsvals = []
-  flag_dailyplot = 0
+  ;flag_dailyplot = 0
 
 
   for itime = 0, n_elements(jd_list)-1 do begin 
@@ -23,7 +23,7 @@ for imon = 3, 3 do begin
 
 
     gemso3p_outfilelist = file_search($
-      '/data/nier_ftp/DEV2/O3P/V1.0.3/' + yyyy+mm +'/' + dd + '/' + $
+      '/data/nier_ftp/O3P/V1.0/' + yyyy+mm +'/' + dd + '/' + $
       'GK2_GEMS_L2_' + datetime_str + '*_BIN4x4.nc')
 
     datetime_str_pos = stregex(gemso3p_outfilelist, '[0-9]{8}_[0-9]{4}')
@@ -42,13 +42,13 @@ for imon = 3, 3 do begin
           ;height=10. ; omi profile level altitud dimension = [km]
 
         if n_elements(gemsvals) ge 2 and n_elements(omivals) ge 2 then begin
-          if flag_dailyplot then begin
-            plot_gems_validation, gemsvals, omivals, $
-              filename='./plot/gems_l2_o3p_val_with_omi_' + gemsyyyymmdd[igemsfile] + $
-                'T' + gemshhmi[igemsfile]+'_under300hpa_ecf0.2.png', $
-                range=[0, 100], $
-                delta=2.0
-          endif
+          ;if flag_dailyplot then begin
+            ;plot_gems_validation, gemsvals, omivals, $
+              ;filename='./plot/gems_l2_o3p_val_with_omi_' + gemsyyyymmdd[igemsfile] + $
+                ;'T' + gemshhmi[igemsfile]+'_under300hpa_ecf0.2.png', $
+                ;range=[0, 100], $
+                ;delta=2.0
+          ;endif
           monthly_omivals = [monthly_omivals, omivals]
           monthly_gemsvals = [monthly_gemsvals, gemsvals]
           total_omivals = [total_omivals, omivals]
@@ -65,7 +65,7 @@ for imon = 3, 3 do begin
     if valnum ge 1 then begin
       plot_gems_validation, monthly_omivals[validx], monthly_gemsvals[validx], $
         filename='./plot/gems_monthly_validation/gems_l2_o3p_val_with_omi_' + $
-          strmid(datetime_str[0], 0, 6) +'_under300hpa_ecf0.2_dev2_20210302_20210307_v1.0.3.png', $
+          strmid(datetime_str[0], 0, 6) +'_under300hpa_ecf0.2_dev2_20211202_20211214_v1.0.0.png', $
         title='GEMS TropO3(Sfc - 300 hPa)' , $
         ytitle='GEMS Tropospheric O3[DU]', $
         xtitle='OMI Tropospheric O3[DU]', $
@@ -75,7 +75,7 @@ for imon = 3, 3 do begin
     endif else begin
       plot_gems_validation, monthly_omivals, monthly_gemsvals, $
         filename='./plot/gems_monthly_validation/gems_l2_o3p_val_with_omi_' + $
-          strmid(datetime_str[0], 0, 6) +'_under300hpa_ecf0.2_dev2_20210302_20210307_v1.0.3.png', $
+          strmid(datetime_str[0], 0, 6) +'_under300hpa_ecf0.2_dev2_20211202_20211214_v1.0.0.png', $
         title='GEMS TropO3(Sfc - 300 hPa)' , $
         ytitle='GEMS Tropospheric O3[DU]', $
         xtitle='OMI Tropospheric O3[DU]', $

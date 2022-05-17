@@ -15,9 +15,19 @@ END
 ; (3) find collocation between OMI and SONDE within 0.5 for lon, 1.5 for lat, for 12 hours
 ;pro load_gems_sonde, sondes, gemsfile,  gems,  nprof, show=show, colist=colist,gemssta=gemssta
 
-pro ds_plot_gemso3p_pixel, gemsfile, xidx, yidx, outputpath=outputpath, project=project, sub=sub
+pro ds_plot_gemso3p_pixel, gemsfile, xidx, yidx, outputpath=outputpath, project=project, sub=sub, suffix=suffix
+
+
+if not keyword_set(suffix) then begin
+  put_suffix = 0
+  suffix = ''
+endif else begin
+  put_suffix = 1
+endelse
+
 gems_basename = file_basename(gemsfile)
 
+print, 'This procedures use the Index start with 1 not 0.'
 
 if not keyword_set(outputpath) then begin
   outputpath = './plot/'
@@ -99,12 +109,13 @@ endelse
 if okay then begin
   for ipix = 0, n_elements(xidx)-1 do begin
 
-    ozprof     = gemsvar.O3[xidx[ipix], yidx[ipix], *]
-    o3apriori   = gemsvar.O3Apriori[xidx[ipix], yidx[ipix], *]
+    ozprof     = gemsvar.O3[xidx[ipix]-1, yidx[ipix]-1, *]
+    o3apriori   = gemsvar.O3Apriori[xidx[ipix]-1, yidx[ipix]-1, *]
 
-    tpres = gemsvar.TropopausePressure[xidx[ipix], yidx[ipix]]
-    lat = gemsvar.latitude[xidx[ipix], yidx[ipix]]
-    lon = gemsvar.longitude[xidx[ipix], yidx[ipix]]
+    tpres = gemsvar.TropopausePressure[xidx[ipix]-1, yidx[ipix]-1]
+    lat = gemsvar.latitude[xidx[ipix]-1, yidx[ipix]-1]
+    lon = gemsvar.longitude[xidx[ipix]-1, yidx[ipix]-1]
+    ecf = gemsvar.EffectiveCloudFractionUV[xidx[ipix]-1, yidx[ipix]-1]
 
     ;gems_avgk = fltarr(nl, nl)
     ;gems_avgk[*] = !values.f_nan
@@ -130,9 +141,9 @@ if okay then begin
 
     plot_margin = [0.18, 0.15, 0.10, 0.15]
     plot_xrange = [0,60]
-    plot_yrange = [1000, 1]
+    plot_yrange = [1000, 0.08746]
 
-    pres = reform(gemsvar.pressure[xidx[ipix], yidx[ipix], *])
+    pres = reform(gemsvar.pressure[xidx[ipix]-1, yidx[ipix]-1, *])
     p1 = plot(ozprof, pres, /buffer, /overplot, /ylog, dim=[500, 600], $
       axis_style=1, $
       margin=plot_margin, $
@@ -165,7 +176,7 @@ if okay then begin
     ;p4.symbol= 'D'
     p4.name = 'Tropopause'
 
-    temp = reform(gemsvar.temperature[xidx[ipix], yidx[ipix], *])
+    temp = reform(gemsvar.temperature[xidx[ipix]-1, yidx[ipix]-1, *])
     p5 = plot(temp, pres, /buffer, /current, $
       axis_style=0, $
       margin=plot_margin, $
@@ -195,8 +206,36 @@ if okay then begin
       title = 'Temperature')
 
     ;TWMO, -0.002, temp, 0, 100000., pres*100, pres_tropo, temp_tropo, alt_tropo, 0
+    fnlncfile = '/data/MODEL/FNL/' + yyyy + '/fnl_' + yyyy + mm + dd + '_' + '00_00.grib2.nc'
 
-    leg = legend(target=[p1, p2, p4, p5], position=[59, 1.5],/data)
+    leg_list = [p1, p2, p4, p5]
+    print, fnlncfile
+    if file_test(fnlncfile) then begin
+      print, fnlncfile, ' is exist.'
+      fnl = ds_read_fnl_nc(fnlncfile) 
+      TMP_P0_L100_GLL0 = fnl.TMP_P0_L100_GLL0
+      fnl_lon_0 = fnl.lon_0
+      fnl_lat_0 = fnl.lat_0
+      ds_xymake2d, fnl_lon_0, fnl_lat_0, fnl_lon, fnl_lat
+      idx = search_closest_pixel(fnl_lon, fnl_lat, lon, lat, maxlimit=1.0)
+      if idx ne -999 then begin
+        indices = array_indices(fnl_lon, idx)
+        fnl_pres = fnl.lv_ISBL0/100.
+        p6 = plot(TMP_P0_L100_GLL0[indices[0], indices[1], *], fnl_pres, /buffer, /current, $
+          axis_style=0, $
+          margin=plot_margin, $
+          /ylog);, $ color='#56b4e8', linestyle=2, name='Ozonesonde', /overplot)
+        p6.color = [240, 228, 66]
+        p6.yrange= plot_yrange
+        p6.xrange=[150, 310]
+        p6.linestyle = 0
+        p6.symbol= 'tu'
+        p6.name = 'FNL Temperature'
+        leg_list = [p1, p2, p4, p5, p6]
+      ENDif
+    ENDif
+
+    leg = legend(target=leg_list, position=[59, 30],/data)
 
     t1 = text(0.5, 0.95, 'GEMS O3 Profile '+ datetime_str, $
       font_size=16, $
@@ -206,10 +245,19 @@ if okay then begin
 
     lat_t = text(0.4, 0.78, 'LAT:' +string(lat, format='(f6.2)'), /normal)
     lat_t = text(0.4, 0.75, 'LON:' +string(lon, format='(f6.2)'), /normal)
+    lat_t = text(0.4, 0.72, 'ECF:' +string(ecf, format='(f6.2)'), /normal)
 
-    p1.save, outputpath + '/x' + $
-      string(xidx[ipix], format='(i03)') + $
-      'y' + string(yidx[ipix], format='(i03)') + '.png'
+    if put_suffix then begin
+      outfn = outputpath + '/x' + $
+        string(xidx[ipix], format='(i03)') + $
+        'y' + string(yidx[ipix], format='(i03)') + '_' + suffix + '.png'
+    ENDif else begin
+      outfn = outputpath + '/x' + $
+        string(xidx[ipix], format='(i03)') + $
+        'y' + string(yidx[ipix], format='(i03)') + '.png'
+    endelse
+
+    p1.save, outfn
     p1.close
   endfor
 ENDif

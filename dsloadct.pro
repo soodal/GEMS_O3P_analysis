@@ -1,4 +1,4 @@
-PRO dsloadct, index, NCOLORS=ncolors, XYTHICK=xyThick
+PRO dsloadct, index, NCOLORS=ncolors, XYTHICK=xyThick, ctreverse=ctreverse, wb=wb
 
 ;!X.MINOR=1 & !Y.MINOR=1
 ;!X.STYLE=1 & !Y.STYLE=1
@@ -6,6 +6,14 @@ PRO dsloadct, index, NCOLORS=ncolors, XYTHICK=xyThick
 ;IF NOT Keyword_Set(index) THEN BEGIN
   ;index=33
 ;ENDIF
+
+IF NOT Keyword_Set(ctreverse) THEN BEGIN
+  ctreverse=0
+ENDIF
+
+IF NOT Keyword_Set(wb) THEN BEGIN
+  wb=0
+ENDIF
 
 IF Keyword_Set(xyThick) THEN BEGIN
   IF KeyWord_Set(xyThick) EQ 1 THEN BEGIN
@@ -33,13 +41,22 @@ ENDELSE
 If Keyword_Set(ncolors) Then BEGIN
   nc=ncolors
 ENDIF Else BEGIN
-  nc=254
+  nc=256
 ENDelse
 LOADCT, index, NCOLORS=nc, /SI
-TVLCT, 0,0,0, 255 ; Drawing color.
-TVLCT, 255,255,255, 254 ; Background color.
-!p.color = 255
-!p.background = 254
+
+IF ctreverse THEN BEGIN
+  tvlct, r, g, b, /GET
+  tvlct, reverse(r), reverse(g), reverse(b)
+ENDIF
+
+IF wb THEN BEGIN
+  TVLCT, 0,0,0, 255 ; Drawing color.
+  TVLCT, 255,255,255, 254 ; Background color.
+  !p.color = 255
+  !p.background = 254
+ENDIF
+
 RETURN
 END
 

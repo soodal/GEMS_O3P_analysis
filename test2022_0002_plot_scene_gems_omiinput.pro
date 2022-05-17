@@ -24,7 +24,7 @@ for i=0, n_elements(jd_list)-1 do begin
   fn = '/home/soodal/data/test/omi2005/GK2_GEMS_L2_O3P_20050703_0356_wli310_wle330_ML_prec000000_omi_uv2.nc'
   filelist = file_search(fn)
   for i = 0, n_elements(filelist)-1 do begin
-    ds_plot_gemso3p_scene, filelist[i], $
+    ds_plot_gemso3p_scene_big_pixel, filelist[i], $
         outputpath='./plot/', project='gems_omi_input'
   endfor
 

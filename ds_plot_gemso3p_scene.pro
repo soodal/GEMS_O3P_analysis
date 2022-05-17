@@ -1,4 +1,4 @@
-pro ds_plot_gemso3p_scene, gemsfile, outputpath=outputpath, project=project, sub=sub
+pro ds_plot_gemso3p_scene, gemsfile, outputpath=outputpath, project=project, sub=sub, suffix=suffix
 ; plotting every scene aug to oct for gems l2 o3p
 ;
 if not keyword_set(outputpath) then begin
@@ -12,6 +12,7 @@ endif
 if keyword_set(sub) then begin
   outputpath = outputpath + sub + '/'
 endif
+
   
 ;scp_dest = 'soodal@164.125.38.179:/home/soodal/works/plot/paper/2021_initial_report'
 
@@ -133,27 +134,59 @@ if fileok then begin
   failedidx = where(cao3 lt -1.0e20, /null)
 
   cao3[failedidx] = !values.f_nan
+
+
+
+  if keyword_set(suffix) then begin
+    outfilename = '01_totalozone_' + suffix +'.png'
+  endif else begin
+    outfilename = '01_totalozone.png'
+  endelse
   plot_sat_proj, reform(cao3[*, *, 0]), longitude, latitude, $
     title='GEMS O3P Total ozone ' + datetime_str, $
     range=rangetotal, $
-    pngfile=outputpath + '01_totalozone.png';, $
+    pngfile=outputpath + outfilename;, $
     ;/scp_send, $
     ;scp_dest=scp_dest
 
+  if keyword_set(suffix) then begin
+    outfilename = '03_troposphericozone_' + suffix +'.png'
+  endif else begin
+    outfilename = '03_troposphericozone.png'
+  endelse
   plot_sat_proj, reform(cao3[*, *, 2]), longitude, latitude, $
     title='GEMS O3P Tropospheric ozone ' + datetime_str, $
     ;range=[20, 100], $
     range=[0, 60], $
-    pngfile=outputpath + '03_tropsphericozone.png';, $
+    pngfile=outputpath + outfilename;, $
 
   o3under300hpa[failedidx] = !values.f_nan
   nanidx = where(o3under300hpa lt -1.0e20, /null)
   o3under300hpa[nanidx] = !values.f_nan
+  if keyword_set(suffix) then begin
+    outfilename = '04_under300hPa_' + suffix +'.png'
+  endif else begin
+    outfilename = '04_under300hPa.png'
+  endelse
   plot_sat_proj, o3under300hpa, longitude, latitude, $
     title='GEMS O3P Under 300 hPa ' + datetime_str, $
     ;range=[20, 100], $
     range=[0, 60], $
-    pngfile=outputpath + '04_under300hPa.png';, $
+    pngfile=outputpath + outfilename;, $
+
+  ecf[failedidx] = !values.f_nan
+  nanidx = where(ecf lt -1.0e20, /null)
+  ecf[nanidx] = !values.f_nan
+  if keyword_set(suffix) then begin
+    outfilename = '05_effectivecloudfraction_' + suffix +'.png'
+  endif else begin
+    outfilename = '05_effectivecloudfraction.png'
+  endelse
+  plot_sat_proj, ecf, longitude, latitude, $
+    title='GEMS O3P Under 300 hPa ' + datetime_str, $
+    ;range=[20, 100], $
+    range=[0.0, 1.0], $
+    pngfile=outputpath + outfilename;, $
 
   ;nanidx = where(o3under500hpa lt -1.0e20, /null)
   ;o3under500hpa[nanidx] = !values.f_nan
@@ -164,10 +197,15 @@ if fileok then begin
     ;;/scp_send, $
     ;;scp_dest=scp_dest
 
+  if keyword_set(suffix) then begin
+    outfilename = '10_tropopausepressure_' + suffix +'.png'
+  endif else begin
+    outfilename = '10_tropopausepressure.png'
+  endelse
   plot_sat_proj, trppsprs, longitude, latitude, $
     title='GEMS O3P TropopausePressure ' + datetime_str, $
     range=[50, 300], $
-    pngfile=outputpath + '10_tropopausepressure.png';, $
+    pngfile=outputpath + outfilename;, $
 
   ;if not file_test(outputpath) then begin
     ;file_mkdir, outputpath

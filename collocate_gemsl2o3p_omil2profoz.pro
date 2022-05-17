@@ -8,16 +8,19 @@ pro collocate_gemsl2o3p_omil2profoz, year, month, day, hour, minute, $
   savepath = savepath
 
 if (not keyword_set(height)) and (not keyword_set(hpa)) then BEGIN
-  do_height =1
-  height=10
+  do_height = 1
+  do_hpa = 0
+  height = 10
 endif
 
 if keyword_set(hpa) then BEGIN
+  do_height = 0
   do_hpa = 1
   hpa_save = hpa
 endif
 if keyword_set(height) then BEGIN
   do_height = 1
+  do_hpa = 0
   height_save = height
 endif
 

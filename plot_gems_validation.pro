@@ -12,7 +12,7 @@ pro plot_gems_validation, xval, yval, filename=filename, cblim=cblim,$
   ytitle = ytitle, $
   scp_send=scp, $
   scp_dest=scp_dest1, $
-  ct = ctnum, $
+  colortable = ct, $
   background = bgcolor, $
   range=range, delta=delta
 
@@ -33,8 +33,8 @@ if not keyword_Set(range) then begin
 endif
 
   
-if not keyword_set(ctnum) then begin
-  ctnum = 33
+if not keyword_set(ct) then begin
+  ct = 20
 endif
 
 outdir = file_dirname(filename)
@@ -46,7 +46,7 @@ out_basename = file_basename(filename, '.png')
 cgPS_Open, outdir + '/' + out_basename + '.ps', /landscape
 
 cgDisplay, aspect=1
-dsloadct, ctnum
+dsloadct, ct
 
 position = [0.15, 0.15, 0.85, 0.9]
 thick = (!D.Name EQ 'PS') ? 6 :3
@@ -110,10 +110,16 @@ for j = range[0], range[1]-delta, delta  do begin
     ybox = [j, j, j+delta, j+delta]
 
     if idx_histo_num gt 0.0 then begin
+      dsloadct, ct
       ;print, i, j, idx_histo_num
       polyfill, xbox, ybox, $
-        color = bytscl(idx_histo_num, min=cblim[0] ,max=cblim[1], top=253)
-    endif
+        color = bytscl(idx_histo_num, min=cblim[0] ,max=cblim[1], top=255)
+    ENDIF ELSE BEGIN
+      dsloadct, 0
+      ;print, i, j, idx_histo_num
+      polyfill, xbox, ybox, $
+        color = 200
+    ENDELSE
   endfor
 endfor
 
@@ -143,11 +149,11 @@ rmse = sqrt(mean((y_para-x_para)^2, /nan))
 
 x_para = xval 
 y_para = yval 
-mae = mean(abs(x_para-y_para), /nan)
+mae = mean(abs(y_para-x_para), /nan)
 
 x_para = xval 
 y_para = yval 
-mbe = mean(x_para-y_para, /nan)
+mbe = mean(y_para-x_para, /nan)
 
 dsloadct, 0
 oplot, centerlinex, centerliney, color=200, linestyle=0
@@ -208,7 +214,7 @@ xyouts, (range[1]-range[0])*0.55+range[0], (range[1]-range[0])*0.02+range[0], $
 ;xyouts, (range[1]-range[0])*0.45+range[0], (range[1]-range[0])*0.45+range[0], $
   ;'Y='+strtrim(string(coeff[1]),2) + 'x+'+strtrim(string(coeff[0]), 2), /data
 
-dsloadct, ctnum
+dsloadct, ct
 
 cgColorbar,format='(i4)', $
   Color='black',$
@@ -227,6 +233,7 @@ pngfile = filename
 cgPS2Raster, outdir + '/' + out_basename + '.ps', pngfile, density =1000, /png
 spawn, 'convert ' + pngfile + $
   ' -background "rgba(0,0,0,0.5)" ' + pngfile
+file_delete, outdir + '/' + out_basename + '.ps'
 
 
 if not keyword_Set(scp_dest1) then begin

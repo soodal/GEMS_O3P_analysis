@@ -240,7 +240,7 @@ END
 ; 
 ;+---------------------------------------------------------------------------+
 
-PRO ds_gemso3p_convert_fnlnc2dat, date, dir, fnlout, lsttime=lsttime
+PRO ds_gemso3p_convert_fnlnc2dat, date, dir, fnlout, outdat=outdat, lsttime=lsttime
 
   ;date    = '20120612'
   IF ~KEYWORD_SET(lsttime) THEN BEGIN
@@ -375,6 +375,14 @@ PRO ds_gemso3p_convert_fnlnc2dat, date, dir, fnlout, lsttime=lsttime
    endif
 
    fnlout = {sp:sp/100. , tp:tp/100., st:st, temp:temp, lon:lon, lat:lat, pres:pres/100., uwind:uwind, vwind:vwind, omega:omega}
+
+   tp_size = size(tp, /dimension)
+
+   openw, 10, outdat=outdat
+   
+   for iy=0, tp_size[1] - 1 do BEGIN
+     printf, tp[*, iy], format='360i3'
+   ENDFOR
 
 END
 
