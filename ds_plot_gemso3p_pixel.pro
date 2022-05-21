@@ -107,6 +107,13 @@ endif else begin
 endelse
 
 if okay then begin
+  fnlncfile = '/data/MODEL/FNL/' + yyyy + '/fnl_' + yyyy + mm + dd + '_' + '00_00.grib2.nc'
+
+  print, fnlncfile
+  if file_test(fnlncfile) then begin
+    print, fnlncfile, ' is exist.'
+    fnl = ds_read_fnl_nc(fnlncfile) 
+  endif
   for ipix = 0, n_elements(xidx)-1 do begin
 
     ozprof     = gemsvar.O3[xidx[ipix]-1, yidx[ipix]-1, *]
@@ -116,6 +123,8 @@ if okay then begin
     lat = gemsvar.latitude[xidx[ipix]-1, yidx[ipix]-1]
     lon = gemsvar.longitude[xidx[ipix]-1, yidx[ipix]-1]
     ecf = gemsvar.EffectiveCloudFractionUV[xidx[ipix]-1, yidx[ipix]-1]
+    cp = gemsvar.CloudPressure[xidx[ipix]-1, yidx[ipix]-1]
+    sza = gemsvar.SolarZenithAngle[xidx[ipix]-1, yidx[ipix]-1]
 
     ;gems_avgk = fltarr(nl, nl)
     ;gems_avgk[*] = !values.f_nan
@@ -206,13 +215,9 @@ if okay then begin
       title = 'Temperature')
 
     ;TWMO, -0.002, temp, 0, 100000., pres*100, pres_tropo, temp_tropo, alt_tropo, 0
-    fnlncfile = '/data/MODEL/FNL/' + yyyy + '/fnl_' + yyyy + mm + dd + '_' + '00_00.grib2.nc'
 
     leg_list = [p1, p2, p4, p5]
-    print, fnlncfile
     if file_test(fnlncfile) then begin
-      print, fnlncfile, ' is exist.'
-      fnl = ds_read_fnl_nc(fnlncfile) 
       TMP_P0_L100_GLL0 = fnl.TMP_P0_L100_GLL0
       fnl_lon_0 = fnl.lon_0
       fnl_lat_0 = fnl.lat_0
@@ -244,8 +249,10 @@ if okay then begin
       vertical_alignment=0.5)
 
     lat_t = text(0.4, 0.78, 'LAT:' +string(lat, format='(f6.2)'), /normal)
-    lat_t = text(0.4, 0.75, 'LON:' +string(lon, format='(f6.2)'), /normal)
-    lat_t = text(0.4, 0.72, 'ECF:' +string(ecf, format='(f6.2)'), /normal)
+    lon_t = text(0.4, 0.75, 'LON:' +string(lon, format='(f6.2)'), /normal)
+    ecf_t = text(0.4, 0.72, 'ECF:' +string(ecf, format='(f6.2)'), /normal)
+    cp_t = text(0.4, 0.69, 'CP:' +string(cp, format='(f6.2)'), /normal)
+    sza_t = text(0.4, 0.66, 'SZA:' +string(sza, format='(f6.2)'), /normal)
 
     if put_suffix then begin
       outfn = outputpath + '/x' + $

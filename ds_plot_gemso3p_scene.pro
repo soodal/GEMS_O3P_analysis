@@ -78,6 +78,7 @@ if fileok then begin
   o3p = ds_read_gems_l2_o3p(gemsfile, varlist=varlist)
 
   ecf = o3p.EffectiveCloudFractionUV
+  ecp = o3p.CloudPressure
 
   ecf02idx = where(ecf gt 0.2, /null)
   ecfnanidx = where(ecf lt 0, /null)
@@ -183,7 +184,7 @@ if fileok then begin
     outfilename = '05_effectivecloudfraction.png'
   endelse
   plot_sat_proj, ecf, longitude, latitude, $
-    title='GEMS O3P Under 300 hPa ' + datetime_str, $
+    title='GEMS L2 Effective Cloud Fraction', $
     ;range=[20, 100], $
     range=[0.0, 1.0], $
     pngfile=outputpath + outfilename;, $
@@ -204,7 +205,7 @@ if fileok then begin
   endelse
   plot_sat_proj, trppsprs, longitude, latitude, $
     title='GEMS O3P TropopausePressure ' + datetime_str, $
-    range=[50, 300], $
+    range=[10, 400], $
     pngfile=outputpath + outfilename;, $
 
   ;if not file_test(outputpath) then begin
