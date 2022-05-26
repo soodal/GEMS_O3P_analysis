@@ -1,26 +1,23 @@
-pro ds_plot_gemso3p_pixels_with_latlon, gemsfile, xlon, ylat, outputpath=outputpath, project=project, sub=sub, name=pointname
-gems_basename = file_basename(gemsfile)
+pro ds_plot_gemso3p_pixels_with_latlon, gemsfile, xlon, ylat, outputpath=outputbasepath, project=project, suffix=suffix, name=pointname
 
-if not keyword_set(outputpath) then begin
-  outputpath = './plot/'
+if not keyword_set(outputbasepath) then begin
+  outputbasepath = './plot/'
 endif
 
-if keyword_set(project) then begin
-  outputpath = outputpath + project + '/'
+if not keyword_set(suffix) then begin
+  put_suffix = 0
+  suffix = ''
 endif else begin
-  project = ''
+  put_suffix = 1
 endelse
 
-if keyword_set(sub) then begin
-  outputpath = outputpath + sub + '/'
-endif else begin
-  sub = ''
-endelse
+gems_basename = file_basename(gemsfile)
+
+print, 'This procedures use the Index start with 1 not 0.'
 
 if not keyword_set(pointname) then begin
   pointname = ''
 endif
-
 
 ;==================================
 ;(1)  read gems l2 o3p file
@@ -49,7 +46,10 @@ mi = string(minute, format='(i02)')
 
 datetime_str = yyyy + mm + dd + '_' + hh + mi
 
-outputpath = outputpath + '/'  + datetime_str + '/point_profile/'
+if keyword_set(project) then begin
+  project_subdir = [project, datetime_str, 'point_profile']
+  outputpath = filepath('', root_dir=outputbasepath, subdirectory=project_subdir)
+endif
 
 if not file_test(outputpath) then begin
   file_mkdir, outputpath 
@@ -83,6 +83,13 @@ endif else begin
 endelse
 
 if okay then begin
+  fnlncfile = '/data/MODEL/FNL/' + yyyy + '/fnl_' + yyyy + mm + dd + '_' + '00_00.grib2.nc'
+
+  print, fnlncfile
+  if file_test(fnlncfile) then begin
+    print, fnlncfile, ' is exist.'
+    fnl = ds_read_fnl_nc(fnlncfile) 
+  endif
   for ipix = 0, n_elements(xlon)-1 do begin
     print, 'ipix:', ipix
     pixelpos = search_closest_pixel(gemsvar.longitude, gemsvar.latitude, xlon[ipix], ylat[ipix], maxlimit=0.2) 
@@ -90,13 +97,17 @@ if okay then begin
       pixelindices = array_indices(gemsvar.longitude, pixelpos)
       xidx = pixelindices[0]
       yidx = pixelindices[1]
-
+      ds_plot_gemso3p_pixels_with_latlon
       ozprof     = gemsvar.O3[xidx, yidx, *]
       o3apriori   = gemsvar.O3Apriori[xidx, yidx, *]
 
       tpres = gemsvar.TropopausePressure[xidx, yidx]
       lat = gemsvar.latitude[xidx, yidx]
       lon = gemsvar.longitude[xidx, yidx]
+      ecf = gemsvar.EffectiveCloudFractionUV[xidx, yidx]
+      cp = gemsvar.CloudPressure[xidx, yidx]
+      sza = gemsvar.SolarZenithAngle[xidx, yidx]
+      tp = gemsvar.TerrainPressure[xidx, yidx]
 
       ;gems_avgk = fltarr(nl, nl)
       ;gems_avgk[*] = !values.f_nan
@@ -122,14 +133,14 @@ if okay then begin
 
       plot_margin = [0.18, 0.15, 0.10, 0.15]
       plot_xrange = [0,60]
-      plot_yrange = [1000, 1]
+      plot_yrange = [1000, 0.08]
 
       pres = reform(gemsvar.pressure[xidx, yidx, *])
       p1 = plot(ozprof, pres, /buffer, /overplot, /ylog, dim=[500, 600], $
         axis_style=1, $
         margin=plot_margin, $
         xrange=plot_xrange, $
-        name=tname, $
+        name=pointname[ipix], $
         ytitle='Pressure [hPa]', $
         xtitle='O3 [DU]');color=[0, 0, 0], linestyle=0, name='GEMS O3P')
       ;p1.title = 'GEMS O3 Profile '+ datetime_str
@@ -189,16 +200,48 @@ if okay then begin
 
       ;TWMO, -0.002, temp, 0, 100000., pres*100, pres_tropo, temp_tropo, alt_tropo, 0
 
-      leg = legend(target=[p1, p2, p4, p5], position=[59, 1.5],/data)
+    leg_list = [p1, p2, p4, p5]
+    if file_test(fnlncfile) then begin
+      TMP_P0_L100_GLL0 = fnl.TMP_P0_L100_GLL0
+      fnl_lon_0 = fnl.lon_0
+      fnl_lat_0 = fnl.lat_0
+      ds_xymake2d, fnl_lon_0, fnl_lat_0, fnl_lon, fnl_lat
+      idx = search_closest_pixel(fnl_lon, fnl_lat, lon, lat, maxlimit=1.0)
+      if idx ne -999 then begin
+        indices = array_indices(fnl_lon, idx)
+        fnl_pres = fnl.lv_ISBL0/100.
+        p6 = plot(TMP_P0_L100_GLL0[indices[0], indices[1], *], fnl_pres, /buffer, /current, $
+          axis_style=0, $
+          margin=plot_margin, $
+          /ylog);, $ color='#56b4e8', linestyle=2, name='Ozonesonde', /overplot)
+        p6.color = [240, 228, 66]
+        p6.yrange= plot_yrange
+        p6.xrange=[150, 310]
+        p6.linestyle = 0
+        p6.symbol= 'tu'
+        p6.name = 'FNL Temperature'
+        leg_list = [p1, p2, p4, p5, p6]
+      ENDif
+      
+      leg = legend(target=leg_list, position=[59, 30],/data)
+      
+      titletext = 'GEMS O3 Profile '+ datetime_str
+      if strlen(pointname[ipix]) gt 0 then begin
+        titletext = titletext + ' ' + pointname[ipix]
+      endif
 
-      t1 = text(0.5, 0.95, 'GEMS O3 Profile '+ datetime_str + ' ' + pointname[ipix], $
+      t1 = text(0.5, 0.95, titletext, $
         font_size=16, $
         /normal, $
         alignment=0.5, $
         vertical_alignment=0.5)
 
-      lat_t = text(0.4, 0.78, 'LAT:' +string(lat, format='(f6.2)'), /normal)
-      lat_t = text(0.4, 0.75, 'LON:' +string(lon, format='(f6.2)'), /normal)
+    lat_t = text(0.2, 0.78, 'Latitude   :' +string(lat, format='(f7.2)'), /normal)
+    lon_t = text(0.2, 0.75, 'Longitude  :' +string(lon, format='(f7.2)'), /normal)
+    ecf_t = text(0.2, 0.72, 'EffCldPres :' +string(ecf, format='(f7.2)'), /normal)
+    cp_t = text(0.2, 0.69,  'CldPres    :' +string(cp, format='(f7.2)'), /normal)
+    sza_t = text(0.2, 0.66, 'SolZenAng  :' +string(sza, format='(f7.2)'), /normal)
+    tp_t = text(0.2, 0.63,  'TerrPres   :' +string(tp, format='(f7.2)'), /normal)
 
       p1.save, outputpath + '/x' + $
         string(xidx, format='(i03)') + $

@@ -1,19 +1,11 @@
-pro ds_plot_gemso3p_scene, gemsfile, outputpath=outputpath, project=project, sub=sub, suffix=suffix
+pro ds_plot_gemso3p_scene, gemsfile, outputpath=outputbasepath, project=project, suffix=suffix
 ; plotting every scene aug to oct for gems l2 o3p
 ;
-if not keyword_set(outputpath) then begin
-  outputpath = './plot/'
+if not keyword_set(outputbasepath) then begin
+  outputbasepath = './plot/'
 endif
 
-if keyword_set(project) then begin
-  outputpath = outputpath + project + '/'
-endif
 
-if keyword_set(sub) then begin
-  outputpath = outputpath + sub + '/'
-endif
-
-  
 ;scp_dest = 'soodal@164.125.38.179:/home/soodal/works/plot/paper/2021_initial_report'
 
 ;initial variable setting
@@ -65,14 +57,16 @@ datetime_str = yyyy + mm + dd + '_' + hh + mi
 ;search_str = 'GK2_GEMS_L2_O3P_' + datetime_str + '_TB_BIN4x4.nc'
 ;print, path+search_str
 
-outputpath = outputpath + datetime_str + '/'
+if keyword_set(project) then begin
+  project_subdir = [project, datetime_str]
+  outputpath = filepath('', root_dir=outputbasepath, subdirectory=project_subdir)
+endif
 
 if not file_test(outputpath) then begin
   file_mkdir, outputpath
 endif
 
 fileok = file_test(gemsfile)
-
 
 if fileok then begin 
   o3p = ds_read_gems_l2_o3p(gemsfile, varlist=varlist)

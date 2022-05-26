@@ -1,22 +1,8 @@
-PRO calc_cum ,use_spline, pres0, cum0, Ptop, Pbot, out
-   pres = pres0
-   cum  = [0, cum_total(cum0)]
-   out = !values.f_nan
+pro ds_plot_gemso3p_pixel, gemsfile, xidx, yidx, outputpath=outputbasepath, project=project, suffix=suffix, name=pointname
 
-   temp = interpol(cum, (pres), ([ptop, pbot]))
-   out = temp(1) - temp(0)
-END
-
-
-;============================
-; MAIN PROGRAM 
-; (1) read omil2file
-; (2) screen sonpxl with no collocation with OMI  if colist are gvien
-; (3) find collocation between OMI and SONDE within 0.5 for lon, 1.5 for lat, for 12 hours
-;pro load_gems_sonde, sondes, gemsfile,  gems,  nprof, show=show, colist=colist,gemssta=gemssta
-
-pro ds_plot_gemso3p_pixel, gemsfile, xidx, yidx, outputpath=outputpath, project=project, sub=sub, suffix=suffix
-
+if not keyword_set(outputbasepath) then begin
+  outputbasepath = './plot/'
+endif
 
 if not keyword_set(suffix) then begin
   put_suffix = 0
@@ -29,22 +15,9 @@ gems_basename = file_basename(gemsfile)
 
 print, 'This procedures use the Index start with 1 not 0.'
 
-if not keyword_set(outputpath) then begin
-  outputpath = './plot/'
+if not keyword_set(pointname) then begin
+  pointname = ''
 endif
-
-if keyword_set(project) then begin
-  outputpath = outputpath + project + '/'
-endif else begin
-  project = ''
-endelse
-
-if keyword_set(sub) then begin
-  outputpath = outputpath + sub + '/'
-endif else begin
-  sub = ''
-endelse
-
 
 ;==================================
 ;(1)  read gems l2 o3p file
@@ -73,7 +46,10 @@ mi = string(minute, format='(i02)')
 
 datetime_str = yyyy + mm + dd + '_' + hh + mi
 
-outputpath = outputpath + '/'  + datetime_str + '/point_profile/'
+if keyword_set(project) then begin
+  project_subdir = [project, datetime_str, 'point_profile']
+  outputpath = filepath('', root_dir=outputbasepath, subdirectory=project_subdir)
+endif
 
 if not file_test(outputpath) then begin
   file_mkdir, outputpath 
@@ -125,6 +101,7 @@ if okay then begin
     ecf = gemsvar.EffectiveCloudFractionUV[xidx[ipix]-1, yidx[ipix]-1]
     cp = gemsvar.CloudPressure[xidx[ipix]-1, yidx[ipix]-1]
     sza = gemsvar.SolarZenithAngle[xidx[ipix]-1, yidx[ipix]-1]
+    tp = gemsvar.TerrainPressure[xidx[ipix]-1, yidx[ipix]-1]
 
     ;gems_avgk = fltarr(nl, nl)
     ;gems_avgk[*] = !values.f_nan
@@ -150,7 +127,7 @@ if okay then begin
 
     plot_margin = [0.18, 0.15, 0.10, 0.15]
     plot_xrange = [0,60]
-    plot_yrange = [1000, 0.08746]
+    plot_yrange = [1000, 0.08]
 
     pres = reform(gemsvar.pressure[xidx[ipix]-1, yidx[ipix]-1, *])
     p1 = plot(ozprof, pres, /buffer, /overplot, /ylog, dim=[500, 600], $
@@ -242,17 +219,23 @@ if okay then begin
 
     leg = legend(target=leg_list, position=[59, 30],/data)
 
-    t1 = text(0.5, 0.95, 'GEMS O3 Profile '+ datetime_str, $
+    titletext = 'GEMS O3 Profile '+ datetime_str
+    if strlen(pointname[ipix]) gt 0 then begin
+      titletext = titletext + ' ' + pointname[ipix]
+    endif
+
+    t1 = text(0.5, 0.95, titletext, $
       font_size=16, $
       /normal, $
       alignment=0.5, $
       vertical_alignment=0.5)
 
-    lat_t = text(0.4, 0.78, 'LAT:' +string(lat, format='(f6.2)'), /normal)
-    lon_t = text(0.4, 0.75, 'LON:' +string(lon, format='(f6.2)'), /normal)
-    ecf_t = text(0.4, 0.72, 'ECF:' +string(ecf, format='(f6.2)'), /normal)
-    cp_t = text(0.4, 0.69, 'CP:' +string(cp, format='(f6.2)'), /normal)
-    sza_t = text(0.4, 0.66, 'SZA:' +string(sza, format='(f6.2)'), /normal)
+    lat_t = text(0.2, 0.78, 'Latitude   :' +string(lat, format='(f7.2)'), /normal)
+    lon_t = text(0.2, 0.75, 'Longitude  :' +string(lon, format='(f7.2)'), /normal)
+    ecf_t = text(0.2, 0.72, 'EffCldPres :' +string(ecf, format='(f7.2)'), /normal)
+    cp_t = text(0.2, 0.69,  'CldPres    :' +string(cp, format='(f7.2)'), /normal)
+    sza_t = text(0.2, 0.66, 'SolZenAng  :' +string(sza, format='(f7.2)'), /normal)
+    tp_t = text(0.2, 0.63,  'TerrPres   :' +string(tp, format='(f7.2)'), /normal)
 
     if put_suffix then begin
       outfn = outputpath + '/x' + $
