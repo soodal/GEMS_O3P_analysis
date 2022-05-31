@@ -16,7 +16,9 @@ gems_basename = file_basename(gemsfile)
 print, 'This procedures use the Index start with 1 not 0.'
 
 if not keyword_set(pointname) then begin
-  pointname = ''
+  xn = n_elements(xlon)
+  pointname = strarr(xn)
+  pointname[*] = ''
 endif
 
 ;==================================
