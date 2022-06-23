@@ -70,11 +70,11 @@ varlist = ['EffectiveCloudFractionUV', 'ProcessingQualityFlags', $
            ;'Wavelengths', $
            'WavelengthsWholeRange']
 
-gemsvar = ds_read_gems_l2_o3p(gemsfile, varlist=varlist)
+gemso3p = ds_read_gems_l2_o3p(gemsfile, varlist=varlist)
 
 ; apply basic data filtering
 nl = 24
-;sel  = where(gemsvar.SolarZenithAngle le 88 and gemsvar.ProcessingQualityFlags eq 0 and gemsvar.FinalAlgorithmFlags eq 0, nprof, /null) 
+;sel  = where(gemso3p.SolarZenithAngle le 88 and gemso3p.ProcessingQualityFlags eq 0 and gemso3p.FinalAlgorithmFlags eq 0, nprof, /null) 
 
 if n_elements(xlon) eq n_elements(ylat) then begin
   okay = 1
@@ -94,27 +94,27 @@ if okay then begin
   endif
   for ipix = 0, n_elements(xlon)-1 do begin
     print, 'ipix:', ipix
-    pixelpos = search_closest_pixel(gemsvar.longitude, gemsvar.latitude, xlon[ipix], ylat[ipix], maxlimit=0.2) 
+    pixelpos = search_closest_pixel(gemso3p.longitude, gemso3p.latitude, xlon[ipix], ylat[ipix], maxlimit=0.2) 
     if pixelpos ne -999 then begin 
-      pixelindices = array_indices(gemsvar.longitude, pixelpos)
+      pixelindices = array_indices(gemso3p.longitude, pixelpos)
       xidx = pixelindices[0]
       yidx = pixelindices[1]
-      ds_plot_gemso3p_pixels_with_latlon
-      ozprof     = gemsvar.O3[xidx, yidx, *]
-      o3apriori   = gemsvar.O3Apriori[xidx, yidx, *]
 
-      tpres = gemsvar.TropopausePressure[xidx, yidx]
-      lat = gemsvar.latitude[xidx, yidx]
-      lon = gemsvar.longitude[xidx, yidx]
-      ecf = gemsvar.EffectiveCloudFractionUV[xidx, yidx]
-      cp = gemsvar.CloudPressure[xidx, yidx]
-      sza = gemsvar.SolarZenithAngle[xidx, yidx]
-      tp = gemsvar.TerrainPressure[xidx, yidx]
+      ozprof     = gemso3p.O3[xidx, yidx, *]
+      o3apriori   = gemso3p.O3Apriori[xidx, yidx, *]
+
+      tpres = gemso3p.TropopausePressure[xidx, yidx]
+      lat = gemso3p.latitude[xidx, yidx]
+      lon = gemso3p.longitude[xidx, yidx]
+      ecf = gemso3p.EffectiveCloudFractionUV[xidx, yidx]
+      cp = gemso3p.CloudPressure[xidx, yidx]
+      sza = gemso3p.SolarZenithAngle[xidx, yidx]
+      tp = gemso3p.TerrainPressure[xidx, yidx]
 
       ;gems_avgk = fltarr(nl, nl)
       ;gems_avgk[*] = !values.f_nan
 
-      ;gemsavgk = reform(gemsvar.AveragingKernel[xidx, yidx, *, *])
+      ;gemsavgk = reform(gemso3p.AveragingKernel[xidx, yidx, *, *])
       ;;if finite(sonde_o3_total_du) eq 0 then continue
       ;IF n_elements(gemsavgk) ge 24 then begin
         ;;print, 'ifasdfafdasd'
@@ -130,14 +130,13 @@ if okay then begin
             ;csono3du0 = fltarr(nl)
       ;endelse
 
-
       ; plotting
 
       plot_margin = [0.18, 0.15, 0.10, 0.15]
       plot_xrange = [0,60]
       plot_yrange = [1000, 0.08]
 
-      pres = reform(gemsvar.pressure[xidx, yidx, *])
+      pres = reform(gemso3p.pressure[xidx, yidx, *])
       p1 = plot(ozprof, pres, /buffer, /overplot, /ylog, dim=[500, 600], $
         axis_style=1, $
         margin=plot_margin, $
@@ -171,7 +170,7 @@ if okay then begin
       ;p4.symbol= 'D'
       p4.name = 'Tropopause'
 
-      temp = reform(gemsvar.temperature[xidx, yidx, *])
+      temp = reform(gemso3p.temperature[xidx, yidx, *])
       p5 = plot(temp, pres, /buffer, /current, $
         axis_style=0, $
         margin=plot_margin, $
@@ -202,53 +201,112 @@ if okay then begin
 
       ;TWMO, -0.002, temp, 0, 100000., pres*100, pres_tropo, temp_tropo, alt_tropo, 0
 
-    leg_list = [p1, p2, p4, p5]
-    if file_test(fnlncfile) then begin
-      TMP_P0_L100_GLL0 = fnl.TMP_P0_L100_GLL0
-      fnl_lon_0 = fnl.lon_0
-      fnl_lat_0 = fnl.lat_0
-      ds_xymake2d, fnl_lon_0, fnl_lat_0, fnl_lon, fnl_lat
-      idx = search_closest_pixel(fnl_lon, fnl_lat, lon, lat, maxlimit=1.0)
-      if idx ne -999 then begin
-        indices = array_indices(fnl_lon, idx)
-        fnl_pres = fnl.lv_ISBL0/100.
-        p6 = plot(TMP_P0_L100_GLL0[indices[0], indices[1], *], fnl_pres, /buffer, /current, $
-          axis_style=0, $
-          margin=plot_margin, $
-          /ylog);, $ color='#56b4e8', linestyle=2, name='Ozonesonde', /overplot)
-        p6.color = [240, 228, 66]
-        p6.yrange= plot_yrange
-        p6.xrange=[150, 310]
-        p6.linestyle = 0
-        p6.symbol= 'tu'
-        p6.name = 'FNL Temperature'
-        leg_list = [p1, p2, p4, p5, p6]
+      leg_list = [p1, p2, p4, p5]
+      if file_test(fnlncfile) then begin
+        TMP_P0_L100_GLL0 = fnl.TMP_P0_L100_GLL0
+        fnl_lon_0 = fnl.lon_0
+        fnl_lat_0 = fnl.lat_0
+        ds_xymake2d, fnl_lon_0, fnl_lat_0, fnl_lon, fnl_lat
+        idx = search_closest_pixel(fnl_lon, fnl_lat, lon, lat, maxlimit=1.0)
+        if idx ne -999 then begin
+          indices = array_indices(fnl_lon, idx)
+          fnl_pres = fnl.lv_ISBL0/100.
+          p6 = plot(TMP_P0_L100_GLL0[indices[0], indices[1], *], fnl_pres, /buffer, /current, $
+            axis_style=0, $
+            margin=plot_margin, $
+            /ylog);, $ color='#56b4e8', linestyle=2, name='Ozonesonde', /overplot)
+          p6.color = [240, 228, 66]
+          p6.yrange= plot_yrange
+          p6.xrange=[150, 310]
+          p6.linestyle = 0
+          p6.symbol= 'tu'
+          p6.name = 'FNL Temperature'
+          leg_list = [p1, p2, p4, p5, p6]
+        ENDif
+        
+        leg = legend(target=leg_list, position=[59, 0.15], /data)
+        
+        titletext = 'GEMS O3 Profile '+ datetime_str
+        if strlen(pointname[ipix]) gt 0 then begin
+          titletext = titletext + ' ' + pointname[ipix]
+        endif
+
+        t1 = text(0.5, 0.95, titletext, $
+          font_size=16, $
+          /normal, $
+          alignment=0.5, $
+          vertical_alignment=0.5)
+
+        lat_t = text(0.2, 0.78, 'Latitude   :' +string(lat, format='(f7.2)'), /normal)
+        lon_t = text(0.2, 0.75, 'Longitude  :' +string(lon, format='(f7.2)'), /normal)
+        ecf_t = text(0.2, 0.72, 'L2O3P_ECF  :' +string(ecf, format='(f7.2)'), /normal)
+        cp_t = text(0.2, 0.69,  'L2O3P_CP   :' +string(cp, format='(f7.2)'), /normal)
+        sza_t = text(0.2, 0.66, 'SolZenAng  :' +string(sza, format='(f7.2)'), /normal)
+        tp_t = text(0.2, 0.63,  'TerrPres   :' +string(tp, format='(f7.2)'), /normal)
+
+        if put_suffix then begin
+          outfn = outputpath + 'x' + $
+            string(xidx, format='(i04)') + $
+            'y' + string(yidx, format='(i04)') + '_' + suffix + '.png'
+        ENDif else begin
+          outfn = outputpath + 'x' + $
+            string(xidx, format='(i04)') + $
+            'y' + string(yidx, format='(i04)') + '.png'
+        endelse
+
+        p1.save, outfn
+        print, outfn
+        p1.close
+
       ENDif
-      
-      leg = legend(target=leg_list, position=[59, 30],/data)
-      
-      titletext = 'GEMS O3 Profile '+ datetime_str
-      if strlen(pointname[ipix]) gt 0 then begin
-        titletext = titletext + ' ' + pointname[ipix]
-      endif
 
-      t1 = text(0.5, 0.95, titletext, $
-        font_size=16, $
-        /normal, $
-        alignment=0.5, $
-        vertical_alignment=0.5)
+      ; plot for residuals of fit
+      if (tag_exist(gemso3p, 'AllWavelengthResidualsOfFit')) then begin 
+        print, 'tag_exist, plot AllWavelengthResidualsOfFit'
+        residualsoffit = reform(gemso3p.AllWavelengthResidualsOfFit[xidx, yidx, *])
+        simrad = reform(gemso3p.SimulatedRadiances[xidx, yidx, *])
+        if (tag_exist(gemso3p, 'wavelengthsWholeRange') )then begin 
+          wavelength = reform(gemso3p.wavelengthsWholeRange[xidx, yidx, *])
+          v103_wavelength_flag = 0
+        ENDif else begin
+          wavelength = gemso3p.wavelengths
+          v103_wavelength_flag = 1
+        ENDelse
+        p1 = plot(wavelength[0:147], residualsoffit[0:147]/simrad[0:147], $
+          title='ResidualsOfFit ' + pointname[ipix] + ' ' +  datetime_str, $
+          symbol='+', $
+          name='ResidualsOfFit', /buffer)
 
-    lat_t = text(0.2, 0.78, 'Latitude   :' +string(lat, format='(f7.2)'), /normal)
-    lon_t = text(0.2, 0.75, 'Longitude  :' +string(lon, format='(f7.2)'), /normal)
-    ecf_t = text(0.2, 0.72, 'EffCldPres :' +string(ecf, format='(f7.2)'), /normal)
-    cp_t = text(0.2, 0.69,  'CldPres    :' +string(cp, format='(f7.2)'), /normal)
-    sza_t = text(0.2, 0.66, 'SolZenAng  :' +string(sza, format='(f7.2)'), /normal)
-    tp_t = text(0.2, 0.63,  'TerrPres   :' +string(tp, format='(f7.2)'), /normal)
+        yrange = [-0.025, 0.025]
+        p1.yrange=yrange
+        p1.xtitle='Wavelengths[nm]'
+        p1.ytitle='(FitSpec - SimRad) / SimRad'
+        p2 = plot(indgen(50) + 290, fltarr(50), color='gray', linestyle='dotted', /buffer, /overplot)
+        p2.xrange = [310, 340]
+        p1.xrange = [310, 340]
+        
 
-      p1.save, outputpath + '/x' + $
-        string(xidx, format='(i03)') + $
-        'y' + string(yidx, format='(i03)') + '.png'
-      p1.close
+        if put_suffix then begin
+          outfn = outputpath + 'residualsoffit_x' + $
+            string(xidx, format='(i04)') + $
+            'y' + string(yidx, format='(i04)') + '_' + suffix + '.png'
+        ENDif else begin
+          outfn = outputpath + 'residualsoffit_x' + $
+            string(xidx, format='(i04)') + $
+            'y' + string(yidx, format='(i04)') + '.png'
+        endelse
+        leg = legend(target=[p1], position=[339, yrange[1]*0.9], /data)
+        if v103_wavelength_flag then begin
+          t1 = text(330, yrange[0]*0.9, 'v1.0.3 wavelengths', /data)
+        ENDif
+        finiteidx = where(finite(residualsoffit) eq 1 and residualsoffit ge -1e28, /null)
+        t2 = text(311, yrange[1]*0.9, 'Total Absolute Residuals:' + $
+          string(total(abs(residualsoffit[finiteidx])), format='(f10.8)'), /data)
+        ;print, 'Total Absolute Residuals:' + string(total(abs(residualsoffit[finiteidx])), formate='(f10.8)')
+        p1.save, outfn
+        p1.close
+      ENDif
+
     ENDif
   endfor
 ENDif

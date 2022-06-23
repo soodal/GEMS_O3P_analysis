@@ -240,13 +240,13 @@ if okay then begin
     tp_t = text(0.2, 0.63,  'TerrPres   :' +string(tp, format='(f7.2)'), /normal)
 
     if put_suffix then begin
-      outfn = outputpath + '/x' + $
-        string(xidx[ipix], format='(i03)') + $
-        'y' + string(yidx[ipix], format='(i03)') + '_' + suffix + '.png'
+      outfn = outputpath + 'x' + $
+        string(xidx[ipix], format='(i04)') + $
+        'y' + string(yidx[ipix], format='(i04)') + '_' + suffix + '.png'
     ENDif else begin
-      outfn = outputpath + '/x' + $
-        string(xidx[ipix], format='(i03)') + $
-        'y' + string(yidx[ipix], format='(i03)') + '.png'
+      outfn = outputpath + 'x' + $
+        string(xidx[ipix], format='(i04)') + $
+        'y' + string(yidx[ipix], format='(i04)') + '.png'
     endelse
 
     p1.save, outfn
