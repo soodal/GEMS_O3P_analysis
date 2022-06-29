@@ -4,8 +4,8 @@ import datetime
 import pandas as pd
 from netCDF4 import Dataset
 
-daterange = pd.date_range(datetime.datetime(2021, 1, 1), 
-        datetime.datetime(2021, 12, 31), freq='D')
+daterange = pd.date_range(datetime.datetime(2022, 3, 1), 
+        datetime.datetime(2022, 3, 2), freq='D')
 for d in daterange:
     yyyy = d.strftime('%Y')
     mm = d.strftime('%m')
@@ -14,17 +14,26 @@ for d in daterange:
     fn = f'/data/WORKED/TSIS_IRR/GK2_GEMS_TSIS-1_{yyyy}{mm}{dd}.nc'
     rootgrp = Dataset(fn)
 
+    try: 
+        created_by = rootgrp.Created_by
+        do_write_created_by = True 
+    except AttributeError:
+        do_write_created_by = False
+
+    try: 
+        created_at = rootgrp.Created_at
+        do_write_created_at = True
+    except AttributeError:
+        do_write_created_at = False
+
     ipv = rootgrp['image_pixel_values'][:]
     ipv_shape = ipv.shape
-    print(ipv_shape)
 
     wvl = rootgrp['wavelength'][:]
     wvl_shape = wvl.shape
-    print(wvl_shape)
+
     bpm = rootgrp['bad_pixel_mask'][:]
     bpm_shape = bpm.shape
-    print(bpm_shape)
-
     rootgrp.close()
 
 # calculate
@@ -45,15 +54,16 @@ for d in daterange:
     if not os.path.isdir(outfp):
         os.makedirs(outfp)
 
-    ncfile = Dataset(outfp + '/' + f'GK2_GEMS_TSIS-1_{yyyy}{mm}{dd}_BIN4x4.nc', 
+    outfn = outfp + '/' + f'GK2_GEMS_TSIS-1_{yyyy}{mm}{dd}_BIN4x4.nc'
+    ncfile = Dataset(outfn, 
             mode='w', 
             format='NETCDF4_CLASSIC')
 
     image_y = ncfile.createDimension('dim_image_y', 512) # spatial axis
     image_band = ncfile.createDimension('dim_image_band', 1033) # wavelength axis
 
-    for dim in ncfile.dimensions.items():
-        print(dim)
+    # for dim in ncfile.dimensions.items():
+        # print(dim)
 
     bad_pixel_mask = ncfile.createVariable('bad_pixel_mask', np.int16, ('dim_image_band', 'dim_image_y'))
     bad_pixel_mask.FillValue = "-999s"
@@ -73,5 +83,16 @@ for d in daterange:
     image_pixel_values.units = '[W/cm2/cm/sr]'
     image_pixel_values[:] = ipv_4x4[:]
 
+    attr_binned_by = ncfile.setncattr('Binned_by', 'Dae Sung Choi')
+    attr_binned_at = ncfile.setncattr('Binned_at', datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat())
+
+    if do_write_created_by:
+        attr_created_by = ncfile.setncattr('Created_by', created_by)
+
+    if do_write_created_at:
+        attr_created_at = ncfile.setncattr('Created_at', created_at)
+
     ncfile.close()
+
+    print(fn + ' -> ' + outfn + ' DONE.')
 
